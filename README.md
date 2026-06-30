@@ -85,6 +85,32 @@ Mikroservislerin izole ve yüksek erişilebilir bir altyapıda çalışmasını,
 
 ---
 
+## 🌿 5.Git & Branch Kullanım Kılavuzu
+
+Projemizde takım çalışmasını sağlıklı yürütmek ve kod karışıklıklarını önlemek adına **Gitflow** stratejisi uygulanacaktır[cite: 1]. Ana dalımız (`main`) koruma altına alınmıştır; bu nedenle doğrudan `main` branch'ine kod gönderilemez.
+
+Her ekip üyesinin aşağıdaki branch (dal) yapısına uygun şekilde çalışması gerekmektedir:
+
+### 🚀 5.1. Branch (Dal) Dağılımı
+
+Her uzmanlık alanı, geliştirmelerini kendilerine ait ana alt branch'ler üzerinden yürütecektir. Kendi alanınızla ilgili çalışmaya başlamadan önce lütfen ilgili branch'i oluşturun. Örneğin;
+
+*   **Backend Ekibi:** Geliştirmeler için `backend` branch'ini kullanacaktır.
+ 
+> 💡 **Kişisel Çalışma Notu:** Büyük özellikler veya kişisel görevler eklerken bu ana dallardan kendi adınıza geçici alt dallar açabilirsiniz (Örn: `backend/auth-service`, `frontend/login-screen`).
+
+---
+
+### 🔄 5.2 Çalışma ve Kod Birleştirme (PR) Akışı
+
+Kodlarınızı projeye dahil etmek için şu adımları izlemelisiniz:
+
+1.  **Kendi Branch'inizde Çalışın:** Asla `main` üzerinde değişiklik yapmayın. Kendi alanınıza ait branch'te kodunuzu yazın ve commitleyin.
+2.  **Push Atın:** Değişikliklerinizi GitHub'a pushlayın (Örn: `git push origin backend`).
+3.  **Pull Request (PR) Açın:** Kodunuz tamamlandığında, GitHub üzerinden `main` branch'ine doğru bir **Pull Request (PR)** oluşturun.
+4.  **Kod İncelemesi (Code Review):** Açılan PR'ların `main` ile birleşebilmesi için **ekibinizden en az 1 arkadaşınızın** kodunuzu inceleyip onaylaması (*Approve*) gerekmektedir.
+5.  **Merge:** Onay alındıktan sonra conflict (çelişki) yoksa PR'ı merge ederek kodunuzu ana projeye dahil edebilirsiniz.
+
 ## 🏆 Değerlendirme ve Başarı Kriterleri
 Projenin nihai başarısı; yazılan kodun temizliği (**Clean Code / SOLID**), mikroservislerin birbiriyle uyumu, ağın güvenliği ve yalıtımı, güvenlik testlerinden başarıyla geçilmesi ve veri bilimi ekibinin ürettiği öngörülerin admin paneline yansıtılma derecesi ile ölçülecektir. 
 
