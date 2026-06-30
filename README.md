@@ -85,6 +85,18 @@ Mikroservislerin izole ve yüksek erişilebilir bir altyapıda çalışmasını,
 
 ---
 
+## 🔄 5. Çalışma ve Kod Birleştirme (PR) Akışı
+
+Kodlarınızı projeye dahil etmek için şu adımları izlemelisiniz:
+
+1.  **Kendi Branch'inizde Çalışın:** Asla `main` üzerinde değişiklik yapmayın. Kendi alanınıza ait branch'te kodunuzu yazın ve commitleyin.
+2.  **Push Atın:** Değişikliklerinizi GitHub'a pushlayın (Örn: `git push origin backend`).
+3.  **Pull Request (PR) Açın:** Kodunuz tamamlandığında, GitHub üzerinden `main` branch'ine doğru bir **Pull Request (PR)** oluşturun.
+4.  **Kod İncelemesi (Code Review):** Açılan PR'ların `main` ile birleşebilmesi için **ekibinizden en az 1 arkadaşınızın** kodunuzu inceleyip onaylaması (*Approve*) gerekmektedir.
+5.  **Merge:** Onay alındıktan sonra conflict (çelişki) yoksa PR'ı merge ederek kodunuzu ana projeye dahil edebilirsiniz
+
+---
+
 ## 🏆 Değerlendirme ve Başarı Kriterleri
 Projenin nihai başarısı; yazılan kodun temizliği (**Clean Code / SOLID**), mikroservislerin birbiriyle uyumu, ağın güvenliği ve yalıtımı, güvenlik testlerinden başarıyla geçilmesi ve veri bilimi ekibinin ürettiği öngörülerin admin paneline yansıtılma derecesi ile ölçülecektir. 
 
