@@ -4,7 +4,9 @@ import com.btk.staj.VIPTransferProject.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 
@@ -44,6 +46,7 @@ public class User {
     private String preferredLang = "tr";
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Builder.Default
     @Column(nullable = false, columnDefinition = "user_role")
     private UserRole role = UserRole.CUSTOMER;
