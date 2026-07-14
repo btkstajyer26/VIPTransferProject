@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest # Arka planda çalışacak ücretsiz sunucunun işletim sistemi
+    runs-on: ubuntu-latest
 
     steps:
     - name: 1. Kodları GitHub'dan Çek
@@ -20,10 +20,26 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: 'maven' # İşlemleri hızlandırmak için bağımlılıkları önbelleğe alır
+        cache: 'maven'
 
     - name: 3. Maven ile Projeyi Derle ve Test Et
-      # Backend ekibinin kodları ana dizinde değil, bu klasörün içindeydi:
       working-directory: ./backend/VIPTransferProject
-      # Temiz bir build alır ve kodda hata varsa işlemi iptal eder (kırmızı yanar)
       run: mvn clean package
+
+  deploy-to-production:
+    needs: build-and-test 
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 4. Canlı Sunucuya Güvenli Bağlantı (SSH) Kur ve Docker'ı Yeniden Başlat
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        script: |
+          cd /opt/VIPTransferProject
+          git pull origin main
+          docker compose down
+          docker compose up -d --build
