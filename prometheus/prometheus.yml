@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 5s # Verileri ne sıklıkla toplayacak (Hızlı test için 5 saniye)
+
+scrape_configs:
+  # 1. Prometheus'un kendi kendini izlemesi için
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 2. Docker konteynerlerini izleyecek cAdvisor tanımı
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['vip-cadvisor:8080'] # Güvenlik için compose'daki isimle eşleştirdik
+
+  # 3. İŞTE EKSİK OLAN KISIM: Spring Boot Backend Metrikleri
+  - job_name: 'spring-backend'
+    metrics_path: '/actuator/prometheus' # Spring Boot'un metrikleri dışa vurduğu adres
+    static_configs:
+      - targets: ['vip-backend:8080'] # Docker iç ağındaki backend container adı ve portu

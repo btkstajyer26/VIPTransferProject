@@ -5,39 +5,38 @@ services:
   # 1. VERİTABANI SERVİSİ (Sadece iç ağda erişilebilir - İZOLE)
   # ==========================================================
   postgres-db:
-    image: postgis/postgis:15-3.3 # PostGIS uzantısı kurulu Postgres imajı
+    image: postgis/postgis:15-3.3
     container_name: vip-postgres
+    ports:
+      - "5432:5432" # IntelliJ'den (localhost üzerinden) bağlanabilmen için şart
     environment:
-      POSTGRES_USER: postgres       # CREATE EXTENSION yetki sorunu yaşamamak için süper kullanıcı
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: vip_password
-      POSTGRES_DB: btk              # İstediğin veritabanı adı
+      POSTGRES_DB: vip_transfer_db # application.properties ile birebir aynı
     volumes:
-      # Klasördeki şemayı okuyarak uzantıları ve tabloları otomatik oluşturur
       - ./sql-scripts:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     networks:
       - vip-network
     restart: unless-stopped
-    # DİKKAT: ports tanımlanmadı! Dışarıdan veritabanına erişmek imkansızdır.
 
   # ==========================================================
   # 2. BACKEND SERVİSİ (Sadece iç ağda erişilebilir - İZOLE)
   # ==========================================================
   backend-service:
     build:
-      context: ./backend/VIPTransferProject # Dockerfile'ın bulunduğu dizin
+      context: ./backend/VIPTransferProject
     container_name: vip-backend
     depends_on:
       - postgres-db
     environment:
-      # Spring Boot'un Docker içindeki Postgres'e bağlanması için gereken JDBC url'i
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://vip-postgres:5432/btk
+      # Docker içindeyken localhost çalışmaz, bu yüzden container adını (vip-postgres) veriyoruz
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://vip-postgres:5432/vip_transfer_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=vip_password
     networks:
       - vip-network
     restart: on-failure
-    # DİKKAT: ports tanımlanmadı! Dışarıdan backend'e doğrudan erişilemez.
 
   # ==========================================================
   # 3. API GATEWAY (DIŞ DÜNYAYA AÇIK TEK KAPI)
@@ -46,7 +45,7 @@ services:
     image: nginx:latest
     container_name: vip-api-gateway
     ports:
-      - "8080:80" # Dış dünyaya açılan tek geçiş kapımız (localhost:8080)
+      - "8888:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -55,12 +54,68 @@ services:
       - vip-network
     restart: unless-stopped
 
+  # ==========================================================
+  # 4. CADVISOR (Docker Konteyner Metrik Toplayıcı)
+  # ==========================================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: vip-cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - vip-network
+    restart: unless-stopped
+
+  # ==========================================================
+  # 5. PROMETHEUS (Zaman Serili Veritabanı)
+  # ==========================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vip-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - cadvisor
+    networks:
+      - vip-network	
+    restart: unless-stopped
+
+  # ==========================================================
+  # 6. GRAFANA (Görsel Panel - Sadece Admin Paneli Olarak Dışa Açık)
+  # ==========================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vip-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - vip-network
+    restart: unless-stopped
+
 # ==========================================================
-# CİLT VE İZOLE AĞ TANIMLAMALARI
+# CİLT (VOLUME) TANIMLAMALARI (TAMAMEN SOLA YASLI OLMALI)
 # ==========================================================
 volumes:
-  postgres_data: # Veritabanının silinmesini önleyen kalıcı disk alanı
+  postgres_data:
+  prometheus_data:
+  grafana_data:
 
+# ==========================================================
+# AĞ (NETWORK) TANIMLAMALARI (TAMAMEN SOLA YASLI OLMALI)
+# ==========================================================
 networks:
   vip-network:
-    driver: bridge # Konteynerlerin kendi aralarında konuşacağı özel köprü ağ
+    driver: bridge
