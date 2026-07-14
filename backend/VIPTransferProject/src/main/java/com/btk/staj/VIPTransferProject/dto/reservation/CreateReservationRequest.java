@@ -24,5 +24,4 @@ public class CreateReservationRequest {
     private String campaignCode;
     private String flightNumber;
     private String notes;
-    private String guestPhone;
 }

@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
+    List<Reservation> findAllByOrderByScheduledTimeDesc();
+
     List<Reservation> findByUserIdOrderByScheduledTimeDesc(Long userId);
 
     List<Reservation> findByStatusOrderByScheduledTimeAsc(ReservationStatus status);
