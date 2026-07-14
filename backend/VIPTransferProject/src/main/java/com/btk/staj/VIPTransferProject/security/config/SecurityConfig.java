@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Slf4j
 @Configuration
-@EnableWebSecurity // Tüm HTTP güvenlik altyapısını aktif eder
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 

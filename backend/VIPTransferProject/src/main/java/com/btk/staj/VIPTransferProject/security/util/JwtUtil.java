@@ -18,9 +18,8 @@ import java.util.Date;
 public class JwtUtil {
 
     private final JwtKeyProvider keyProvider;
-    private static final long EXPIRATION_TIME = 1000 * 60 * 15; // 15 Dakika
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 saat
 
-    // 1. Token Üretimi (Sadece başarılı login sonrası çağrılır)
     public String generateToken(String username) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Token üretimi için geçerli bir kullanıcı adı gereklidir.");
@@ -34,7 +33,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // 2. Token Doğrulama (Gateway/Filtre katmanında her istekte çağrılır)
+    // 2. Token Doğrulama (Security/Filtre katmanında her istekte çağrılır)
     public boolean validateToken(String token) {
         if (token == null || token.trim().isEmpty()) {
             log.warn("Güvenlik Uyarısı: Boş veya null token ile işlem yapılmaya çalışıldı.");
