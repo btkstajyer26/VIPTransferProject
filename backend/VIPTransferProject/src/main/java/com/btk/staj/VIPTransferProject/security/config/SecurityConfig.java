@@ -1,5 +1,6 @@
 package com.btk.staj.VIPTransferProject.security.config;
 
+import com.btk.staj.VIPTransferProject.security.RateLimitingFilter;
 import com.btk.staj.VIPTransferProject.security.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    // Bizim yazdığımız Rate Limiting filtresini buraya dahil ediyoruz
+    private final RateLimitingFilter rateLimitingFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,6 +39,9 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
+                // 1. Önce Rate Limiter çalışsın (Saldırganları kapıda yakalamak için en başta olmalı)
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+                // 2. Sonra JWT doğrulama çalışsın
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         log.info("Guvenlik duvari basariyla ayarlandi ve aktif edildi.");
