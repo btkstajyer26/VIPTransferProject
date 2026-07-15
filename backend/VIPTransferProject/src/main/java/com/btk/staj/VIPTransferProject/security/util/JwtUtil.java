@@ -18,22 +18,24 @@ import java.util.Date;
 public class JwtUtil {
 
     private final JwtKeyProvider keyProvider;
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 saat
+    private static final long EXPIRATION_TIME = 1000 * 60 * 15; // 15dk Access Token
 
-    public String generateToken(String username) {
+    public String generateToken(String username, Long userId, String role) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Token üretimi için geçerli bir kullanıcı adı gereklidir.");
         }
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("userId", userId)
+                .claim("role",role)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(keyProvider.getPrivateKey(), SignatureAlgorithm.RS256)
                 .compact();
     }
 
-    // 2. Token Doğrulama (Security/Filtre katmanında her istekte çağrılır)
+    // Token Doğrulama (Security/Filtre katmanında her istekte çağrılır)
     public boolean validateToken(String token) {
         if (token == null || token.trim().isEmpty()) {
             log.warn("Güvenlik Uyarısı: Boş veya null token ile işlem yapılmaya çalışıldı.");
@@ -58,18 +60,20 @@ public class JwtUtil {
         return false;
     }
 
-    // 3. Token İçinden Kullanıcı Adını Çıkarma
+    // Token içinden rol okuma metodu
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
     public String extractUsername(String token) {
-        try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(keyProvider.getPublicKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-            return claims.getSubject();
-        } catch (Exception e) {
-            log.error("Token içerisinden kullanıcı adı çıkarılamadı: {}", e.getMessage());
-            return null;
-        }
+        return extractAllClaims(token).getSubject();
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(keyProvider.getPublicKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
