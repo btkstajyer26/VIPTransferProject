@@ -12,3 +12,8 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['vip-backend:8080']
+
+  # 3. Host CPU, RAM, Disk, Ağ Metrikleri (Node Exporter üzerinden)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['vip-node-exporter:9100']
