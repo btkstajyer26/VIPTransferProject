@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.security.filter;
 
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
+import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String phoneNumber;
         final String role;
+        final Long userId;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -49,12 +51,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(jwt)) {
                 role= jwtUtil.extractRole(jwt);
                 phoneNumber = jwtUtil.extractUsername(jwt);
+                userId= jwtUtil.extractUserId(jwt);
                 if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
                     // GÜVENLİK ONAYLANDI
+                    UserPrincipal principal = new UserPrincipal(userId,phoneNumber);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            phoneNumber, null, authorities
+                            principal, null, authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
