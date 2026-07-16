@@ -2,8 +2,8 @@ package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.reservation.CreateReservationRequest;
 import com.btk.staj.VIPTransferProject.dto.reservation.ReservationResponse;
+import com.btk.staj.VIPTransferProject.dto.reservation.ReservationStatusHistoryResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
-import com.btk.staj.VIPTransferProject.entity.ReservationStatusHistory;
 import com.btk.staj.VIPTransferProject.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +82,7 @@ public class ReservationController {
 
     // Rezervasyonun durum geçmişini getir
     @GetMapping("/{id}/history")
-    public ResponseEntity<List<ReservationStatusHistory>> getStatusHistory(
+    public ResponseEntity<List<ReservationStatusHistoryResponse>> getStatusHistory(
             @PathVariable Long id,
             @RequestParam Long userId) {
         log.info("HTTP GET /api/v1/reservations/{}/history isteği alındı. userId={}", id, userId);

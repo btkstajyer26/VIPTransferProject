@@ -2,6 +2,7 @@ package com.btk.staj.VIPTransferProject.service;
 
 import com.btk.staj.VIPTransferProject.dto.reservation.CreateReservationRequest;
 import com.btk.staj.VIPTransferProject.dto.reservation.ReservationResponse;
+import com.btk.staj.VIPTransferProject.dto.reservation.ReservationStatusHistoryResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
 import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.DiscountType;
@@ -146,10 +147,37 @@ public class ReservationService {
         return toResponse(reservation);
     }
 
+    @Transactional
     public ReservationResponse updateStatus(Long id, UpdateStatusRequest request, Long userId) {
-        // TODO: durum geçişini doğrula (PENDING→ASSIGNED→COMPLETED/NO_SHOW, PENDING→CANCELLED)
-        //       reservation_status_history'e kayıt ekle
-        throw new UnsupportedOperationException("Henüz implement edilmedi");
+        User requester = findUserByUserId(userId);
+        if (requester.getRole() != UserRole.ADMIN) {
+            throw new RuntimeException("Durum güncelleme yetkisi yok. Yalnızca ADMIN.");
+        }
+        Reservation reservation = reservationRepository.findOneById(id);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+        }
+        ReservationStatus current = reservation.getStatus();
+        ReservationStatus target = request.getStatus();
+        validateStatusTransition(current, target);
+
+        reservation.setStatus(target);
+        if (target == ReservationStatus.COMPLETED) {
+            reservation.setCompletedAt(OffsetDateTime.now());
+        } else if (target == ReservationStatus.CANCELLED) {
+            reservation.setCancelledAt(OffsetDateTime.now());
+        }
+        reservationRepository.save(reservation);
+
+        statusHistoryRepository.save(ReservationStatusHistory.builder()
+                .reservation(reservation)
+                .status(target)
+                .changedBy(requester)
+                .note(request.getNote())
+                .build());
+
+        log.info("Rezervasyon durumu güncellendi. id={}, {} -> {}", id, current, target);
+        return toResponse(reservation);
     }
 
     @Transactional
@@ -178,12 +206,38 @@ public class ReservationService {
         log.info("Rezervasyon iptal edildi. id={}, userId={}", id, userId);
     }
 
-    public List<ReservationStatusHistory> getStatusHistory(Long reservationId, Long userId) {
-        // TODO: sahiplik kontrolü yap
-        return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservationId);
+    @Transactional(readOnly = true)
+    public List<ReservationStatusHistoryResponse> getStatusHistory(Long reservationId, Long userId) {
+        User requester = findUserByUserId(userId);
+        Reservation reservation = reservationRepository.findOneById(reservationId);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı: " + reservationId);
+        }
+        validateReservationAccess(reservation, requester);
+        return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservationId)
+                .stream()
+                .map(this::toHistoryResponse)
+                .toList();
     }
 
     // --- Ortak yardımcı metodlar ---
+
+    private void validateStatusTransition(ReservationStatus current, ReservationStatus target) {
+        if (target == null) {
+            throw new RuntimeException("Hedef durum belirtilmedi.");
+        }
+        if (current == target) {
+            throw new RuntimeException("Rezervasyon zaten " + current + " durumunda.");
+        }
+        boolean valid = switch (current) {
+            case PENDING  -> target == ReservationStatus.ASSIGNED || target == ReservationStatus.CANCELLED;
+            case ASSIGNED -> target == ReservationStatus.COMPLETED || target == ReservationStatus.NO_SHOW;
+            case COMPLETED, CANCELLED, NO_SHOW -> false;
+        };
+        if (!valid) {
+            throw new RuntimeException("Geçersiz durum geçişi: " + current + " -> " + target);
+        }
+    }
 
     private User findUserByUserId(Long userId) {
         return userRepository.findByIdAndActiveTrue(userId)
@@ -196,6 +250,23 @@ public class ReservationService {
         if (!isAdmin && !isOwner) {
             throw new RuntimeException("Bu rezervasyona erişim yetkiniz yok.");
         }
+    }
+
+    private ReservationStatusHistoryResponse toHistoryResponse(ReservationStatusHistory h) {
+        User changedBy = h.getChangedBy();
+        String changedByName = changedBy != null
+                ? (changedBy.getFirstName() != null ? changedBy.getFirstName() : "") +
+                  (changedBy.getLastName() != null ? " " + changedBy.getLastName() : "")
+                : null;
+        return ReservationStatusHistoryResponse.builder()
+                .id(h.getId())
+                .reservationId(h.getReservation().getId())
+                .status(h.getStatus())
+                .changedById(changedBy != null ? changedBy.getId() : null)
+                .changedByName(changedByName != null ? changedByName.trim() : null)
+                .note(h.getNote())
+                .changedAt(h.getChangedAt())
+                .build();
     }
 
     private ReservationResponse toResponse(Reservation r) {
