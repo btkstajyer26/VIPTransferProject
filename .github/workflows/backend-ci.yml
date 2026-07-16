@@ -1,0 +1,45 @@
+name: VIP Transfer Backend CI/CD
+
+# Bu müfettiş ne zaman çalışsın?
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Kodları GitHub'dan Çek
+      uses: actions/checkout@v4
+
+    - name: 2. Java 21 Kurulumu Yap
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: 3. Maven ile Projeyi Derle ve Test Et
+      working-directory: ./backend/VIPTransferProject
+      run: mvn clean package
+
+  deploy-to-production:
+    needs: build-and-test 
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 4. Canlı Sunucuya Güvenli Bağlantı (SSH) Kur ve Docker'ı Yeniden Başlat
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        script: |
+          cd /opt/VIPTransferProject
+          git pull origin main
+          docker compose down
+          docker compose up -d --build
