@@ -15,4 +15,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByUserIdOrderByScheduledTimeDesc(Long userId);
 
     List<Reservation> findByStatusOrderByScheduledTimeAsc(ReservationStatus status);
+
+    Reservation findOneById(Long id);
 }

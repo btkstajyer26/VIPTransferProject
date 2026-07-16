@@ -6,6 +6,7 @@ import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
 import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.DiscountType;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
+import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -127,13 +128,22 @@ public class ReservationService {
     }
 
     public List<ReservationResponse> getMyReservations(Long userId) {
-        // TODO: sahiplik kontrolü yap
-        throw new UnsupportedOperationException("Henüz implement edilmedi");
+        findUserByUserId(userId);
+        return reservationRepository.findByUserIdOrderByScheduledTimeDesc(userId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public ReservationResponse getReservationById(Long id, Long userId) {
-        // TODO: rezervasyonu bul; ADMIN veya rezervasyon sahibi erişebilir
-        throw new UnsupportedOperationException("Henüz implement edilmedi");
+        User requester = findUserByUserId(userId);
+        Reservation reservation = reservationRepository.findOneById(id);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+        }
+        validateReservationAccess(reservation, requester);
+        return toResponse(reservation);
     }
 
     public ReservationResponse updateStatus(Long id, UpdateStatusRequest request, Long userId) {
@@ -142,14 +152,50 @@ public class ReservationService {
         throw new UnsupportedOperationException("Henüz implement edilmedi");
     }
 
+    @Transactional
     public void cancelReservation(Long id, Long userId) {
-        // TODO: sadece PENDING durumundaki rezervasyonlar iptal edilebilir
-        throw new UnsupportedOperationException("Henüz implement edilmedi");
+        User requester = findUserByUserId(userId);
+        Reservation reservation = reservationRepository.findOneById(id);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+        }
+        validateReservationAccess(reservation, requester);
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new RuntimeException(
+                    "Sadece PENDING durumundaki rezervasyon iptal edilebilir. Mevcut durum: " + reservation.getStatus());
+        }
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservation.setCancelledAt(OffsetDateTime.now());
+        reservationRepository.save(reservation);
+
+        statusHistoryRepository.save(ReservationStatusHistory.builder()
+                .reservation(reservation)
+                .status(ReservationStatus.CANCELLED)
+                .changedBy(requester)
+                .note("Rezervasyon iptal edildi.")
+                .build());
+
+        log.info("Rezervasyon iptal edildi. id={}, userId={}", id, userId);
     }
 
     public List<ReservationStatusHistory> getStatusHistory(Long reservationId, Long userId) {
         // TODO: sahiplik kontrolü yap
         return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservationId);
+    }
+
+    // --- Ortak yardımcı metodlar ---
+
+    private User findUserByUserId(Long userId) {
+        return userRepository.findByIdAndActiveTrue(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı veya aktif değil: " + userId));
+    }
+
+    private void validateReservationAccess(Reservation reservation, User requester) {
+        boolean isAdmin = requester.getRole() == UserRole.ADMIN;
+        boolean isOwner = reservation.getUser() != null && reservation.getUser().getId().equals(requester.getId());
+        if (!isAdmin && !isOwner) {
+            throw new RuntimeException("Bu rezervasyona erişim yetkiniz yok.");
+        }
     }
 
     private ReservationResponse toResponse(Reservation r) {
