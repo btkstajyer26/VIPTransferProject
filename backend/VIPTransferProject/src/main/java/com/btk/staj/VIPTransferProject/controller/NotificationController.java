@@ -4,6 +4,7 @@ import com.btk.staj.VIPTransferProject.dto.notification.CreateNotificationReques
 import com.btk.staj.VIPTransferProject.dto.notification.NotificationResponse;
 import com.btk.staj.VIPTransferProject.dto.notification.UpdateNotificationStatusRequest;
 import com.btk.staj.VIPTransferProject.service.NotificationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class NotificationController {
 
     @PostMapping
     public ResponseEntity<NotificationResponse> create(
-            @RequestBody CreateNotificationRequest request
+            @Valid @RequestBody CreateNotificationRequest request
     ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -36,20 +37,24 @@ public class NotificationController {
     public ResponseEntity<NotificationResponse> getById(
             @PathVariable Long id
     ) {
-        return ResponseEntity.ok(notificationService.getById(id));
+        return ResponseEntity.ok(
+                notificationService.getById(id)
+        );
     }
 
     @PostMapping("/{id}/send")
     public ResponseEntity<NotificationResponse> send(
             @PathVariable Long id
     ) {
-        return ResponseEntity.ok(notificationService.send(id));
+        return ResponseEntity.ok(
+                notificationService.send(id)
+        );
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<NotificationResponse> updateStatus(
             @PathVariable Long id,
-            @RequestBody UpdateNotificationStatusRequest request
+            @Valid @RequestBody UpdateNotificationStatusRequest request
     ) {
         return ResponseEntity.ok(
                 notificationService.updateStatus(id, request)

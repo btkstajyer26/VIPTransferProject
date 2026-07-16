@@ -1,12 +1,20 @@
-
 package com.btk.staj.VIPTransferProject.strategy;
 
 import com.btk.staj.VIPTransferProject.entity.Notification;
 import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
+import com.btk.staj.VIPTransferProject.exception.NotificationSendException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
+@RequiredArgsConstructor
 public class EmailNotificationSender implements NotificationSender {
+
+    private final JavaMailSender mailSender;
 
     @Override
     public NotificationChannel getSupportedChannel() {
@@ -15,8 +23,70 @@ public class EmailNotificationSender implements NotificationSender {
 
     @Override
     public void send(Notification notification) {
-        throw new UnsupportedOperationException(
-                "E-posta gönderimi henüz implement edilmedi."
-        );
+
+        validateNotification(notification);
+
+        String recipientEmail = notification.getUser().getEmail();
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(recipientEmail);
+        mailMessage.setSubject(notification.getTitle());
+        mailMessage.setText(notification.getMessage());
+
+        try {
+            mailSender.send(mailMessage);
+        } catch (MailException exception) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    notification.getChannel(),
+                    exception.getMessage(),
+                    exception
+            );
+        }
+    }
+
+    private void validateNotification(Notification notification) {
+
+        if (notification == null) {
+            throw new IllegalArgumentException(
+                    "Gönderilecek notification null olamaz."
+            );
+        }
+
+        if (notification.getUser() == null) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    NotificationChannel.EMAIL,
+                    "Bildirime bağlı kullanıcı bulunamadı.",
+                    null
+            );
+        }
+
+        if (!StringUtils.hasText(notification.getUser().getEmail())) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    NotificationChannel.EMAIL,
+                    "Kullanıcının email adresi bulunamadı.",
+                    null
+            );
+        }
+
+        if (!StringUtils.hasText(notification.getTitle())) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    NotificationChannel.EMAIL,
+                    "Email başlığı boş olamaz.",
+                    null
+            );
+        }
+
+        if (!StringUtils.hasText(notification.getMessage())) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    NotificationChannel.EMAIL,
+                    "Email içeriği boş olamaz.",
+                    null
+            );
+        }
     }
 }

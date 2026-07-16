@@ -8,8 +8,24 @@ import org.springframework.stereotype.Component;
 public class NotificationMapper {
 
     public NotificationResponse toResponse(Notification notification) {
-        throw new UnsupportedOperationException(
-                "Notification mapping henüz implement edilmedi."
-        );
+
+        Long reservationId = null;
+
+        if (notification.getReservation() != null) {
+            reservationId = notification.getReservation().getId();
+        }
+
+        return NotificationResponse.builder()
+                .id(notification.getId())
+                .userId(notification.getUser().getId())
+                .reservationId(reservationId)
+                .channel(notification.getChannel())
+                .title(notification.getTitle())
+                .message(notification.getMessage())
+                .status(notification.getStatus())
+                .sentAt(notification.getSentAt())
+                .failureReason(notification.getFailureReason())
+                .createdAt(notification.getCreatedAt())
+                .build();
     }
 }
