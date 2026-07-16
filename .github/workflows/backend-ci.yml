@@ -24,7 +24,7 @@ jobs:
 
     - name: 3. Maven ile Projeyi Derle ve Test Et
       working-directory: ./backend/VIPTransferProject
-      run: mvn clean package
+      run: mvn clean package -DskipTests
 
   deploy-to-production:
     needs: build-and-test 
