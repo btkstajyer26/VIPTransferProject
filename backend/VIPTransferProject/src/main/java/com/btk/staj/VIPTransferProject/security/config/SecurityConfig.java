@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/reservations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/guest/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/translations/**").permitAll()
                         // Monitoring satırı için bunu ekliyom.
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated()
