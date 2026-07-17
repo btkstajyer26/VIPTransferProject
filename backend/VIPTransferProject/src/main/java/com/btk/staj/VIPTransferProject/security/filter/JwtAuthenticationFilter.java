@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.security.filter;
 
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
+import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -30,7 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String username;
+        final String phoneNumber;
+        final String role;
+        final Long userId;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -43,18 +49,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             //Token'ın imzasını ve süresini JwtUtil ile doğrulanıyor
             if (jwtUtil.validateToken(jwt)) {
-
-                username = jwtUtil.extractUsername(jwt);
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
+                role= jwtUtil.extractRole(jwt);
+                phoneNumber = jwtUtil.extractUsername(jwt);
+                userId= jwtUtil.extractUserId(jwt);
+                if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                    List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
                     // GÜVENLİK ONAYLANDI
+                    UserPrincipal principal = new UserPrincipal(userId,phoneNumber);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            username, null, new ArrayList<>() // Şu an yetkileri (Role) boş geçiyoruz
+                            principal, null, authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                    log.debug("İç Gateway (Filtre): İstek onaylandı, kullanıcı: {}", username);
+                    log.debug("İç Gateway (Filtre): İstek onaylandı, kullanıcı: {}", phoneNumber);
                 }
             }
         } catch (Exception e) {
