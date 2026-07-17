@@ -1,8 +1,0 @@
-# Tüm text dosyalarında LF satır sonu zorla (Windows CRLF sorununu önler)
-* text=auto eol=lf
-
-# Binary dosyaları değiştirme
-*.png binary
-*.jpg binary
-*.jar binary
-*.class binary
