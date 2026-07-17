@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.security.config;
 
 import com.btk.staj.VIPTransferProject.security.filter.JwtAuthenticationFilter;
+import com.btk.staj.VIPTransferProject.security.filter.RateLimitingFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
@@ -40,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/guest/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         log.info("Guvenlik duvari basariyla ayarlandi ve aktif edildi.");
