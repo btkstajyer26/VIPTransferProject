@@ -8,6 +8,7 @@ import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.repository.*;
+import com.btk.staj.VIPTransferProject.util.BookingReferenceGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ class ReservationServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private VehicleRepository vehicleRepository;
     @Mock private CampaignRepository campaignRepository;
+    @Mock private BookingReferenceGenerator bookingReferenceGenerator;
 
     @InjectMocks
     private ReservationService service;
@@ -103,6 +105,7 @@ class ReservationServiceTest {
 
     @Test
     void createReservation_asRegisteredUser_savesReservationAndHistory() {
+        when(bookingReferenceGenerator.generate()).thenReturn("BTK-2026-TEST01");
         when(vehicleRepository.findByIdAndActiveTrue(10L)).thenReturn(Optional.of(vehicle));
         when(userRepository.findByIdAndActiveTrue(2L)).thenReturn(Optional.of(customerUser));
         when(reservationRepository.save(any())).thenAnswer(inv -> {
@@ -116,11 +119,13 @@ class ReservationServiceTest {
         assertThat(response.getId()).isEqualTo(100L);
         assertThat(response.getStatus()).isEqualTo(ReservationStatus.PENDING);
         assertThat(response.getUserId()).isEqualTo(2L);
+        assertThat(response.getBookingReference()).isEqualTo("BTK-2026-TEST01");
         verify(statusHistoryRepository).save(any(ReservationStatusHistory.class));
     }
 
     @Test
     void createReservation_asGuest_savesWithGuestPhone() {
+        when(bookingReferenceGenerator.generate()).thenReturn("BTK-2026-TEST02");
         when(vehicleRepository.findByIdAndActiveTrue(10L)).thenReturn(Optional.of(vehicle));
         when(reservationRepository.save(any())).thenAnswer(inv -> {
             Reservation r = inv.getArgument(0);
@@ -132,10 +137,12 @@ class ReservationServiceTest {
 
         assertThat(response.getGuestPhone()).isEqualTo("05551234567");
         assertThat(response.getUserId()).isNull();
+        assertThat(response.getBookingReference()).isEqualTo("BTK-2026-TEST02");
     }
 
     @Test
     void createReservation_priceCalculation_basePriceEqualsOpeningPrice() {
+        when(bookingReferenceGenerator.generate()).thenReturn("BTK-2026-TEST03");
         when(vehicleRepository.findByIdAndActiveTrue(10L)).thenReturn(Optional.of(vehicle));
         when(userRepository.findByIdAndActiveTrue(2L)).thenReturn(Optional.of(customerUser));
         when(reservationRepository.save(any())).thenAnswer(inv -> {
