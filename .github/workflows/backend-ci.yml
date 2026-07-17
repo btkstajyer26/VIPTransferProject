@@ -1,0 +1,27 @@
+name: VIP Transfer Backend CI/CD
+
+# Bu müfettiş ne zaman çalışsın?
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Kodları GitHub'dan Çek
+      uses: actions/checkout@v4
+
+    - name: 2. Java 21 Kurulumu Yap
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: 3. Maven ile Projeyi Derle ve Test Et
+      working-directory: ./backend/VIPTransferProject
+      run: mvn clean package -DskipTests

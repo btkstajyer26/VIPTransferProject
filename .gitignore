@@ -1,2 +1,14 @@
-CLAUDE.md
+# Claude Code geçici dosyaları
+.claude/
+
+# macOS
 .DS_Store
+
+# IDE
+.idea/
+*.iml
+
+# Docker volume verileri (yerel)
+postgres_data/
+prometheus_data/
+grafana_data/
