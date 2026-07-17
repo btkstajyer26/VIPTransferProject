@@ -47,10 +47,10 @@ public class LoyaltyService {
     @Transactional
     public void AccurePoints(AccurePointsRequests requests){
         LoyaltyAccount account = findAccountOrThrow(requests.getUserId());
-        LoyaltyTierConfig currenrtConfig = findTierConfigOrThrow(account.getTier());
+        LoyaltyTierConfig currentConfig = findTierConfigOrThrow(account.getTier());
 
         int earnedPoints = requests.getFareAmount()
-                .multiply(currenrtConfig.getEarnRate())
+                .multiply(currentConfig.getEarnRate())
                 .setScale(0, RoundingMode.HALF_UP)
                 .intValue();
 
