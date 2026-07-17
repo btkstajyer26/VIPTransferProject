@@ -5,7 +5,6 @@ import com.btk.staj.VIPTransferProject.entity.LoyaltyAccount;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyAccountRepository;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +44,7 @@ public class LoyaltyService {
     }
 
     @Transactional
-    public void AccurePoints(AccurePointsRequests requests){
+    public void AccruePoints(AccruePointsRequests requests){
         LoyaltyAccount account = findAccountOrThrow(requests.getUserId());
         LoyaltyTierConfig currentConfig = findTierConfigOrThrow(account.getTier());
 

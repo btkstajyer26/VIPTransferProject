@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class AccurePointsRequests {
+public class AccruePointsRequests {
     private long userId;
     private BigDecimal fareAmount;
 }
