@@ -32,12 +32,12 @@ public class AuthService {
             log.warn("Güvenlik - Başarısız Giriş: Hatalı şifre denemesi ({})", request.getPhoneNumber());
             throw new RuntimeException("Kullanıcı adı veya şifre hatalı!");
         }
-        String token = jwtUtil.generateToken(user.getPhoneNumber());
+        String token = jwtUtil.generateToken(user.getPhoneNumber(),user.getId(),user.getRole().name());
         log.info("Güvenlik - Başarılı Giriş: Kullanıcı ({}) için token üretildi.", user.getPhoneNumber());
         return AuthResponse.builder()
                 .accessToken(token)
-                .tokenType("Bearer")
-                .role(String.valueOf(user.getRole()))
+                .userId(user.getId())
+                .role(user.getRole().name())
                 .build();
     }
 }

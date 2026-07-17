@@ -1,14 +1,18 @@
 package com.btk.staj.VIPTransferProject.service;
 
 import com.btk.staj.VIPTransferProject.dto.reservation.CreateReservationRequest;
+import com.btk.staj.VIPTransferProject.dto.reservation.GuestReservationResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.ReservationResponse;
+import com.btk.staj.VIPTransferProject.dto.reservation.ReservationStatusHistoryResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
 import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.DiscountType;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.repository.*;
+import com.btk.staj.VIPTransferProject.util.BookingReferenceGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -32,6 +36,7 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final CampaignRepository campaignRepository;
+    private final BookingReferenceGenerator bookingReferenceGenerator;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -86,6 +91,7 @@ public class ReservationService {
 
         // 6. Reservation oluştur
         Reservation reservation = Reservation.builder()
+                .bookingReference(bookingReferenceGenerator.generate())
                 .user(user)
                 .guestPhone(guestPhone)
                 .pickupAddress(request.getPickupAddress())
@@ -105,8 +111,15 @@ public class ReservationService {
                 .status(ReservationStatus.PENDING)
                 .build();
 
-        reservation = reservationRepository.save(reservation);
-        log.info("Rezervasyon oluşturuldu. id={}, status=PENDING", reservation.getId());
+        try {
+            reservation = reservationRepository.save(reservation);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("bookingReference çarpışması, yeniden deneniyor. ref={}", reservation.getBookingReference());
+            reservation.setBookingReference(bookingReferenceGenerator.generate());
+            reservation = reservationRepository.save(reservation);
+        }
+        log.info("Rezervasyon oluşturuldu. id={}, bookingRef={}, status=PENDING",
+                reservation.getId(), reservation.getBookingReference());
 
         // 7. İlk durum geçmişi kaydı
         statusHistoryRepository.save(ReservationStatusHistory.builder()
@@ -146,10 +159,37 @@ public class ReservationService {
         return toResponse(reservation);
     }
 
+    @Transactional
     public ReservationResponse updateStatus(Long id, UpdateStatusRequest request, Long userId) {
-        // TODO: durum geçişini doğrula (PENDING→ASSIGNED→COMPLETED/NO_SHOW, PENDING→CANCELLED)
-        //       reservation_status_history'e kayıt ekle
-        throw new UnsupportedOperationException("Henüz implement edilmedi");
+        User requester = findUserByUserId(userId);
+        if (requester.getRole() != UserRole.ADMIN) {
+            throw new RuntimeException("Durum güncelleme yetkisi yok. Yalnızca ADMIN.");
+        }
+        Reservation reservation = reservationRepository.findOneById(id);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+        }
+        ReservationStatus current = reservation.getStatus();
+        ReservationStatus target = request.getStatus();
+        validateStatusTransition(current, target);
+
+        reservation.setStatus(target);
+        if (target == ReservationStatus.COMPLETED) {
+            reservation.setCompletedAt(OffsetDateTime.now());
+        } else if (target == ReservationStatus.CANCELLED) {
+            reservation.setCancelledAt(OffsetDateTime.now());
+        }
+        reservationRepository.save(reservation);
+
+        statusHistoryRepository.save(ReservationStatusHistory.builder()
+                .reservation(reservation)
+                .status(target)
+                .changedBy(requester)
+                .note(request.getNote())
+                .build());
+
+        log.info("Rezervasyon durumu güncellendi. id={}, {} -> {}", id, current, target);
+        return toResponse(reservation);
     }
 
     @Transactional
@@ -178,12 +218,59 @@ public class ReservationService {
         log.info("Rezervasyon iptal edildi. id={}, userId={}", id, userId);
     }
 
-    public List<ReservationStatusHistory> getStatusHistory(Long reservationId, Long userId) {
-        // TODO: sahiplik kontrolü yap
-        return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservationId);
+    @Transactional(readOnly = true)
+    public List<ReservationStatusHistoryResponse> getStatusHistory(Long reservationId, Long userId) {
+        User requester = findUserByUserId(userId);
+        Reservation reservation = reservationRepository.findOneById(reservationId);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı: " + reservationId);
+        }
+        validateReservationAccess(reservation, requester);
+        return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservationId)
+                .stream()
+                .map(this::toHistoryResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public GuestReservationResponse getGuestReservation(String bookingReference, String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new RuntimeException("Telefon numarası zorunludur.");
+        }
+        Reservation reservation = reservationRepository.findByBookingReference(bookingReference);
+        if (reservation == null) {
+            throw new RuntimeException("Rezervasyon bulunamadı veya doğrulama başarısız.");
+        }
+        // Kayıtlı kullanıcının rezervasyonu public uçtan gösterilmez.
+        if (reservation.getUser() != null) {
+            throw new RuntimeException("Bu rezervasyon bir hesaba bağlı. Lütfen giriş yaparak görüntüleyin.");
+        }
+        // Doğrulama: telefon eşleşmesi (SMS doğrulama kodu akışı gelene kadar).
+        String guestPhone = reservation.getGuestPhone();
+        if (guestPhone == null || !normalize(guestPhone).equals(normalize(phone))) {
+            throw new RuntimeException("Rezervasyon bulunamadı veya doğrulama başarısız.");
+        }
+        return toGuestResponse(reservation);
     }
 
     // --- Ortak yardımcı metodlar ---
+
+    private void validateStatusTransition(ReservationStatus current, ReservationStatus target) {
+        if (target == null) {
+            throw new RuntimeException("Hedef durum belirtilmedi.");
+        }
+        if (current == target) {
+            throw new RuntimeException("Rezervasyon zaten " + current + " durumunda.");
+        }
+        boolean valid = switch (current) {
+            case PENDING  -> target == ReservationStatus.ASSIGNED || target == ReservationStatus.CANCELLED;
+            case ASSIGNED -> target == ReservationStatus.COMPLETED || target == ReservationStatus.NO_SHOW;
+            case COMPLETED, CANCELLED, NO_SHOW -> false;
+        };
+        if (!valid) {
+            throw new RuntimeException("Geçersiz durum geçişi: " + current + " -> " + target);
+        }
+    }
 
     private User findUserByUserId(Long userId) {
         return userRepository.findByIdAndActiveTrue(userId)
@@ -196,6 +283,48 @@ public class ReservationService {
         if (!isAdmin && !isOwner) {
             throw new RuntimeException("Bu rezervasyona erişim yetkiniz yok.");
         }
+    }
+
+    // Interim: boşlukları temizle; +90/0 normalizasyonu SMS akışı gelince buraya eklenir.
+    private String normalize(String phone) {
+        return phone.replaceAll("\\s+", "");
+    }
+
+    private GuestReservationResponse toGuestResponse(Reservation r) {
+        String vehicleName = r.getVehicle() != null
+                ? r.getVehicle().getBrand() + " " + r.getVehicle().getModel() : null;
+        return GuestReservationResponse.builder()
+                .id(r.getId())
+                .bookingReference(r.getBookingReference())
+                .pickupAddress(r.getPickupAddress())
+                .dropoffAddress(r.getDropoffAddress())
+                .scheduledTime(r.getScheduledTime())
+                .vehicleName(vehicleName)
+                .passengerCount(r.getPassengerCount())
+                .calculatedPrice(r.getCalculatedPrice())
+                .currency(r.getCurrency())
+                .status(r.getStatus())
+                .flightNumber(r.getFlightNumber())
+                .notes(r.getNotes())
+                .createdAt(r.getCreatedAt())
+                .build();
+    }
+
+    private ReservationStatusHistoryResponse toHistoryResponse(ReservationStatusHistory h) {
+        User changedBy = h.getChangedBy();
+        String changedByName = changedBy != null
+                ? (changedBy.getFirstName() != null ? changedBy.getFirstName() : "") +
+                  (changedBy.getLastName() != null ? " " + changedBy.getLastName() : "")
+                : null;
+        return ReservationStatusHistoryResponse.builder()
+                .id(h.getId())
+                .reservationId(h.getReservation().getId())
+                .status(h.getStatus())
+                .changedById(changedBy != null ? changedBy.getId() : null)
+                .changedByName(changedByName != null ? changedByName.trim() : null)
+                .note(h.getNote())
+                .changedAt(h.getChangedAt())
+                .build();
     }
 
     private ReservationResponse toResponse(Reservation r) {
