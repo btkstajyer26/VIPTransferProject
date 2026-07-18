@@ -2,10 +2,15 @@ package com.btk.staj.VIPTransferProject.strategy;
 
 import com.btk.staj.VIPTransferProject.entity.Notification;
 import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
+import com.btk.staj.VIPTransferProject.service.IletiMerkeziSmsClient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SmsNotificationSender implements NotificationSender {
+
+    private final IletiMerkeziSmsClient smsClient;
 
     @Override
     public NotificationChannel getSupportedChannel() {
@@ -14,8 +19,10 @@ public class SmsNotificationSender implements NotificationSender {
 
     @Override
     public void send(Notification notification) {
-        throw new UnsupportedOperationException(
-                "SMS gönderimi henüz implement edilmedi."
+
+        smsClient.sendSms(
+                notification.getUser().getPhoneNumber(),
+                notification.getMessage()
         );
     }
 }
