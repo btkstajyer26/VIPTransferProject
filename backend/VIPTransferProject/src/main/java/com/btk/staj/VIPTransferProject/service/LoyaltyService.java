@@ -3,6 +3,8 @@ package com.btk.staj.VIPTransferProject.service;
 import com.btk.staj.VIPTransferProject.dto.loyalty.*;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyAccount;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
+import com.btk.staj.VIPTransferProject.exception.TierConfigNotFoundException;
+import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyAccountRepository;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
 import lombok.RequiredArgsConstructor;
@@ -70,12 +72,12 @@ public class LoyaltyService {
 
     private LoyaltyAccount findAccountOrThrow(Long userId) {
         return  loyaltyAccountRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private LoyaltyTierConfig findTierConfigOrThrow(com.btk.staj.VIPTransferProject.enums.LoyaltyTier tier) {
         return loyaltyTierConfigRepository.findByTier(tier)
-                .orElseThrow(() -> new IllegalStateException("Tier config bulunamadı: "+tier));
+                .orElseThrow(() -> new TierConfigNotFoundException(tier));
     }
 
     private LoyaltyAccountResponse toResponse(LoyaltyAccount account){
