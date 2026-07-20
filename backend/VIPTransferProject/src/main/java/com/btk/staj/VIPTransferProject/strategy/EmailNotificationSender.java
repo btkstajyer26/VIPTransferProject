@@ -1,5 +1,5 @@
 package com.btk.staj.VIPTransferProject.strategy;
-
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import com.btk.staj.VIPTransferProject.entity.Notification;
 import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 import com.btk.staj.VIPTransferProject.exception.NotificationSendException;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
+@ConditionalOnProperty(name = "spring.mail.host")
 @RequiredArgsConstructor
 public class EmailNotificationSender implements NotificationSender {
 
