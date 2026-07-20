@@ -34,6 +34,7 @@ class ReservationServiceTest {
     @Mock private VehicleRepository vehicleRepository;
     @Mock private CampaignRepository campaignRepository;
     @Mock private BookingReferenceGenerator bookingReferenceGenerator;
+    @Mock private UserService userService;
 
     @InjectMocks
     private ReservationService service;
@@ -124,9 +125,15 @@ class ReservationServiceTest {
     }
 
     @Test
-    void createReservation_asGuest_savesWithGuestPhone() {
+    void createReservation_asGuest_createsGuestUserAndLinksReservation() {
+        User guestUser = new User();
+        guestUser.setId(50L);
+        guestUser.setPhoneNumber("05551234567");
+        guestUser.setGuest(true);
+
         when(bookingReferenceGenerator.generate()).thenReturn("BTK-2026-TEST02");
         when(vehicleRepository.findByIdAndActiveTrue(10L)).thenReturn(Optional.of(vehicle));
+        when(userService.findOrCreateGuestUser(eq("05551234567"), any())).thenReturn(guestUser);
         when(reservationRepository.save(any())).thenAnswer(inv -> {
             Reservation r = inv.getArgument(0);
             r.setId(100L);
@@ -135,9 +142,12 @@ class ReservationServiceTest {
 
         ReservationResponse response = service.createReservation(buildCreateRequest(), null, "05551234567");
 
+        // guestPhone artık users.phone_number'dan geliyor (is_guest=true)
         assertThat(response.getGuestPhone()).isEqualTo("05551234567");
-        assertThat(response.getUserId()).isNull();
+        // misafir de artık userId'ye sahip (users tablosundaki is_guest satırı)
+        assertThat(response.getUserId()).isEqualTo(50L);
         assertThat(response.getBookingReference()).isEqualTo("BTK-2026-TEST02");
+        verify(userService).findOrCreateGuestUser(eq("05551234567"), any());
     }
 
     @Test

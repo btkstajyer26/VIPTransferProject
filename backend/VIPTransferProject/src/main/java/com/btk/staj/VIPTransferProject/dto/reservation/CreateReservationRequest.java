@@ -21,6 +21,8 @@ public class CreateReservationRequest {
     private Long vehicleId;
     private short passengerCount;
 
+    private String guestName;     // misafir akışında opsiyonel — users.first_name'e yazılır
+
     private String campaignCode;
     private String flightNumber;
     private String notes;

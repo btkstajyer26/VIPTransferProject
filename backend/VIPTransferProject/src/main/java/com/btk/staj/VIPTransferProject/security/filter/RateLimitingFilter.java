@@ -34,6 +34,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // Swagger UI, API docs ve actuator isteklerini rate limiting'den muaf tut
+        String path = request.getRequestURI();
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/actuator")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // İstek atan kullanıcının IP adresini alıyoruz
         String ip = request.getRemoteAddr();
 
