@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
+
 @ConditionalOnProperty(name = "spring.mail.host") 
+
 @RequiredArgsConstructor
 public class EmailNotificationSender implements NotificationSender {
 
