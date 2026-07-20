@@ -19,7 +19,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.findByPhoneNumber("05551111111").isEmpty()) {
+        if (userRepository.findByPhoneNumber("05551111111").isEmpty() ) {
 
             log.info("Sistemde admin kullanicisi bulunamadi. Varsayilan admin olusturuluyor...");
 
@@ -29,12 +29,19 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
 
-
             userRepository.save(adminUser);
 
             log.info("Varsayilan admin kullanicisi basariyla veritabanina kaydedildi.");
-        } else {
-            log.info("Veritabaninda admin kullanicisi mevcut. Seeding islemi atlandi.");
+        } else if(userRepository.findByPhoneNumber("05551111112").isEmpty()){
+            User c1 = User.builder()
+                    .phoneNumber("05551111112")
+                    .passwordHash(passwordEncoder.encode("123456"))
+                    .role(UserRole.CUSTOMER)
+                    .build();
+            userRepository.save(c1);
+        } else{
+            log.info("Veritabaninda kullancılar mevcut. Seeding islemi atlandi.");
+
         }
     }
 }
