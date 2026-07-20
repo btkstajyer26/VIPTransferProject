@@ -23,10 +23,18 @@ public class NotificationDeliveryService {
     private final NotificationSenderFactory senderFactory;
     private final NotificationRepository notificationRepository;
 
+    // EKLENDİ:
+    // EMAIL ve SMS dışında PUSH ve WHATSAPP izinlerini kontrol eder.
+    private final NotificationPreferenceService preferenceService;
+
     @Transactional(noRollbackFor = NotificationSendException.class)
     public Notification deliver(Notification notification) {
 
         try {
+            // EKLENDİ:
+            // Sender çalışmadan önce kullanıcı izin kontrolü yapılır.
+            validatePermission(notification);
+
             NotificationSender sender =
                     senderFactory.getSender(notification.getChannel());
 
@@ -80,6 +88,57 @@ public class NotificationDeliveryService {
                     notification.getChannel(),
                     reason,
                     exception
+            );
+        }
+    }
+
+    // EKLENDİ:
+    // EMAIL ve SMS için preferenceService true döndürür.
+    // PUSH ve WHATSAPP için enabled=true izin kaydı aranır.
+    private void validatePermission(Notification notification) {
+
+        if (notification == null) {
+            throw new IllegalArgumentException(
+                    "Gönderilecek notification null olamaz."
+            );
+        }
+
+        if (notification.getUser() == null) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    notification.getChannel(),
+                    "Bildirime bağlı kullanıcı bulunamadı."
+            );
+        }
+
+        if (notification.getChannel() == null) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    null,
+                    "Bildirim kanalı bulunamadı."
+            );
+        }
+
+        Long userId = notification.getUser().getId();
+
+        if (userId == null) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    notification.getChannel(),
+                    "Bildirime bağlı kullanıcının ID bilgisi bulunamadı."
+            );
+        }
+
+        boolean enabled = preferenceService.isEnabled(
+                userId,
+                notification.getChannel()
+        );
+
+        if (!enabled) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    notification.getChannel(),
+                    "Kullanıcı bu bildirim kanalına izin vermemiş."
             );
         }
     }
