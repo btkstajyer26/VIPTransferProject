@@ -37,6 +37,7 @@ public class ReservationService {
     private final VehicleRepository vehicleRepository;
     private final CampaignRepository campaignRepository;
     private final BookingReferenceGenerator bookingReferenceGenerator;
+    private final UserService userService;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -47,14 +48,13 @@ public class ReservationService {
         Vehicle vehicle = vehicleRepository.findByIdAndActiveTrue(request.getVehicleId())
                 .orElseThrow(() -> new RuntimeException("Araç bulunamadı veya aktif değil: " + request.getVehicleId()));
 
-        // 2. Kullanıcı veya misafir tespiti
-        User user = null;
-        String guestPhone = null;
+        // 2. Kullanıcı veya misafir tespiti — misafir de users tablosunda satır alır (is_guest=true)
+        User user;
         if (userId != null) {
             user = userRepository.findByIdAndActiveTrue(userId)
                     .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı veya aktif değil: " + userId));
         } else {
-            guestPhone = phoneNumber;
+            user = userService.findOrCreateGuestUser(phoneNumber, request.getGuestName());
         }
 
         // 3. JTS Point oluştur (lon, lat sırası — JTS standardı)
@@ -93,7 +93,6 @@ public class ReservationService {
         Reservation reservation = Reservation.builder()
                 .bookingReference(bookingReferenceGenerator.generate())
                 .user(user)
-                .guestPhone(guestPhone)
                 .pickupAddress(request.getPickupAddress())
                 .pickupPoint(pickupPoint)
                 .dropoffAddress(request.getDropoffAddress())
@@ -241,13 +240,16 @@ public class ReservationService {
         if (reservation == null) {
             throw new RuntimeException("Rezervasyon bulunamadı veya doğrulama başarısız.");
         }
-        // Kayıtlı kullanıcının rezervasyonu public uçtan gösterilmez.
-        if (reservation.getUser() != null) {
+        User owner = reservation.getUser();
+        // Geçiş dönemi: user_id NULL olan eski misafir kayıtları için guest_phone'a düş.
+        String ownerPhone = (owner != null) ? owner.getPhoneNumber() : reservation.getGuestPhone();
+        boolean isGuestReservation = (owner == null) || owner.isGuest();
+        // Kayıtlı kullanıcının (is_guest=false) rezervasyonu public uçtan gösterilmez.
+        if (!isGuestReservation) {
             throw new RuntimeException("Bu rezervasyon bir hesaba bağlı. Lütfen giriş yaparak görüntüleyin.");
         }
         // Doğrulama: telefon eşleşmesi (SMS doğrulama kodu akışı gelene kadar).
-        String guestPhone = reservation.getGuestPhone();
-        if (guestPhone == null || !normalize(guestPhone).equals(normalize(phone))) {
+        if (ownerPhone == null || !normalize(ownerPhone).equals(normalize(phone))) {
             throw new RuntimeException("Rezervasyon bulunamadı veya doğrulama başarısız.");
         }
         return toGuestResponse(reservation);
@@ -335,7 +337,10 @@ public class ReservationService {
                 .id(r.getId())
                 .bookingReference(r.getBookingReference())
                 .userId(r.getUser() != null ? r.getUser().getId() : null)
-                .guestPhone(r.getGuestPhone())
+                // users tablosu kaynak; geçiş dönemi: user_id NULL eski kayıtlar için guest_phone'a düş
+                .guestPhone(r.getUser() != null && r.getUser().isGuest()
+                        ? r.getUser().getPhoneNumber()
+                        : r.getGuestPhone())
                 .pickupAddress(r.getPickupAddress())
                 .dropoffAddress(r.getDropoffAddress())
                 .scheduledTime(r.getScheduledTime())
