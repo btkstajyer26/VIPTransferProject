@@ -23,8 +23,9 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // DB'de fn_generate_booking_ref() ile üretilir; persist sonrası entityManager.refresh() gerekir
-    @Column(name = "booking_reference", unique = true, length = 20, insertable = false, updatable = false)
+    // Servis katmanında SecureRandom ile üretilir (BookingReferenceGenerator).
+    // DB'deki fn_generate_booking_ref() fonksiyonu pasif kalır — dokunulmaz.
+    @Column(name = "booking_reference", unique = true, length = 20, updatable = false)
     private String bookingReference;
 
     @ManyToOne(fetch = FetchType.LAZY)

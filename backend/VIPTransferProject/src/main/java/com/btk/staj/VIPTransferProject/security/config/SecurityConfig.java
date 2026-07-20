@@ -23,10 +23,11 @@ import java.util.List;
 @Slf4j
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-private final RateLimitingFilter rateLimitingFilter;
+
+    private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
@@ -46,6 +47,15 @@ private final RateLimitingFilter rateLimitingFilter;
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/reservations").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reservations/guest/**").permitAll()
+                        // Monitoring için
+                        .requestMatchers("/actuator/**").permitAll()
+                        // Swagger / OpenAPI UI
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
