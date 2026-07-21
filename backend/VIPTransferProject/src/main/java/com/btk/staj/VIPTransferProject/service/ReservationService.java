@@ -9,6 +9,7 @@ import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.DiscountType;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
+import com.btk.staj.VIPTransferProject.dto.loyalty.AccruePointsRequests;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
 import com.btk.staj.VIPTransferProject.exception.ForbiddenOperationException;
 import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
@@ -42,6 +43,7 @@ public class ReservationService {
     private final CampaignRepository campaignRepository;
     private final BookingReferenceGenerator bookingReferenceGenerator;
     private final UserService userService;
+    private final LoyaltyService loyaltyService;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -183,6 +185,19 @@ public class ReservationService {
             reservation.setCancelledAt(OffsetDateTime.now());
         }
         reservationRepository.save(reservation);
+
+        if (target == ReservationStatus.COMPLETED
+                && reservation.getUser() != null
+                && !reservation.getUser().isGuest()) {
+            try {
+                AccruePointsRequests accrueReq = new AccruePointsRequests();
+                accrueReq.setUserId(reservation.getUser().getId());
+                accrueReq.setFareAmount(reservation.getCalculatedPrice());
+                loyaltyService.AccruePoints(accrueReq);
+            } catch (Exception e) {
+                log.warn("Loyalty puan eklenemedi. reservationId={}, hata={}", id, e.getMessage());
+            }
+        }
 
         statusHistoryRepository.save(ReservationStatusHistory.builder()
                 .reservation(reservation)
