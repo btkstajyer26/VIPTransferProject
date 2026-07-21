@@ -6,6 +6,7 @@ import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.enums.VehicleClass;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import com.btk.staj.VIPTransferProject.repository.VehicleRepository;
+import com.btk.staj.VIPTransferProject.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -23,6 +24,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoyaltyService loyaltyService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -32,20 +34,22 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private void seedUsers() {
         if (userRepository.findByPhoneNumber("05551111111").isEmpty()) {
-            userRepository.save(User.builder()
+            User admin = userRepository.save(User.builder()
                     .phoneNumber("05551111111")
                     .passwordHash(passwordEncoder.encode("123456"))
                     .role(UserRole.ADMIN)
                     .build());
+            loyaltyService.createLoyaltyAccount(admin.getId());
             log.info("Admin kullanici olusturuldu: 05551111111 / 123456");
         }
 
         if (userRepository.findByPhoneNumber("05551111112").isEmpty()) {
-            userRepository.save(User.builder()
+            User customer = userRepository.save(User.builder()
                     .phoneNumber("05551111112")
                     .passwordHash(passwordEncoder.encode("123456"))
                     .role(UserRole.CUSTOMER)
                     .build());
+            loyaltyService.createLoyaltyAccount(customer.getId());
             log.info("Test musteri kullanicisi olusturuldu: 05551111112 / 123456");
         }
     }
