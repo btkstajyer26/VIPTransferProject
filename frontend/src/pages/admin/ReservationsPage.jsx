@@ -9,6 +9,7 @@ import useReservations from "@/hooks/useReservations";
 function ReservationsPage() {
   const {
     filteredReservations,
+    reservationHistory,
 
     searchTerm,
     setSearchTerm,
@@ -17,6 +18,13 @@ function ReservationsPage() {
     setStatusFilter,
 
     selectedReservation,
+
+    isLoading,
+    isHistoryLoading,
+    isStatusUpdating,
+    error,
+
+    fetchReservations,
 
     isDetailOpen,
     openDetailDialog,
@@ -46,6 +54,20 @@ function ReservationsPage() {
         </p>
       </div>
 
+      {error && (
+        <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-700">{error}</p>
+
+          <button
+            type="button"
+            onClick={fetchReservations}
+            className="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+          >
+            Tekrar dene
+          </button>
+        </div>
+      )}
+
       <ReservationToolbar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -53,12 +75,20 @@ function ReservationsPage() {
         onStatusChange={setStatusFilter}
       />
 
-      <ReservationTable
-        reservations={filteredReservations}
-        onViewDetails={openDetailDialog}
-        onChangeStatus={openStatusDialog}
-        onViewHistory={openHistoryDialog}
-      />
+      {isLoading ? (
+        <div className="flex min-h-72 items-center justify-center rounded-xl border bg-white">
+          <p className="text-sm text-muted-foreground">
+            Rezervasyonlar yükleniyor...
+          </p>
+        </div>
+      ) : (
+        <ReservationTable
+          reservations={filteredReservations}
+          onViewDetails={openDetailDialog}
+          onChangeStatus={openStatusDialog}
+          onViewHistory={openHistoryDialog}
+        />
+      )}
 
       <ReservationDetailDialog
         open={isDetailOpen}
@@ -73,9 +103,10 @@ function ReservationsPage() {
       <ReservationStatusDialog
         open={isStatusOpen}
         reservation={selectedReservation}
+        isSubmitting={isStatusUpdating}
         onSubmit={updateReservationStatus}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isStatusUpdating) {
             closeStatusDialog();
           }
         }}
@@ -84,6 +115,8 @@ function ReservationsPage() {
       <ReservationHistoryDialog
         open={isHistoryOpen}
         reservation={selectedReservation}
+        history={reservationHistory}
+        isLoading={isHistoryLoading}
         onOpenChange={(open) => {
           if (!open) {
             closeHistoryDialog();

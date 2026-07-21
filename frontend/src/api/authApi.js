@@ -1,31 +1,22 @@
-import apiClient from "./apiClient";
+import apiClient from "@/api/apiClient";
 
-/**
- * Kullanıcı girişi
- */
-export const login = async ({ phoneNumber, password }) => {
-  const response = await apiClient.post("/auth/login", {
-    phoneNumber,
-    password,
+export async function login(credentials) {
+  const response = await apiClient.post("/auth/login", credentials);
+  return response.data;
+}
+
+export async function refreshToken(refreshTokenValue) {
+  const response = await apiClient.post("/auth/refresh", {
+    refreshToken: refreshTokenValue,
   });
 
   return response.data;
-};
+}
 
-/**
- * Yeni Access Token al
- */
-export const refreshToken = async () => {
-  const response = await apiClient.post("/auth/refresh");
-
-  return response.data;
-};
-
-/**
- * Çıkış yap
- */
-export const logout = async () => {
-  const response = await apiClient.post("/auth/logout");
+export async function logout(refreshTokenValue) {
+  const response = await apiClient.post("/auth/logout", {
+    refreshToken: refreshTokenValue,
+  });
 
   return response.data;
-};
+}

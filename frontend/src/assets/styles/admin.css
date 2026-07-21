@@ -150,3 +150,109 @@
     }
 
 }
+
+.admin-topbar-right,
+.admin-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-user-info strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.admin-user-info span {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.admin-logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+  margin-left: 8px;
+  padding: 0;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #374151;
+
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.admin-logout-button:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.admin-topbar-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-profile-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 72px;
+}
+
+.admin-profile-info strong {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.admin-profile-info span {
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.admin-logout-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin-left: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background-color: #f9fafb;
+  color: #4b5563;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-logout-button:hover {
+  border-color: #fecaca;
+  background-color: #fef2f2;
+  color: #dc2626;
+}

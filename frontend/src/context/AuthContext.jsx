@@ -15,6 +15,7 @@ import {
 export const AuthContext = createContext(null);
 
 const ACCESS_TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
 const AUTH_USER_KEY = "authUser";
 
 function getStoredUser() {
@@ -37,17 +38,29 @@ export function AuthProvider({ children }) {
     localStorage.getItem(ACCESS_TOKEN_KEY)
   );
 
+  const [refreshToken, setRefreshToken] = useState(() =>
+    localStorage.getItem(REFRESH_TOKEN_KEY)
+  );
+
   const [user, setUser] = useState(getStoredUser);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  const saveAccessToken = useCallback((token) => {
-    if (!token) {
-      throw new Error("Access token bulunamadı.");
-    }
+  const saveTokens = useCallback(
+    ({ accessToken: newAccessToken, refreshToken: newRefreshToken }) => {
+      if (!newAccessToken) {
+        throw new Error("Access token bulunamadı.");
+      }
 
-    localStorage.setItem(ACCESS_TOKEN_KEY, token);
-    setAccessToken(token);
-  }, []);
+      localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
+      setAccessToken(newAccessToken);
+
+      if (newRefreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+        setRefreshToken(newRefreshToken);
+      }
+    },
+    []
+  );
 
   const saveUser = useCallback((userData) => {
     const authUser = {
@@ -63,9 +76,11 @@ export function AuthProvider({ children }) {
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
 
     setAccessToken(null);
+    setRefreshToken(null);
     setUser(null);
   }, []);
 
@@ -80,11 +95,20 @@ export function AuthProvider({ children }) {
         throw new Error("Backend access token döndürmedi.");
       }
 
-      if (!authResponse?.role || !authResponse?.userId) {
-        throw new Error("Backend kullanıcı rolü veya kullanıcı ID'si döndürmedi.");
+      if (!authResponse?.refreshToken) {
+        throw new Error("Backend refresh token döndürmedi.");
       }
 
-      saveAccessToken(authResponse.accessToken);
+      if (!authResponse?.role || authResponse?.userId == null) {
+        throw new Error(
+          "Backend kullanıcı rolü veya kullanıcı ID'si döndürmedi."
+        );
+      }
+
+      saveTokens({
+        accessToken: authResponse.accessToken,
+        refreshToken: authResponse.refreshToken,
+      });
 
       const authUser = saveUser({
         userId: authResponse.userId,
@@ -93,86 +117,102 @@ export function AuthProvider({ children }) {
 
       return {
         accessToken: authResponse.accessToken,
+        refreshToken: authResponse.refreshToken,
         tokenType: authResponse.tokenType ?? "Bearer",
         user: authUser,
       };
     },
-    [saveAccessToken, saveUser]
+    [saveTokens, saveUser]
   );
 
   const renewAccessToken = useCallback(async () => {
+    const storedRefreshToken =
+      refreshToken || localStorage.getItem(REFRESH_TOKEN_KEY);
+
+    if (!storedRefreshToken) {
+      clearSession();
+      throw new Error("Refresh token bulunamadı.");
+    }
+
     try {
-      const authResponse = await refreshTokenRequest();
+      const authResponse = await refreshTokenRequest(storedRefreshToken);
 
       if (!authResponse?.accessToken) {
         throw new Error("Yeni access token alınamadı.");
       }
 
-      /*
-       * Refresh endpoint'i yalnızca accessToken döndürüyor.
-       * Bu yüzden mevcut role ve userId bilgilerini değiştirmiyoruz.
-       */
-      saveAccessToken(authResponse.accessToken);
+      saveTokens({
+        accessToken: authResponse.accessToken,
+        refreshToken:
+          authResponse.refreshToken || storedRefreshToken,
+      });
 
       return authResponse.accessToken;
     } catch (error) {
       clearSession();
       throw error;
     }
-  }, [clearSession, saveAccessToken]);
+  }, [refreshToken, clearSession, saveTokens]);
 
   const logout = useCallback(async () => {
+    const storedRefreshToken =
+      refreshToken || localStorage.getItem(REFRESH_TOKEN_KEY);
+
     try {
-      await logoutRequest();
+      if (storedRefreshToken) {
+        await logoutRequest(storedRefreshToken);
+      }
     } finally {
       clearSession();
     }
-  }, [clearSession]);
+  }, [refreshToken, clearSession]);
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedAccessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-      const storedUser = getStoredUser();
+      try {
+        const storedAccessToken =
+          localStorage.getItem(ACCESS_TOKEN_KEY);
 
-      /*
-       * Hem token hem kullanıcı bilgisi varsa mevcut oturumu kullan.
-       */
-      if (storedAccessToken && storedUser) {
-        setAccessToken(storedAccessToken);
-        setUser(storedUser);
-        setIsAuthLoading(false);
-        return;
-      }
+        const storedRefreshToken =
+          localStorage.getItem(REFRESH_TOKEN_KEY);
 
-      /*
-       * Access token yoksa HttpOnly refresh cookie üzerinden
-       * yeni token almaya çalış.
-       *
-       * Ancak refresh cevabında role ve userId bulunmadığı için
-       * önceden saklanmış authUser bilgisinin mevcut olması gerekir.
-       */
-      if (storedUser) {
-        try {
-          const authResponse = await refreshTokenRequest();
+        const storedUser = getStoredUser();
+
+        if (storedAccessToken && storedRefreshToken && storedUser) {
+          setAccessToken(storedAccessToken);
+          setRefreshToken(storedRefreshToken);
+          setUser(storedUser);
+          return;
+        }
+
+        if (storedRefreshToken && storedUser) {
+          const authResponse =
+            await refreshTokenRequest(storedRefreshToken);
 
           if (!authResponse?.accessToken) {
             throw new Error("Access token yenilenemedi.");
           }
 
-          saveAccessToken(authResponse.accessToken);
-          setUser(storedUser);
-        } catch {
-          clearSession();
-        }
-      } else {
-        clearSession();
-      }
+          saveTokens({
+            accessToken: authResponse.accessToken,
+            refreshToken:
+              authResponse.refreshToken || storedRefreshToken,
+          });
 
-      setIsAuthLoading(false);
+          setUser(storedUser);
+          return;
+        }
+
+        clearSession();
+      } catch {
+        clearSession();
+      } finally {
+        setIsAuthLoading(false);
+      }
     };
 
     initializeAuth();
-  }, [clearSession, saveAccessToken]);
+  }, [clearSession, saveTokens]);
 
   const value = useMemo(
     () => ({
@@ -180,7 +220,10 @@ export function AuthProvider({ children }) {
       role: user?.role ?? null,
       userId: user?.userId ?? null,
       accessToken,
-      isAuthenticated: Boolean(accessToken && user),
+      refreshToken,
+      isAuthenticated: Boolean(
+        accessToken && refreshToken && user
+      ),
       isAuthLoading,
       login,
       logout,
@@ -189,6 +232,7 @@ export function AuthProvider({ children }) {
     [
       user,
       accessToken,
+      refreshToken,
       isAuthLoading,
       login,
       logout,
@@ -201,4 +245,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}   
+}
