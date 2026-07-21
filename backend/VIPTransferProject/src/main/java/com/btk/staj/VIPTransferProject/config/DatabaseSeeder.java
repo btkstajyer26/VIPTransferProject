@@ -19,29 +19,34 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.findByPhoneNumber("05551111111").isEmpty() ) {
+        log.info("Sistem başlatılıyor, varsayılan kullanıcılar kontrol ediliyor...");
 
-            log.info("Sistemde admin kullanicisi bulunamadi. Varsayilan admin olusturuluyor...");
-
+        // 1. ADMIN KULLANICISI (Sadece yoksa ekler)
+        if (userRepository.findByEmail("admin@admin.com").isEmpty()) {
             User adminUser = User.builder()
+                    .email("admin@admin.com")
                     .phoneNumber("05551111111")
                     .passwordHash(passwordEncoder.encode("123456"))
                     .role(UserRole.ADMIN)
+                    .isEmailVerified(true)
                     .build();
 
             userRepository.save(adminUser);
+            log.info("Varsayılan ADMIN kullanıcısı oluşturuldu: admin@admin.com");
+        }
 
-            log.info("Varsayilan admin kullanicisi basariyla veritabanina kaydedildi.");
-        } else if(userRepository.findByPhoneNumber("05551111112").isEmpty()){
-            User c1 = User.builder()
+        // 2. CUSTOMER KULLANICISI (Sadece yoksa ekler)
+        if (userRepository.findByEmail("customer@test.com").isEmpty()) {
+            User customerUser = User.builder()
+                    .email("customer@test.com")
                     .phoneNumber("05551111112")
                     .passwordHash(passwordEncoder.encode("123456"))
                     .role(UserRole.CUSTOMER)
+                    .isEmailVerified(true)
                     .build();
-            userRepository.save(c1);
-        } else{
-            log.info("Veritabaninda kullancılar mevcut. Seeding islemi atlandi.");
 
+            userRepository.save(customerUser);
+            log.info("Varsayılan CUSTOMER kullanıcısı oluşturuldu: customer@test.com");
         }
     }
 }

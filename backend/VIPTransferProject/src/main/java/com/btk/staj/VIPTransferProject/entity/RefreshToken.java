@@ -29,8 +29,8 @@ public class RefreshToken {
     @Column(name = "device_info", length = 255)
     private String deviceInfo;
 
-    // INET türü için String kullanılıyor; PostgreSQL otomatik cast yapar
-    @Column(name = "ip_address", columnDefinition = "inet")
+    // DEĞİŞEN SATIR BURASI: "inet" tanımı kaldırılıp standart String yapıldı
+    @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
     @Column(name = "expires_at", nullable = false)
