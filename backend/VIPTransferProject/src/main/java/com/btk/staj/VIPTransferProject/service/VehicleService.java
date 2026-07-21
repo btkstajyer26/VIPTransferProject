@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.service;
 
 import com.btk.staj.VIPTransferProject.dto.vehicle.CreateVehicleRequest;
+import com.btk.staj.VIPTransferProject.dto.vehicle.PublicVehicleResponse;
 import com.btk.staj.VIPTransferProject.dto.vehicle.UpdateVehicleRequest;
 import com.btk.staj.VIPTransferProject.dto.vehicle.VehicleResponse;
 import com.btk.staj.VIPTransferProject.entity.Vehicle;
@@ -24,8 +25,15 @@ public class VehicleService {
     /**
      * Aktif araçları başlangıç fiyatına göre artan sırada döndürür (public liste).
      */
-    public List<VehicleResponse> getActiveVehicles() {
+    public List<PublicVehicleResponse> getActiveVehicles() {
         return vehicleRepository.findAllByActiveTrueOrderByOpeningPriceAsc()
+                .stream()
+                .map(this::toPublicResponse)
+                .toList();
+    }
+
+    public List<VehicleResponse> getAllVehicles() {
+        return vehicleRepository.findAllByOrderByActiveDescCreatedAtDesc()
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -103,14 +111,36 @@ public class VehicleService {
 
     // ── Yardımcı ─────────────────────────────────────────────────────────────
 
-    private VehicleResponse toResponse(Vehicle v) {
-        return VehicleResponse.builder()
+    private PublicVehicleResponse toPublicResponse(Vehicle v) {
+        return PublicVehicleResponse.builder()
                 .id(v.getId())
                 .brand(v.getBrand())
                 .model(v.getModel())
                 .vehicleClass(v.getVehicleClass())
+                .year(v.getYear())
+                .color(v.getColor())
+                .photoUrl(v.getPhotoUrl())
                 .capacity(v.getCapacity())
                 .openingPrice(v.getOpeningPrice())
+                .build();
+    }
+
+    private VehicleResponse toResponse(Vehicle v) {
+        return VehicleResponse.builder()
+                .id(v.getId())
+                .plateNumber(v.getPlateNumber())
+                .brand(v.getBrand())
+                .model(v.getModel())
+                .vehicleClass(v.getVehicleClass())
+                .year(v.getYear())
+                .color(v.getColor())
+                .photoUrl(v.getPhotoUrl())
+                .capacity(v.getCapacity())
+                .openingPrice(v.getOpeningPrice())
+                .basePriceMultiplier(v.getBasePriceMultiplier())
+                .active(v.isActive())
+                .createdAt(v.getCreatedAt())
+                .updatedAt(v.getUpdatedAt())
                 .build();
     }
 }
