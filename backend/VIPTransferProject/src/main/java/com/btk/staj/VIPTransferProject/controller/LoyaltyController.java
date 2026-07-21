@@ -37,7 +37,7 @@ public class LoyaltyController {
         log.info("HTTP GET /api/v1/loyalty/accounts/{} isteği alındı. (ADMIN)", userId);
         return ResponseEntity.ok(loyaltyService.getAccount(userId));
     }
-
+    /*
     // Giriş yapan kullanıcı için belirli bir tutara uygulanacak indirimi hesaplar
     @GetMapping("/me/discount")
     public ResponseEntity<LoyaltyDiscountResponse> getMyDiscount(
@@ -57,5 +57,5 @@ public class LoyaltyController {
                 request.getUserId(), request.getFareAmount());
         loyaltyService.AccruePoints(request);
         return ResponseEntity.noContent().build();
-    }
+    }*/
 }
