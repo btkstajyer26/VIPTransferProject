@@ -3,6 +3,7 @@ package com.btk.staj.VIPTransferProject.config;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
+import com.btk.staj.VIPTransferProject.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -16,6 +17,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoyaltyService loyaltyService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -30,6 +32,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .build();
 
             userRepository.save(adminUser);
+            loyaltyService.createLoyaltyAccount(adminUser.getId());
 
             log.info("Varsayilan admin kullanicisi basariyla veritabanina kaydedildi.");
         } else if(userRepository.findByPhoneNumber("05551111112").isEmpty()){
@@ -39,6 +42,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .role(UserRole.CUSTOMER)
                     .build();
             userRepository.save(c1);
+            loyaltyService.createLoyaltyAccount(c1.getId());
         } else{
             log.info("Veritabaninda kullancılar mevcut. Seeding islemi atlandi.");
 
