@@ -20,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
 @Slf4j
 @Configuration
 @EnableWebSecurity
@@ -48,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/reservations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/guest/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/translations/**").permitAll()
                         // Monitoring için
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger / OpenAPI UI
