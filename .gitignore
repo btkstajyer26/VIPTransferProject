@@ -12,3 +12,6 @@
 postgres_data/
 prometheus_data/
 grafana_data/
+
+# Ignore local VS Code settings and workspace configurations
+.vscode/
