@@ -1,0 +1,41 @@
+import colors from './colors';
+
+export const lightTheme = {
+  mode: 'light',
+  background: colors.background,
+  surface: colors.card,
+  surfaceSecondary: colors.border,
+  inputBackground: colors.card,
+  primary: colors.primary,
+  accent: colors.accent,
+  text: colors.primary,
+  textSecondary: colors.muted,
+  border: colors.border,
+  placeholder: colors.muted,
+  error: colors.warning,
+  buttonText: colors.primary,
+  headerBackground: colors.card,
+  headerText: colors.primary,
+  divider: colors.border,
+  shadow: colors.primary,
+};
+
+export const darkTheme = {
+  mode: 'dark',
+  background: colors.primary,
+  surface: colors.secondary,
+  surfaceSecondary: colors.primary,
+  inputBackground: colors.primary,
+  primary: colors.secondary,
+  accent: colors.accent,
+  text: colors.card,
+  textSecondary: colors.border,
+  border: colors.muted,
+  placeholder: colors.muted,
+  error: colors.warning,
+  buttonText: colors.primary,
+  headerBackground: colors.primary,
+  headerText: colors.card,
+  divider: colors.muted,
+  shadow: colors.primary,
+};

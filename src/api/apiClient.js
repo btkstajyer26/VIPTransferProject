@@ -11,10 +11,21 @@ function createApiError(status, message, data = null) {
   };
 }
 
-function buildUrl(path) {
+function buildUrl(path, params) {
   const normalizedBaseUrl = API_BASE_URL.replace(/\/+$/, '');
   const normalizedPath = String(path).replace(/^\/+/, '');
-  return `${normalizedBaseUrl}/${normalizedPath}`;
+  const url = `${normalizedBaseUrl}/${normalizedPath}`;
+
+  if (!params || typeof params !== 'object') {
+    return url;
+  }
+
+  const queryString = Object.entries(params)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .join('&');
+
+  return queryString ? `${url}?${queryString}` : url;
 }
 
 async function parseResponse(response) {
@@ -57,6 +68,7 @@ async function request(
     method = 'GET',
     body,
     headers = {},
+    params,
     requiresAuth = true,
     timeout = DEFAULT_TIMEOUT_MS,
   } = {},
@@ -79,7 +91,7 @@ async function request(
       }
     }
 
-    const response = await fetch(buildUrl(path), {
+    const response = await fetch(buildUrl(path, params), {
       method,
       headers: requestHeaders,
       body: body === undefined ? undefined : JSON.stringify(body),

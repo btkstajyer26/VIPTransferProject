@@ -1,26 +1,45 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { useMemo } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import GuestInfoScreen from '../screens/GuestInfoScreen';
+import TransferSearchScreen from '../screens/TransferSearchScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ReservationScreen from '../screens/ReservationScreen';
 import ReservationsScreen from '../screens/ReservationsScreen';
-import colors from '../theme/colors';
+import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
+import { useTheme } from '../theme/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
+  const { theme, isDark } = useTheme();
+  const navigationTheme = useMemo(() => {
+    const baseTheme = isDark ? DarkTheme : DefaultTheme;
+    return {
+      ...baseTheme,
+      colors: {
+        ...baseTheme.colors,
+        primary: theme.accent,
+        background: theme.background,
+        card: theme.headerBackground,
+        text: theme.headerText,
+        border: theme.border,
+      },
+    };
+  }, [isDark, theme]);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator
         initialRouteName="Welcome"
         screenOptions={{
-          headerStyle: { backgroundColor: colors.primary },
-          headerTintColor: colors.card,
+          headerStyle: { backgroundColor: theme.headerBackground },
+          headerTintColor: theme.headerText,
           headerTitleStyle: { fontWeight: '700' },
-          contentStyle: { backgroundColor: colors.background },
+          contentStyle: { backgroundColor: theme.background },
         }}
       >
         <Stack.Screen
@@ -32,6 +51,16 @@ export default function AppNavigator() {
           name="Login"
           component={LoginScreen}
           options={{ title: 'Giris Yap' }}
+        />
+        <Stack.Screen
+          name="TransferSearch"
+          component={TransferSearchScreen}
+          options={{ title: 'Transfer Planla' }}
+        />
+        <Stack.Screen
+          name="ThemeSettings"
+          component={ThemeSettingsScreen}
+          options={{ title: 'Tema Seçimi' }}
         />
         <Stack.Screen
           name="GuestInfo"

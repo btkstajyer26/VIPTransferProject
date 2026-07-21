@@ -4,13 +4,15 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../theme/colors';
+import { createGuestInfoStyles } from '../styles/guestInfoStyles';
+
+const styles = createGuestInfoStyles(colors);
 
 export default function GuestInfoScreen({ navigation }) {
   const [firstName, setFirstName] = useState('');
@@ -236,157 +238,3 @@ export default function GuestInfoScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 30,
-  },
-  brandArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoPlaceholder: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.accent,
-    borderRadius: 12,
-    backgroundColor: colors.secondary,
-  },
-  logoText: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1.3,
-  },
-  brandName: {
-    color: colors.card,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  brandTagline: {
-    marginTop: 2,
-    color: colors.accent,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-  },
-  headingArea: {
-    maxWidth: 520,
-    marginTop: 34,
-  },
-  accentLine: {
-    width: 40,
-    height: 3,
-    marginBottom: 18,
-    borderRadius: 2,
-    backgroundColor: colors.accent,
-  },
-  title: {
-    color: colors.card,
-    fontSize: 30,
-    fontWeight: '800',
-    lineHeight: 38,
-    letterSpacing: -0.4,
-  },
-  description: {
-    marginTop: 10,
-    color: colors.border,
-    fontSize: 15,
-    lineHeight: 23,
-  },
-  form: {
-    marginTop: 30,
-    gap: 16,
-  },
-  fieldGroup: {
-    gap: 8,
-  },
-  label: {
-    color: colors.border,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  input: {
-    minHeight: 54,
-    borderWidth: 1,
-    borderColor: colors.muted,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primary,
-    color: colors.card,
-    fontSize: 16,
-  },
-  inputError: {
-    borderColor: colors.warning,
-  },
-  errorText: {
-    color: colors.warning,
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  infoBox: {
-    borderLeftWidth: 2,
-    borderLeftColor: colors.accent,
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: colors.secondary,
-  },
-  infoText: {
-    color: colors.border,
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  button: {
-    minHeight: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  primaryButton: {
-    marginTop: 2,
-    backgroundColor: colors.accent,
-  },
-  primaryButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  loginArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  loginPrompt: {
-    color: colors.border,
-    fontSize: 14,
-  },
-  loginLink: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-  disabledButton: {
-    opacity: 0.55,
-  },
-});

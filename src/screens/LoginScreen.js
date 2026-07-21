@@ -1,19 +1,21 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
+import { createLoginStyles } from '../styles/loginStyles';
 
 export default function LoginScreen({ navigation }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createLoginStyles(theme), [theme]);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,14 +102,24 @@ export default function LoginScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <View style={styles.brandArea}>
-              <View style={styles.logoPlaceholder}>
-                <Text style={styles.logoText}>VIP</Text>
+            <View style={styles.headerTop}>
+              <View style={styles.brandArea}>
+                <View style={styles.logoPlaceholder}>
+                  <Text style={styles.logoText}>VIP</Text>
+                </View>
+                <View>
+                  <Text style={styles.brandName}>VIP Transfer</Text>
+                  <Text style={styles.brandTagline}>PREMIUM ULAŞIM</Text>
+                </View>
               </View>
-              <View>
-                <Text style={styles.brandName}>VIP Transfer</Text>
-                <Text style={styles.brandTagline}>PREMIUM ULAŞIM</Text>
-              </View>
+              <Pressable
+                accessibilityLabel="Tema ayarlarını aç"
+                accessibilityRole="button"
+                onPress={() => navigation.navigate('ThemeSettings')}
+                style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.settingsIcon}>⚙</Text>
+              </Pressable>
             </View>
 
             <View style={styles.headingArea}>
@@ -130,7 +142,7 @@ export default function LoginScreen({ navigation }) {
                 maxLength={11}
                 onChangeText={handlePhoneChange}
                 placeholder="05XX XXX XX XX"
-                placeholderTextColor={colors.muted}
+                placeholderTextColor={theme.placeholder}
                 style={[styles.input, errors.phone && styles.inputError]}
                 value={phone}
               />
@@ -146,7 +158,7 @@ export default function LoginScreen({ navigation }) {
                   editable={!loading}
                   onChangeText={handlePasswordChange}
                   placeholder="Şifrenizi girin"
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={theme.placeholder}
                   secureTextEntry={!showPassword}
                   style={styles.passwordInput}
                   value={password}
@@ -212,7 +224,7 @@ export default function LoginScreen({ navigation }) {
             <Pressable
               accessibilityRole="button"
               disabled={loading}
-              onPress={() => navigation.navigate('GuestInfo')}
+              onPress={() => navigation.navigate('TransferSearch')}
               style={({ pressed }) => [
                 styles.button,
                 styles.secondaryButton,
@@ -228,208 +240,3 @@ export default function LoginScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 28,
-  },
-  header: {
-    gap: 34,
-  },
-  brandArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoPlaceholder: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.accent,
-    borderRadius: 12,
-    backgroundColor: colors.secondary,
-  },
-  logoText: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1.3,
-  },
-  brandName: {
-    color: colors.card,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  brandTagline: {
-    marginTop: 2,
-    color: colors.accent,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-  },
-  headingArea: {
-    maxWidth: 520,
-  },
-  accentLine: {
-    width: 40,
-    height: 3,
-    marginBottom: 18,
-    borderRadius: 2,
-    backgroundColor: colors.accent,
-  },
-  title: {
-    color: colors.card,
-    fontSize: 30,
-    fontWeight: '800',
-    lineHeight: 38,
-    letterSpacing: -0.4,
-  },
-  description: {
-    marginTop: 10,
-    color: colors.border,
-    fontSize: 15,
-    lineHeight: 23,
-  },
-  form: {
-    marginTop: 34,
-    gap: 16,
-  },
-  fieldGroup: {
-    gap: 8,
-  },
-  label: {
-    color: colors.border,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  input: {
-    minHeight: 54,
-    borderWidth: 1,
-    borderColor: colors.muted,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primary,
-    color: colors.card,
-    fontSize: 16,
-  },
-  passwordContainer: {
-    minHeight: 54,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.muted,
-    borderRadius: 10,
-    backgroundColor: colors.primary,
-  },
-  passwordInput: {
-    minHeight: 52,
-    flex: 1,
-    paddingLeft: 16,
-    paddingRight: 8,
-    color: colors.card,
-    fontSize: 16,
-  },
-  passwordToggle: {
-    minHeight: 48,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  passwordToggleText: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  inputError: {
-    borderColor: colors.warning,
-  },
-  errorText: {
-    color: colors.warning,
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  forgotButton: {
-    alignSelf: 'flex-end',
-    marginTop: -4,
-  },
-  forgotText: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  button: {
-    minHeight: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  primaryButton: {
-    marginTop: 2,
-    backgroundColor: colors.accent,
-  },
-  primaryButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  registerArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  registerPrompt: {
-    color: colors.border,
-    fontSize: 14,
-  },
-  registerLink: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  dividerArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginVertical: 2,
-  },
-  divider: {
-    height: 1,
-    flex: 1,
-    backgroundColor: colors.muted,
-  },
-  dividerText: {
-    color: colors.muted,
-    fontSize: 12,
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: colors.accent,
-    backgroundColor: colors.primary,
-  },
-  secondaryButtonText: {
-    color: colors.accent,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-  disabledButton: {
-    opacity: 0.55,
-  },
-});
