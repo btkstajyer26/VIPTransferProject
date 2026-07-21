@@ -9,6 +9,12 @@ dist/
 web-build/
 expo-env.d.ts
 
+# local editor and AI tools
+.vscode/
+.agents/
+.claude/
+.codex/
+
 # Native
 .kotlin/
 *.orig.*
@@ -32,9 +38,7 @@ yarn-error.*
 
 # local env files
 .env
-.env.local
-.env.development.local
-.env.production.local
+.env.*
 !.env.example
 
 # typescript
