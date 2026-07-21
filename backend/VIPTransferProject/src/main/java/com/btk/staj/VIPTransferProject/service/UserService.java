@@ -3,6 +3,8 @@ package com.btk.staj.VIPTransferProject.service;
 import com.btk.staj.VIPTransferProject.dto.UpdateUserRequest;
 import com.btk.staj.VIPTransferProject.dto.UserResponse;
 import com.btk.staj.VIPTransferProject.entity.User;
+import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
+import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +22,14 @@ public class UserService {
 
     public UserResponse getCurrentUser(Long userId) {
         User user = userRepository.findByIdAndActiveTrue(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + userId));
         return toResponse(user);
     }
 
     @Transactional
     public UserResponse updateCurrentUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findByIdAndActiveTrue(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + userId));
 
         if (request.getFirstName() != null)    user.setFirstName(request.getFirstName());
         if (request.getLastName() != null)     user.setLastName(request.getLastName());
@@ -40,7 +42,7 @@ public class UserService {
     @Transactional
     public void deleteCurrentUser(Long userId) {
         User user = userRepository.findByIdAndActiveTrue(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + userId));
         user.setActive(false);
         userRepository.save(user);
         log.info("Kullanıcı pasif edildi. id={}", userId);
@@ -55,14 +57,14 @@ public class UserService {
 
     public UserResponse getUserById(Long id) {
         User user = userRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + id));
         return toResponse(user);
     }
 
     @Transactional
     public User findOrCreateGuestUser(String phoneNumber, String guestName) {
         if (phoneNumber == null || phoneNumber.isBlank()) {
-            throw new RuntimeException("Misafir rezervasyon için telefon numarası zorunludur.");
+            throw new InvalidRequestException("Misafir rezervasyon için telefon numarası zorunludur.");
         }
         return userRepository.findByPhoneNumber(phoneNumber)
                 .orElseGet(() -> {
