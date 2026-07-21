@@ -3,10 +3,13 @@ package com.btk.staj.VIPTransferProject.service;
 import com.btk.staj.VIPTransferProject.dto.loyalty.*;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyAccount;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
+import com.btk.staj.VIPTransferProject.entity.User;
+import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
 import com.btk.staj.VIPTransferProject.exception.TierConfigNotFoundException;
 import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyAccountRepository;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
+import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,19 @@ public class LoyaltyService {
 
     private final LoyaltyAccountRepository loyaltyAccountRepository;
     private final LoyaltyTierConfigRepository loyaltyTierConfigRepository;
+    private final UserRepository userRepository;
+
+    public void createLoyaltyAccount(Long userId) {
+        User user = userRepository.findByIdAndActiveTrue(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        LoyaltyAccount loyaltyAccount = new LoyaltyAccount();
+        loyaltyAccount.setUserId(userId);
+        loyaltyAccount.setUpdatedAt(OffsetDateTime.now());
+        loyaltyAccount.setTier(LoyaltyTier.BRONZE);
+        loyaltyAccount.setLifetimePoints(0);
+        loyaltyAccount.setUser(user);
+    }
 
     public LoyaltyAccountResponse getAccount(Long userId){
         LoyaltyAccount account = findAccountOrThrow(userId);
@@ -75,7 +91,7 @@ public class LoyaltyService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    private LoyaltyTierConfig findTierConfigOrThrow(com.btk.staj.VIPTransferProject.enums.LoyaltyTier tier) {
+    private LoyaltyTierConfig findTierConfigOrThrow(LoyaltyTier tier) {
         return loyaltyTierConfigRepository.findByTier(tier)
                 .orElseThrow(() -> new TierConfigNotFoundException(tier));
     }

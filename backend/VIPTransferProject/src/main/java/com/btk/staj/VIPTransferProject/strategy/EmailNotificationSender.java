@@ -54,7 +54,7 @@ public class EmailNotificationSender implements NotificationSender {
 
         if (notification == null) {
             throw new IllegalArgumentException(
-                    "Gönderilecek notification null olamaz."
+                    "Gonderilecek notification null olamaz."
             );
         }
 
@@ -62,8 +62,7 @@ public class EmailNotificationSender implements NotificationSender {
             throw new NotificationSendException(
                     notification.getId(),
                     NotificationChannel.EMAIL,
-                    "Bildirime bağlı kullanıcı bulunamadı.",
-                    null
+                    "Bildirime bagli kullanici bulunamadi."
             );
         }
 
@@ -71,8 +70,20 @@ public class EmailNotificationSender implements NotificationSender {
             throw new NotificationSendException(
                     notification.getId(),
                     NotificationChannel.EMAIL,
-                    "Kullanıcının email adresi bulunamadı.",
-                    null
+                    "Kullanicinin email adresi bulunamadi."
+            );
+        }
+
+        /*
+         * Misafir kullanicida email dogrulamasi aranmaz.
+         * Kayitli kullanicida email adresi dogrulanmis olmalidir.
+         */
+        if (!notification.getUser().isGuest()
+                && !notification.getUser().isEmailVerified()) {
+            throw new NotificationSendException(
+                    notification.getId(),
+                    NotificationChannel.EMAIL,
+                    "Kayitli kullanicinin email adresi dogrulanmamis."
             );
         }
 
@@ -80,8 +91,7 @@ public class EmailNotificationSender implements NotificationSender {
             throw new NotificationSendException(
                     notification.getId(),
                     NotificationChannel.EMAIL,
-                    "Email başlığı boş olamaz.",
-                    null
+                    "Email basligi bos olamaz."
             );
         }
 
@@ -89,8 +99,7 @@ public class EmailNotificationSender implements NotificationSender {
             throw new NotificationSendException(
                     notification.getId(),
                     NotificationChannel.EMAIL,
-                    "Email içeriği boş olamaz.",
-                    null
+                    "Email icerigi bos olamaz."
             );
         }
     }
