@@ -33,7 +33,8 @@ public class RefreshTokenService {
                     log.warn("Refresh token üretimi reddedildi: Kullanıcı bulunamadı. Aranan ID: {}, Gelen IP: {}", userId, ipAddress);
                     return new RuntimeException("Kullanıcı bulunamadı! ID: " + userId);
                 });
-
+        refreshTokenRepository.findByUserAndDeviceInfo(user, deviceInfo)
+                .ifPresent(refreshTokenRepository::delete);
         // DİKKAT: Artık eski token'ları SİLMİYORUZ! Kullanıcı birden fazla cihazda açık kalabilir.
         // İsteğe bağlı olarak: Sadece süresi dolmuş eski token'ları temizleyen bir metot eklenebilir.
 
