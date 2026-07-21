@@ -3,6 +3,8 @@ package com.btk.staj.VIPTransferProject.service;
 import com.btk.staj.VIPTransferProject.dto.translation.*;
 import com.btk.staj.VIPTransferProject.entity.EntityTranslation;
 import com.btk.staj.VIPTransferProject.entity.Translation;
+import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
+import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.CampaignRepository;
 import com.btk.staj.VIPTransferProject.repository.EntityTranslationRepository;
 import com.btk.staj.VIPTransferProject.repository.TranslationRepository;
@@ -50,7 +52,7 @@ public class LocalizationService {
 
     public TranslationDto updateTranslation(Long id, UpdateTranslationRequest request) {
         Translation translation = translationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Çeviri bulunamadı: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Çeviri bulunamadı: " + id));
         translation.setValue(request.getValue());
         Translation saved = translationRepository.save(translation);
         return toDto(saved);
@@ -103,7 +105,7 @@ public class LocalizationService {
 
     public EntityTranslationDto updateEntityTranslation(Long id, UpdateEntityTranslationRequest request) {
         EntityTranslation et = entityTranslationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Entity Çevirisi bulunamadı: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Entity Çevirisi bulunamadı: " + id));
         et.setValue(request.getValue());
         EntityTranslation saved = entityTranslationRepository.save(et);
         return toDto(saved);
@@ -117,11 +119,11 @@ public class LocalizationService {
         switch (entityType.toLowerCase()) {
             case "campaign":
                 campaignRepository.findById(entityId)
-                        .orElseThrow(() -> new RuntimeException("Kampanya bulunamadı: " + entityId));
+                        .orElseThrow(() -> new ResourceNotFoundException("Kampanya bulunamadı: " + entityId));
                 break;
             case "vehicle":
                 vehicleRepository.findById(entityId)
-                        .orElseThrow(() -> new RuntimeException("Araç bulunamadı: " + entityId));
+                        .orElseThrow(() -> new ResourceNotFoundException("Araç bulunamadı: " + entityId));
                 break;
             case "pricing_zone":
             case "pricing_rule":
@@ -132,7 +134,7 @@ public class LocalizationService {
                 Object pendingServiceData = null; 
                 break;
             default:
-                throw new RuntimeException("Geçersiz entityType: " + entityType);
+                throw new InvalidRequestException("Geçersiz entityType: " + entityType);
         }
     }
 
