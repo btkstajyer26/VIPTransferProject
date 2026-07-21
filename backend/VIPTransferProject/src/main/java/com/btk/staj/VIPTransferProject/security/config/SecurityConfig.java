@@ -56,6 +56,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        //araç listesi için 
+                        .requestMatchers(HttpMethod.GET, "/api/v1/vehicles").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
