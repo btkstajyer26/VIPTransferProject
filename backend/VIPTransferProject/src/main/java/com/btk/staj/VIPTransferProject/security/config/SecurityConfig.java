@@ -15,6 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Slf4j
 @Configuration
@@ -31,17 +36,30 @@ public class SecurityConfig {
         log.info("Guvenlik duvari (SecurityFilterChain) yapilandiriliyor...");
 
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 // CSRF Korumasını Kapat: Token tabanlı (Stateless) çalıştığımız için buna ihtiyacımız yok
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        // OPTIONS isteklerine (Preflight) her zaman izin ver ki tarayıcı CORS kontrolü yapabilsin
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/reservations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reservations/guest/**").permitAll()
-                        // Monitoring satırı için bunu ekliyom.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/translations/**").permitAll()
+                        // Monitoring için
                         .requestMatchers("/actuator/**").permitAll()
+                        // Swagger / OpenAPI UI
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        //araç listesi için 
+                        .requestMatchers(HttpMethod.GET, "/api/v1/vehicles").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
@@ -49,6 +67,30 @@ public class SecurityConfig {
 
         log.info("Guvenlik duvari basariyla ayarlandi ve aktif edildi.");
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        log.info("CORS ayarlari yapilandiriliyor...");
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // React/Frontend uygulamasının çalıştığı adresleri buraya ekliyoruz
+        // Canlıya çıkarken buraya gerçek domain adresini de (örn: https://viptransfer.com) eklemelisin
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+
+        // Frontend'in atabileceği HTTP metotları
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // İzin verilen Header'lar. Authorization ve Content-Type mutlaka olmalı.
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+
+        // Kimlik bilgisi (Cookie veya Header üzerinden) taşınmasına izin ver
+        configuration.setAllowCredentials(true);
+
+        // Bu CORS ayarlarını tüm uç noktalar (/**) için geçerli kıl
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean

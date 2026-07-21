@@ -31,5 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-.idea/
+
+.DS_Store
 .idea/
