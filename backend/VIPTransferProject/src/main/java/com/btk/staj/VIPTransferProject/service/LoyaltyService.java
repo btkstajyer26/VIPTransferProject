@@ -37,6 +37,7 @@ public class LoyaltyService {
         loyaltyAccount.setTier(LoyaltyTier.BRONZE);
         loyaltyAccount.setLifetimePoints(0);
         loyaltyAccount.setUser(user);
+        loyaltyAccountRepository.save(loyaltyAccount);
     }
 
     public LoyaltyAccountResponse getAccount(Long userId){

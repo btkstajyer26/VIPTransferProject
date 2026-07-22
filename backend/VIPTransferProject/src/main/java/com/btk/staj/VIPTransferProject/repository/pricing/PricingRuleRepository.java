@@ -15,10 +15,10 @@ public interface PricingRuleRepository extends JpaRepository<PricingRule,Long>{
     List<PricingRule> findByZoneIdAndActiveTrue(Long zoneId);
 
     @Query("""
-    SELECT pr FROM PricingRule
+    SELECT pr FROM PricingRule pr
     WHERE pr.zone.id = :zoneId
     AND pr.active = true
-    AND (pr.dayOfWeek IS NULL OR pr.dayOfWeek = :dayOffWeek)
+    AND (pr.dayOfWeek IS NULL OR pr.dayOfWeek = :dayOfWeek)
     AND pr.startTime <= :time
     AND pr.endTime >= :time
     AND (pr.validFrom IS NULL OR pr.validFrom <= :date)
