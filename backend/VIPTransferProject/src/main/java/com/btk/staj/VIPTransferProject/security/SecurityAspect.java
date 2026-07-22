@@ -1,6 +1,6 @@
 package com.btk.staj.VIPTransferProject.security;
 
-import com.btk.staj.VIPTransferProject.model.User;
+import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.repository.RefreshTokenRepository;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

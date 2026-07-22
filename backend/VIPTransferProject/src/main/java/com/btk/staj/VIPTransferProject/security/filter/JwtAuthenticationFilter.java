@@ -62,6 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
+                    log.debug("[JwtFilter] SecurityContext'e atanacak Yetki (Authority): {}", authority);
                     // GÜVENLİK ONAYLANDI
                     UserPrincipal principal = new UserPrincipal(userId,phoneNumber);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
