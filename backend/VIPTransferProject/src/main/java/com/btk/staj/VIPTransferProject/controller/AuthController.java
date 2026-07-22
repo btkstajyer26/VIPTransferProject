@@ -20,7 +20,7 @@ import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -28,21 +28,21 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
 
-    // 1. GİRİŞ YAP METODU
+    // 1. GÄ°RÄ°Å YAP METODU
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request,HttpServletRequest httpRequest) {
 
         AuthResponse authResponse = authService.login(request);
 
-        // IP ve Cihaz bilgisini HTTP isteğinden çekiyoruz
+        // IP ve Cihaz bilgisini HTTP isteÄŸinden Ã§ekiyoruz
         String ipAddress = httpRequest.getRemoteAddr();
-        String deviceInfo = httpRequest.getHeader("User-Agent"); // Örn: Mozilla/5.0 (Windows NT 10.0...)
+        String deviceInfo = httpRequest.getHeader("User-Agent"); // Ã–rn: Mozilla/5.0 (Windows NT 10.0...)
 
-        // Token'ı IP ve Cihaz bilgisiyle üretiyoruz
+        // Token'Ä± IP ve Cihaz bilgisiyle Ã¼retiyoruz
         String refreshTokenString = refreshTokenService.createRefreshToken(authResponse.getUserId(), ipAddress, deviceInfo).getToken();
         authResponse.setRefreshToken(refreshTokenString);
 //        Cookie cookie = new Cookie("refreshToken", refreshTokenString);
-//        cookie.setPath("/api/v1/auth");
+//        cookie.setPath("/api/auth");
 //        cookie.setHttpOnly(true);
 //        cookie.setMaxAge(7 * 24 * 60 * 60);
 //        response.addCookie(cookie);
@@ -50,42 +50,42 @@ public class AuthController {
         return ResponseEntity.ok(authResponse);
     }
 
-    // 2. YENİ ACCESS TOKEN ALMA (frontend'den gelen Request'teki Refresh Token okunarak yapılır)
+    // 2. YENÄ° ACCESS TOKEN ALMA (frontend'den gelen Request'teki Refresh Token okunarak yapÄ±lÄ±r)
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshRequest,HttpServletRequest httpRequest) {
         String refreshTokenRequest = refreshRequest.getRefreshToken();
 
-        // İsteği yapanın anlık bilgilerini alıyoruz
+        // Ä°steÄŸi yapanÄ±n anlÄ±k bilgilerini alÄ±yoruz
         String currentIpAddress = httpRequest.getRemoteAddr();
         String currentDeviceInfo = httpRequest.getHeader("User-Agent");
 
         return refreshTokenService.findByToken(refreshTokenRequest)
-                // Tüm güvenlik (süre, iptal, hırsızlık) doğrulamalarını tek satırda yapıyoruz
+                // TÃ¼m gÃ¼venlik (sÃ¼re, iptal, hÄ±rsÄ±zlÄ±k) doÄŸrulamalarÄ±nÄ± tek satÄ±rda yapÄ±yoruz
                 .map(token -> refreshTokenService.verifyExpiration(token, currentIpAddress, currentDeviceInfo))
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    // Güvenlik testlerini geçti, yeni Access Token üretiliyor
+                    // GÃ¼venlik testlerini geÃ§ti, yeni Access Token Ã¼retiliyor
                     String newAccessToken = jwtUtil.generateToken(user.getPhoneNumber(), user.getId(), user.getRole().name());
 
                     return ResponseEntity.ok(AuthResponse.builder()
                             .accessToken(newAccessToken)
-                            .refreshToken(refreshTokenRequest) // Aynı refresh token ile devam ediliyor
+                            .refreshToken(refreshTokenRequest) // AynÄ± refresh token ile devam ediliyor
                             .tokenType("Bearer")
                             .userId(user.getId())
                             .build());
                 })
-                .orElseThrow(() -> new RuntimeException("Refresh token sistemde bulunamadı!"));
+                .orElseThrow(() -> new RuntimeException("Refresh token sistemde bulunamadÄ±!"));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
         String refreshTokenRequest = refreshRequest.getRefreshToken();
 
-        // Token veritabanında varsa bul ve 'revoked' (iptal) durumuna çek
+        // Token veritabanÄ±nda varsa bul ve 'revoked' (iptal) durumuna Ã§ek
         refreshTokenService.findByToken(refreshTokenRequest)
                 .ifPresent(refreshTokenService::revokeToken);
 
-        return ResponseEntity.ok("Başarıyla çıkış yapıldı.");
+        return ResponseEntity.ok("BaÅŸarÄ±yla Ã§Ä±kÄ±ÅŸ yapÄ±ldÄ±.");
     }
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
