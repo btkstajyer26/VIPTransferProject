@@ -72,7 +72,7 @@ public class VehicleService {
      */
     @Transactional
     public VehicleResponse updateVehicle(Long id, UpdateVehicleRequest request) {
-        Vehicle vehicle = vehicleRepository.findByIdAndActiveTrue(id)
+        Vehicle vehicle = vehicleRepository.findVehicleById(id)
                 .orElseThrow(() -> new VehicleNotFoundException(id));
 
         if (request.getPlateNumber() != null &&
@@ -83,7 +83,6 @@ public class VehicleService {
 
         if (request.getPlateNumber()        != null) vehicle.setPlateNumber(request.getPlateNumber());
         if (request.getVehicleClass()       != null) vehicle.setVehicleClass(request.getVehicleClass());
-        if(request.getActive()              != null) vehicle.setActive(request.getActive());
         if (request.getBrand()              != null) vehicle.setBrand(request.getBrand());
         if (request.getModel()              != null) vehicle.setModel(request.getModel());
         if (request.getYear()               != null) vehicle.setYear(request.getYear());
@@ -95,6 +94,16 @@ public class VehicleService {
 
         Vehicle updated = vehicleRepository.save(vehicle);
         log.info("Araç güncellendi. ID: {}", updated.getId());
+        return toResponse(updated);
+    }
+
+    @Transactional
+    public VehicleResponse toggleVehicleStatus(Long id) {
+        Vehicle vehicle = vehicleRepository.findVehicleById(id)
+                .orElseThrow(() -> new VehicleNotFoundException(id));
+        vehicle.setActive(!vehicle.isActive());
+        Vehicle updated = vehicleRepository.save(vehicle);
+        log.info("Araç durumu değiştirildi. ID: {}, Yeni durum: {}", id, updated.isActive());
         return toResponse(updated);
     }
 
