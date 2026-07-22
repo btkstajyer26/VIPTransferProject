@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
+import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 
 @Slf4j
 @RestController
@@ -84,5 +86,14 @@ public class AuthController {
                 .ifPresent(refreshTokenService::revokeToken);
 
         return ResponseEntity.ok("BaÅŸarÄ±yla Ã§Ä±kÄ±ÅŸ yapÄ±ldÄ±.");
+    }
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
+        return ResponseEntity.ok(authService.register(request));
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        return ResponseEntity.ok(authService.verifyEmail(token));
     }
 }
