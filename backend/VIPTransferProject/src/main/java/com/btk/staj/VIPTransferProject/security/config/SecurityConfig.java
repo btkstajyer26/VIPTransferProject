@@ -36,7 +36,7 @@ public class SecurityConfig {
 
     private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private final ObjectMapper objectMapper;
+    //private final ObjectMapper objectMapper;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         log.info("Guvenlik duvari (SecurityFilterChain) yapilandiriliyor...");
@@ -113,13 +113,20 @@ public class SecurityConfig {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
 
-            ApiResponse<String> apiResponse = ApiResponse.<String>builder()
-                    .status(401)
-                    .message("Bu işlemi gerçekleştirmek için giriş yapmalısınız.")
-                    .timestamp(OffsetDateTime.now())
-                    .build();
+            String timestamp = OffsetDateTime.now().toString();
+            String message = "Bu işlemi gerçekleştirmek için giriş yapmalısınız.";
 
-            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+            // Text block ile JSON şablonu
+            String jsonResponse = """
+                    {
+                      "timestamp": "%s",
+                      "status": 401,
+                      "message": "%s",
+                      "data": null
+                    }
+                    """.formatted(timestamp, message);
+
+            response.getWriter().write(jsonResponse);
         };
     }
     @Bean

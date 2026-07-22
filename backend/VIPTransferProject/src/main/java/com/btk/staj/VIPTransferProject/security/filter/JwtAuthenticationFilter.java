@@ -31,7 +31,9 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper;
+    //private final ObjectMapper objectMapper;
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -81,18 +83,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-    // Filtre içinden JSON dönmemizi sağlayan yardımcı metot
     private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ApiResponse<String> apiResponse = ApiResponse.<String>builder()
-                .status(status)
-                .message(message)
-                .timestamp(OffsetDateTime.now())
-                .build();
+        String timestamp = OffsetDateTime.now().toString();
+        // Kendi ApiResponse formatımıza birebir uyan Text Block
+        String jsonResponse = """
+                {
+                  "timestamp": "%s",
+                  "status": %d,
+                  "message": "%s",
+                  "data": null
+                }
+                """.formatted(timestamp, status, message);
 
-        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+        response.getWriter().write(jsonResponse);
     }
 }
