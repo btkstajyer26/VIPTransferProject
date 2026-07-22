@@ -4,6 +4,7 @@ import com.btk.staj.VIPTransferProject.dto.AuthResponse;
 import com.btk.staj.VIPTransferProject.dto.LoginRequest;
 import com.btk.staj.VIPTransferProject.dto.RefreshTokenRequest;
 import com.btk.staj.VIPTransferProject.entity.RefreshToken;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.service.AuthService;
 import com.btk.staj.VIPTransferProject.service.RefreshTokenService;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
@@ -28,17 +29,14 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
 
-    // 1. GÄ°RÄ°Å YAP METODU
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request,HttpServletRequest httpRequest) {
 
         AuthResponse authResponse = authService.login(request);
 
-        // IP ve Cihaz bilgisini HTTP isteÄŸinden Ã§ekiyoruz
         String ipAddress = httpRequest.getRemoteAddr();
         String deviceInfo = httpRequest.getHeader("User-Agent"); // Ã–rn: Mozilla/5.0 (Windows NT 10.0...)
 
-        // Token'Ä± IP ve Cihaz bilgisiyle Ã¼retiyoruz
         String refreshTokenString = refreshTokenService.createRefreshToken(authResponse.getUserId(), ipAddress, deviceInfo).getToken();
         authResponse.setRefreshToken(refreshTokenString);
 //        Cookie cookie = new Cookie("refreshToken", refreshTokenString);
@@ -50,12 +48,11 @@ public class AuthController {
         return ResponseEntity.ok(authResponse);
     }
 
-    // 2. YENÄ° ACCESS TOKEN ALMA (frontend'den gelen Request'teki Refresh Token okunarak yapÄ±lÄ±r)
+    // YENİ ACCESS TOKEN
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshRequest,HttpServletRequest httpRequest) {
         String refreshTokenRequest = refreshRequest.getRefreshToken();
 
-        // Ä°steÄŸi yapanÄ±n anlÄ±k bilgilerini alÄ±yoruz
         String currentIpAddress = httpRequest.getRemoteAddr();
         String currentDeviceInfo = httpRequest.getHeader("User-Agent");
 
@@ -81,11 +78,12 @@ public class AuthController {
     public ResponseEntity<String> logoutUser(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
         String refreshTokenRequest = refreshRequest.getRefreshToken();
 
-        // Token veritabanÄ±nda varsa bul ve 'revoked' (iptal) durumuna Ã§ek
-        refreshTokenService.findByToken(refreshTokenRequest)
-                .ifPresent(refreshTokenService::revokeToken);
+        RefreshToken token = refreshTokenService.findByToken(refreshTokenRequest)
+                .orElseThrow(() -> new UnauthorizedException("Geçersiz ya da süresi dolmuş token."));
 
-        return ResponseEntity.ok("BaÅŸarÄ±yla Ã§Ä±kÄ±ÅŸ yapÄ±ldÄ±.");
+        refreshTokenService.revokeToken(token);
+
+        return ResponseEntity.ok("Başarıyla çıkış yapıldı.");
     }
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
