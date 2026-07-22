@@ -7,6 +7,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest
 @Testcontainers
@@ -14,7 +15,9 @@ class VIPTransferProjectApplicationTests {
 
     // 1. Kendi kullandığın PostGIS imajını aynen buraya veriyorsun
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgis/postgis:15-3.3")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgis/postgis:15-3.3").asCompatibleSubstituteFor("postgres")
+    )
             .withDatabaseName("vip_transfer_db")
             .withUsername("postgres")
             .withPassword("vip_password");
