@@ -1,7 +1,7 @@
 import apiClient from "@/api/apiClient";
 
 export async function getVehicles() {
-  const response = await apiClient.get("/vehicles");
+  const response = await apiClient.get("/vehicles/all");
   return response.data;
 }
 

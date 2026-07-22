@@ -145,24 +145,24 @@ function VehicleTable({
 
               <TableCell>
                 <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    title={vehicle.active ? "Pasife al" : "Aktif yap"}
-                    aria-label={
-                      vehicle.active
-                        ? "Aracı pasife al"
-                        : "Aracı aktif yap"
-                    }
-                    onClick={() => onToggleStatus(vehicle.id)}
-                  >
-                    {vehicle.active ? (
-                      <PowerOff className="size-4" />
-                    ) : (
-                      <Power className="size-4" />
-                    )}
-                  </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                title={vehicle.active ? "Pasife al" : "Aktif yap"}
+                aria-label={
+                  vehicle.active
+                    ? "Aracı pasife al"
+                    : "Aracı aktif yap"
+                }
+                onClick={() => onToggleStatus(vehicle)}
+              >
+                {vehicle.active ? (
+                  <PowerOff className="size-4" />
+                ) : (
+                  <Power className="size-4" />
+                )}
+              </Button>
 
                   <Button
                     type="button"
