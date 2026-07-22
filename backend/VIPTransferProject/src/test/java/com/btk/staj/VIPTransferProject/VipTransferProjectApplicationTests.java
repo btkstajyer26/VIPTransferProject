@@ -20,7 +20,8 @@ class VIPTransferProjectApplicationTests {
     )
             .withDatabaseName("vip_transfer_db")
             .withUsername("postgres")
-            .withPassword("vip_password");
+            .withPassword("vip_password")
+            .withUrlParam("stringtype", "unspecified");
 
     // 2. Spring'in normal application.properties'deki URL'yi ezip, 
     // Testcontainers'ın rastgele açtığı porta bağlanmasını sağlıyorsun
