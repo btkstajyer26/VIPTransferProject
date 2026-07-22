@@ -9,6 +9,11 @@ import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.DiscountType;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
+import com.btk.staj.VIPTransferProject.dto.loyalty.AccruePointsRequests;
+import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
+import com.btk.staj.VIPTransferProject.exception.ForbiddenOperationException;
+import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
+import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.*;
 import com.btk.staj.VIPTransferProject.util.BookingReferenceGenerator;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +43,7 @@ public class ReservationService {
     private final CampaignRepository campaignRepository;
     private final BookingReferenceGenerator bookingReferenceGenerator;
     private final UserService userService;
+    private final LoyaltyService loyaltyService;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -46,13 +52,13 @@ public class ReservationService {
 
         // 1. Araç kontrolü
         Vehicle vehicle = vehicleRepository.findByIdAndActiveTrue(request.getVehicleId())
-                .orElseThrow(() -> new RuntimeException("Araç bulunamadı veya aktif değil: " + request.getVehicleId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Araç bulunamadı veya aktif değil: " + request.getVehicleId()));
 
         // 2. Kullanıcı veya misafir tespiti — misafir de users tablosunda satır alır (is_guest=true)
         User user;
         if (userId != null) {
             user = userRepository.findByIdAndActiveTrue(userId)
-                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı veya aktif değil: " + userId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı veya aktif değil: " + userId));
         } else {
             user = userService.findOrCreateGuestUser(phoneNumber, request.getGuestName());
         }
@@ -152,7 +158,7 @@ public class ReservationService {
         User requester = findUserByUserId(userId);
         Reservation reservation = reservationRepository.findOneById(id);
         if (reservation == null) {
-            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+            throw new ResourceNotFoundException("Rezervasyon bulunamadı: " + id);
         }
         validateReservationAccess(reservation, requester);
         return toResponse(reservation);
@@ -162,11 +168,11 @@ public class ReservationService {
     public ReservationResponse updateStatus(Long id, UpdateStatusRequest request, Long userId) {
         User requester = findUserByUserId(userId);
         if (requester.getRole() != UserRole.ADMIN) {
-            throw new RuntimeException("Durum güncelleme yetkisi yok. Yalnızca ADMIN.");
+            throw new ForbiddenOperationException("Durum güncelleme yetkisi yok. Yalnızca ADMIN.");
         }
         Reservation reservation = reservationRepository.findOneById(id);
         if (reservation == null) {
-            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+            throw new ResourceNotFoundException("Rezervasyon bulunamadı: " + id);
         }
         ReservationStatus current = reservation.getStatus();
         ReservationStatus target = request.getStatus();
@@ -179,6 +185,19 @@ public class ReservationService {
             reservation.setCancelledAt(OffsetDateTime.now());
         }
         reservationRepository.save(reservation);
+
+        if (target == ReservationStatus.COMPLETED
+                && reservation.getUser() != null
+                && !reservation.getUser().isGuest()) {
+            try {
+                AccruePointsRequests accrueReq = new AccruePointsRequests();
+                accrueReq.setUserId(reservation.getUser().getId());
+                accrueReq.setFareAmount(reservation.getCalculatedPrice());
+                loyaltyService.AccruePoints(accrueReq);
+            } catch (Exception e) {
+                log.warn("Loyalty puan eklenemedi. reservationId={}, hata={}", id, e.getMessage());
+            }
+        }
 
         statusHistoryRepository.save(ReservationStatusHistory.builder()
                 .reservation(reservation)
@@ -196,11 +215,11 @@ public class ReservationService {
         User requester = findUserByUserId(userId);
         Reservation reservation = reservationRepository.findOneById(id);
         if (reservation == null) {
-            throw new RuntimeException("Rezervasyon bulunamadı: " + id);
+            throw new ResourceNotFoundException("Rezervasyon bulunamadı: " + id);
         }
         validateReservationAccess(reservation, requester);
         if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new RuntimeException(
+            throw new BusinessRuleException(
                     "Sadece PENDING durumundaki rezervasyon iptal edilebilir. Mevcut durum: " + reservation.getStatus());
         }
         reservation.setStatus(ReservationStatus.CANCELLED);
@@ -222,7 +241,7 @@ public class ReservationService {
         User requester = findUserByUserId(userId);
         Reservation reservation = reservationRepository.findOneById(reservationId);
         if (reservation == null) {
-            throw new RuntimeException("Rezervasyon bulunamadı: " + reservationId);
+            throw new ResourceNotFoundException("Rezervasyon bulunamadı: " + reservationId);
         }
         validateReservationAccess(reservation, requester);
         return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservationId)
@@ -234,11 +253,11 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public GuestReservationResponse getGuestReservation(String bookingReference, String phone) {
         if (phone == null || phone.isBlank()) {
-            throw new RuntimeException("Telefon numarası zorunludur.");
+            throw new InvalidRequestException("Telefon numarası zorunludur.");
         }
         Reservation reservation = reservationRepository.findByBookingReference(bookingReference);
         if (reservation == null) {
-            throw new RuntimeException("Rezervasyon bulunamadı veya doğrulama başarısız.");
+            throw new ResourceNotFoundException("Rezervasyon bulunamadı veya doğrulama başarısız.");
         }
         User owner = reservation.getUser();
         // Geçiş dönemi: user_id NULL olan eski misafir kayıtları için guest_phone'a düş.
@@ -246,11 +265,11 @@ public class ReservationService {
         boolean isGuestReservation = (owner == null) || owner.isGuest();
         // Kayıtlı kullanıcının (is_guest=false) rezervasyonu public uçtan gösterilmez.
         if (!isGuestReservation) {
-            throw new RuntimeException("Bu rezervasyon bir hesaba bağlı. Lütfen giriş yaparak görüntüleyin.");
+            throw new ForbiddenOperationException("Bu rezervasyon bir hesaba bağlı. Lütfen giriş yaparak görüntüleyin.");
         }
         // Doğrulama: telefon eşleşmesi (SMS doğrulama kodu akışı gelene kadar).
         if (ownerPhone == null || !normalize(ownerPhone).equals(normalize(phone))) {
-            throw new RuntimeException("Rezervasyon bulunamadı veya doğrulama başarısız.");
+            throw new ResourceNotFoundException("Rezervasyon bulunamadı veya doğrulama başarısız.");
         }
         return toGuestResponse(reservation);
     }
@@ -259,10 +278,10 @@ public class ReservationService {
 
     private void validateStatusTransition(ReservationStatus current, ReservationStatus target) {
         if (target == null) {
-            throw new RuntimeException("Hedef durum belirtilmedi.");
+            throw new InvalidRequestException("Hedef durum belirtilmedi.");
         }
         if (current == target) {
-            throw new RuntimeException("Rezervasyon zaten " + current + " durumunda.");
+            throw new BusinessRuleException("Rezervasyon zaten " + current + " durumunda.");
         }
         boolean valid = switch (current) {
             case PENDING  -> target == ReservationStatus.ASSIGNED || target == ReservationStatus.CANCELLED;
@@ -270,20 +289,20 @@ public class ReservationService {
             case COMPLETED, CANCELLED, NO_SHOW -> false;
         };
         if (!valid) {
-            throw new RuntimeException("Geçersiz durum geçişi: " + current + " -> " + target);
+            throw new BusinessRuleException("Geçersiz durum geçişi: " + current + " -> " + target);
         }
     }
 
     private User findUserByUserId(Long userId) {
         return userRepository.findByIdAndActiveTrue(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı veya aktif değil: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı veya aktif değil: " + userId));
     }
 
     private void validateReservationAccess(Reservation reservation, User requester) {
         boolean isAdmin = requester.getRole() == UserRole.ADMIN;
         boolean isOwner = reservation.getUser() != null && reservation.getUser().getId().equals(requester.getId());
         if (!isAdmin && !isOwner) {
-            throw new RuntimeException("Bu rezervasyona erişim yetkiniz yok.");
+            throw new ForbiddenOperationException("Bu rezervasyona erişim yetkiniz yok.");
         }
     }
 

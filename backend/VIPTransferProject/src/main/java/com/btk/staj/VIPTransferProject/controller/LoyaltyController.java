@@ -14,48 +14,48 @@ import java.math.BigDecimal;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/loyalty")
+@RequestMapping("/api/loyalty")
 @RequiredArgsConstructor
 public class LoyaltyController {
 
     private final LoyaltyService loyaltyService;
 
-    // Giriş yapan kullanıcının kendi sadakat hesabı
+    // GiriÅŸ yapan kullanÄ±cÄ±nÄ±n kendi sadakat hesabÄ±
     @GetMapping("/me")
     public ResponseEntity<LoyaltyAccountResponse> getMyAccount(
             @AuthenticationPrincipal UserPrincipal principal) {
         Long userId = principal.id();
-        log.info("HTTP GET /api/v1/loyalty/me isteği alındı. userId={}", userId);
+        log.info("HTTP GET /api/loyalty/me isteÄŸi alÄ±ndÄ±. userId={}", userId);
         return ResponseEntity.ok(loyaltyService.getAccount(userId));
     }
 
-    // Admin: herhangi bir kullanıcının sadakat hesabını görüntüler
+    // Admin: herhangi bir kullanÄ±cÄ±nÄ±n sadakat hesabÄ±nÄ± gÃ¶rÃ¼ntÃ¼ler
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/accounts/{userId}")
     public ResponseEntity<LoyaltyAccountResponse> getAccountByUserId(
             @PathVariable Long userId) {
-        log.info("HTTP GET /api/v1/loyalty/accounts/{} isteği alındı. (ADMIN)", userId);
+        log.info("HTTP GET /api/loyalty/accounts/{} isteÄŸi alÄ±ndÄ±. (ADMIN)", userId);
         return ResponseEntity.ok(loyaltyService.getAccount(userId));
     }
-
-    // Giriş yapan kullanıcı için belirli bir tutara uygulanacak indirimi hesaplar
+    /*
+    // GiriÅŸ yapan kullanÄ±cÄ± iÃ§in belirli bir tutara uygulanacak indirimi hesaplar
     @GetMapping("/me/discount")
     public ResponseEntity<LoyaltyDiscountResponse> getMyDiscount(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam BigDecimal fare) {
         Long userId = principal.id();
-        log.info("HTTP GET /api/v1/loyalty/me/discount isteği alındı. userId={}, fare={}", userId, fare);
+        log.info("HTTP GET /api/loyalty/me/discount isteÄŸi alÄ±ndÄ±. userId={}, fare={}", userId, fare);
         return ResponseEntity.ok(loyaltyService.calculateDiscount(userId, fare));
     }
 
-    // Puan tahakkuku — sistem tarafından (rezervasyon COMPLETED olduğunda) tetiklenir.
-    // Dışarıdan keyfi çağrılamaması için sadece ADMIN/sistem erişimine açık.
+    // Puan tahakkuku â€” sistem tarafÄ±ndan (rezervasyon COMPLETED olduÄŸunda) tetiklenir.
+    // DÄ±ÅŸarÄ±dan keyfi Ã§aÄŸrÄ±lamamasÄ± iÃ§in sadece ADMIN/sistem eriÅŸimine aÃ§Ä±k.
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/accrue")
     public ResponseEntity<Void> accruePoints(@RequestBody AccruePointsRequests request) {
-        log.info("HTTP POST /api/v1/loyalty/accrue isteği alındı. userId={}, fareAmount={}",
+        log.info("HTTP POST /api/loyalty/accrue isteÄŸi alÄ±ndÄ±. userId={}, fareAmount={}",
                 request.getUserId(), request.getFareAmount());
         loyaltyService.AccruePoints(request);
         return ResponseEntity.noContent().build();
-    }
+    }*/
 }

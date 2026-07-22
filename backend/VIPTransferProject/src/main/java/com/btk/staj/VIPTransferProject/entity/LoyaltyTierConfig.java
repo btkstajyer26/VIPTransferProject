@@ -3,6 +3,8 @@ package com.btk.staj.VIPTransferProject.entity;
 import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 
@@ -20,13 +22,13 @@ public class LoyaltyTierConfig {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, unique = true, columnDefinition = "loyalty_tier")
     private LoyaltyTier tier;
 
     @Column(name = "min_points", nullable = false)
     private int minPoints;
 
-    // Rezervasyon başına TL başına kazanılan puan oranı
     @Builder.Default
     @Column(name = "earn_rate", nullable = false, precision = 6, scale = 2)
     private BigDecimal earnRate = BigDecimal.ONE;
