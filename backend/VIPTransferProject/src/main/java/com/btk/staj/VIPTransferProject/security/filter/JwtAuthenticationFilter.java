@@ -1,13 +1,17 @@
 package com.btk.staj.VIPTransferProject.security.filter;
 
+import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
 import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +31,8 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    //private final ObjectMapper objectMapper;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -55,6 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
+                    log.debug("[JwtFilter] SecurityContext'e atanacak Yetki (Authority): {}", authority);
                     // GÜVENLİK ONAYLANDI
                     UserPrincipal principal = new UserPrincipal(userId,phoneNumber);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -66,9 +74,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("İç Gateway (Filtre): İstek onaylandı, kullanıcı: {}", phoneNumber);
                 }
             }
-        } catch (Exception e) {
-            log.error("İç Gateway Uyarısı: Token işlenirken hata oluştu: {}", e.getMessage());
+        }
+
+        catch (Exception e) {
+            log.error("[AUTH-401] [JwtFilter] Kimlik doğrulama başarısız (Geçersiz Token): {}", e.getMessage());
+            //STATUS : 401
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED.value(), "Oturum süreniz dolmuş veya geçersiz token. Lütfen tekrar giriş yapın.");
+            return;
         }
         filterChain.doFilter(request, response);
+    }
+    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        String timestamp = OffsetDateTime.now().toString();
+        // Kendi ApiResponse formatımıza birebir uyan Text Block
+        String jsonResponse = """
+                {
+                  "timestamp": "%s",
+                  "status": %d,
+                  "message": "%s",
+                  "data": null
+                }
+                """.formatted(timestamp, status, message);
+
+        response.getWriter().write(jsonResponse);
     }
 }
