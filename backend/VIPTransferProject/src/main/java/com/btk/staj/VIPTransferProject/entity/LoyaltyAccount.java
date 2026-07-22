@@ -3,7 +3,9 @@ package com.btk.staj.VIPTransferProject.entity;
 import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 
@@ -16,7 +18,6 @@ import java.time.OffsetDateTime;
 @Builder
 public class LoyaltyAccount {
 
-    // user_id hem PK hem FK; @MapsId ile User.id'den türetilir
     @Id
     @Column(name = "user_id")
     private Long userId;
@@ -31,6 +32,7 @@ public class LoyaltyAccount {
     private int lifetimePoints = 0;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Builder.Default
     @Column(nullable = false, columnDefinition = "loyalty_tier")
     private LoyaltyTier tier = LoyaltyTier.BRONZE;
