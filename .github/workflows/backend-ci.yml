@@ -3,9 +3,9 @@ name: VIP Transfer Backend CI/CD
 # Bu müfettiş ne zaman çalışsın?
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "test" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "test" ]
 
 jobs:
   build-and-test:
@@ -22,6 +22,7 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    # Sadece testleri çalıştıracak komut (veya istersen mvn clean package da yapabilirsin)
     - name: 3. Maven ile Projeyi Derle ve Test Et
       working-directory: ./backend/VIPTransferProject
-      run: mvn clean package -DskipTests
+      run: mvn clean test

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -77,5 +77,18 @@ public class UserController {
             @PathVariable Long id) {
 
         return ResponseEntity.ok(userService.getUserById(id));
+    }
+    /*
+     * Belirtilen kullanıcıyı yalnızca ADMIN pasif hâle getirebilir.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUserById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+
+        userService.deleteUserById(id, principal.id());
+
+        return ResponseEntity.noContent().build();
     }
 }

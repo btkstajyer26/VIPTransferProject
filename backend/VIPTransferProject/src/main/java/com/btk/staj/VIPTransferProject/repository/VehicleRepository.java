@@ -14,5 +14,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     List<Vehicle> findAllByActiveTrueOrderByOpeningPriceAsc();
 
+    List<Vehicle> findAllByOrderByActiveDescCreatedAtDesc();
+
     boolean existsByPlateNumber(String plateNumber);
 }
