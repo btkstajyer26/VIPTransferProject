@@ -4,6 +4,7 @@ import com.btk.staj.VIPTransferProject.dto.AuthResponse;
 import com.btk.staj.VIPTransferProject.dto.LoginRequest;
 import com.btk.staj.VIPTransferProject.dto.RefreshTokenRequest;
 import com.btk.staj.VIPTransferProject.entity.RefreshToken;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.service.AuthService;
 import com.btk.staj.VIPTransferProject.service.RefreshTokenService;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
@@ -72,16 +73,17 @@ public class AuthController {
                             .userId(user.getId())
                             .build());
                 })
-                .orElseThrow(() -> new RuntimeException("Refresh token sistemde bulunamadı!"));
+                .orElseThrow(() -> new UnauthorizedException("Refresh token sistemde bulunamadı!"));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
         String refreshTokenRequest = refreshRequest.getRefreshToken();
 
-        // Token veritabanında varsa bul ve 'revoked' (iptal) durumuna çek
-        refreshTokenService.findByToken(refreshTokenRequest)
-                .ifPresent(refreshTokenService::revokeToken);
+        RefreshToken token = refreshTokenService.findByToken(refreshTokenRequest)
+                .orElseThrow(() -> new UnauthorizedException("Geçersiz ya da süresi dolmuş token."));
+
+        refreshTokenService.revokeToken(token);
 
         return ResponseEntity.ok("Başarıyla çıkış yapıldı.");
     }
