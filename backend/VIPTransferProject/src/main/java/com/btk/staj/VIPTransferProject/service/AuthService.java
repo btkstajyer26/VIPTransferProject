@@ -76,7 +76,6 @@ public class AuthService {
                 .role(user.getRole().name())
                 .build();
     }
-
     @Transactional
     public RegisterResponseDto register(RegisterRequestDto request) {
         log.info("Yeni kayıt denemesi: {}", request.getEmail());
@@ -97,7 +96,6 @@ public class AuthService {
                 .phoneNumber(request.getPhoneNumber())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(UserRole.CUSTOMER)
-                .isEmailVerified(false)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -135,6 +133,7 @@ public class AuthService {
 
         User user = verificationToken.getUser();
         user.setEmailVerified(true);
+        user.setPhoneVerified(true);
         userRepository.save(user);
 
         // Kullanılan token'ı temizle

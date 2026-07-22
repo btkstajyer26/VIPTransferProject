@@ -77,16 +77,4 @@ public class User {
 
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
-
-    @Column(name = "is_email_verified", nullable = false)
-    private boolean isEmailVerified = false;
-
-    // User.java dosyasının içine en alta ekleyebilirsin:
-    public boolean isEmailVerified() {
-        return isEmailVerified;
-    }
-
-    public void setEmailVerified(boolean emailVerified) {
-        this.isEmailVerified = emailVerified;
-    }
 }
