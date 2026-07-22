@@ -25,9 +25,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     // 3. Kullanıcının sadece aktif olan (çıkış yapmadığı) cihazlarını listelemek için
     List<RefreshToken> findAllByUserAndRevokedFalse(User user);
 
-    // 4. Artık normal çıkışlarda kullanılmaz
-    // Sadece "Tüm Cihazlardan Çıkış Yap" butonuna basıldığında veya kullanıcı sistemden tamamen silindiğinde kullanılır.
-    void deleteByUser(User user);
+
 
     Optional<RefreshToken> findByUserAndDeviceInfo(User user, String deviceInfo);
     
