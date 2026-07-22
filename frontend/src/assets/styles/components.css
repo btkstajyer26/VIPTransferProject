@@ -1,0 +1,141 @@
+.ui-button {
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    border:none;
+
+    cursor:pointer;
+
+    border-radius:12px;
+
+    transition:.25s ease;
+
+    font-weight:600;
+
+}
+
+.ui-button:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.ui-button__icon{
+
+    display:flex;
+
+    align-items:center;
+
+    font-size:18px;
+
+}
+
+.ui-button--small{
+
+    padding:8px 14px;
+
+}
+
+.ui-button--medium{
+
+    padding:12px 20px;
+
+}
+
+.ui-button--large{
+
+    padding:14px 24px;
+
+}
+
+.ui-button--primary{
+
+    background:#2563eb;
+
+    color:white;
+
+    box-shadow:
+    0 10px 30px rgba(37,99,235,.25);
+
+}
+
+.ui-button--primary:hover{
+
+    background:#1d4ed8;
+
+}
+
+.ui-button--secondary{
+
+    background:#eef2ff;
+
+    color:#1d4ed8;
+
+}
+
+.ui-button--secondary:hover{
+
+    background:#dbeafe;
+
+}
+
+.ui-button--danger{
+
+    background:#dc2626;
+
+    color:white;
+
+}
+
+.ui-button--danger:hover{
+
+    background:#b91c1c;
+
+}
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ui-field__label {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ui-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ui-input::placeholder {
+  color: #9ca3af;
+}
+
+.ui-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%);
+}
+
+.ui-input--error {
+  border-color: #dc2626;
+}
+
+.ui-field__error {
+  color: #dc2626;
+  font-size: 12px;
+}
