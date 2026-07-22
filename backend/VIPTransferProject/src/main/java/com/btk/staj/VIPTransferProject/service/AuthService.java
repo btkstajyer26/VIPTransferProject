@@ -7,6 +7,7 @@ import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.entity.VerificationToken;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import com.btk.staj.VIPTransferProject.repository.VerificationTokenRepository;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
@@ -35,7 +36,6 @@ public class AuthService {
 
         User user;
 
-        // 1. Email varsa Email ile, yoksa Telefon Numarası ile Kullanıcıyı Bul
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
             user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> {
@@ -52,19 +52,16 @@ public class AuthService {
             throw new RuntimeException("Lütfen e-posta adresinizi veya telefon numaranızı giriniz!");
         }
 
-        // 2. Şifre Doğrulama (BCrypt)
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Güvenlik - Başarısız Giriş: Hatalı şifre denemesi ({})", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
             throw new RuntimeException("Kullanıcı adı veya şifre hatalı!");
         }
 
-        // 3. E-posta Doğrulama Kontrolü
         if (!user.isEmailVerified()) {
             log.warn("Güvenlik - Onaysız Giriş Denemesi: E-posta henüz doğrulanmamış ({})", user.getEmail());
             throw new RuntimeException("Lütfen önce e-posta adresinizi doğrulayın!");
         }
 
-        // 4. JWT Token Üretme
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
         String token = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name());
 
@@ -76,6 +73,7 @@ public class AuthService {
                 .role(user.getRole().name())
                 .build();
     }
+
     @Transactional
     public RegisterResponseDto register(RegisterRequestDto request) {
         log.info("Yeni kayıt denemesi: {}", request.getEmail());
@@ -88,7 +86,6 @@ public class AuthService {
             throw new RuntimeException("Bu telefon numarası zaten kullanımda!");
         }
 
-        // 1. Yeni Kullanıcı Oluştur (isEmailVerified = false)
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -96,11 +93,11 @@ public class AuthService {
                 .phoneNumber(request.getPhoneNumber())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(UserRole.CUSTOMER)
+                .isEmailVerified(false)
                 .build();
 
         User savedUser = userRepository.save(user);
 
-        // 2. Verification Token Üret (30 dakika geçerli)
         String token = UUID.randomUUID().toString();
         VerificationToken verificationToken = VerificationToken.builder()
                 .token(token)
@@ -110,7 +107,6 @@ public class AuthService {
 
         verificationTokenRepository.save(verificationToken);
 
-        // 3. E-posta Gönder
         emailService.sendVerificationEmail(savedUser.getEmail(), token);
         log.info("Kayıt başarılı, doğrulama maili gönderildi: {}", savedUser.getEmail());
 
@@ -133,13 +129,13 @@ public class AuthService {
 
         User user = verificationToken.getUser();
         user.setEmailVerified(true);
-        user.setPhoneVerified(true);
+        user.setPhoneVerified(true); // E-posta doğrulandığında telefon da doğrulanıyor
+
         userRepository.save(user);
 
-        // Kullanılan token'ı temizle
         verificationTokenRepository.delete(verificationToken);
 
-        log.info("E-posta başarıyla doğrulandı: {}", user.getEmail());
-        return "E-posta adresiniz başarıyla doğrulandı! Artık giriş yapabilirsiniz.";
+        log.info("E-posta ve telefon başarıyla doğrulandı: {}", user.getEmail());
+        return "E-posta ve telefon numaranız başarıyla doğrulandı! Artık giriş yapabilirsiniz.";
     }
 }

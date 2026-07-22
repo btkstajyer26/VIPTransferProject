@@ -8,6 +8,7 @@ import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.repository.*;
+import com.btk.staj.VIPTransferProject.service.LoyaltyService;
 import com.btk.staj.VIPTransferProject.util.BookingReferenceGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ class ReservationServiceTest {
     @Mock private CampaignRepository campaignRepository;
     @Mock private BookingReferenceGenerator bookingReferenceGenerator;
     @Mock private UserService userService;
+    @Mock private LoyaltyService loyaltyService;
 
     @InjectMocks
     private ReservationService service;

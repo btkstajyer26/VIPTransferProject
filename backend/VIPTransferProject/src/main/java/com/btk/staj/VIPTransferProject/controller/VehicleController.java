@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.vehicle.CreateVehicleRequest;
+import com.btk.staj.VIPTransferProject.dto.vehicle.PublicVehicleResponse;
 import com.btk.staj.VIPTransferProject.dto.vehicle.UpdateVehicleRequest;
 import com.btk.staj.VIPTransferProject.dto.vehicle.VehicleResponse;
 import com.btk.staj.VIPTransferProject.service.VehicleService;
@@ -24,8 +25,14 @@ public class VehicleController {
      * Aktif araç listesi — kimlik doğrulaması gerektirmez (JWT ekibi SecurityConfig'e ekler).
      */
     @GetMapping
-    public ResponseEntity<List<VehicleResponse>> getActiveVehicles() {
+    public ResponseEntity<List<PublicVehicleResponse>> getActiveVehicles() {
         return ResponseEntity.ok(vehicleService.getActiveVehicles());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public ResponseEntity<List<VehicleResponse>> getAllVehicles() {
+        return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
     /**
