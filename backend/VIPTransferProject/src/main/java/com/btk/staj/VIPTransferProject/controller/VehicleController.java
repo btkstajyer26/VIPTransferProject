@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.vehicle.CreateVehicleRequest;
+import com.btk.staj.VIPTransferProject.dto.vehicle.PublicVehicleResponse;
 import com.btk.staj.VIPTransferProject.dto.vehicle.UpdateVehicleRequest;
 import com.btk.staj.VIPTransferProject.dto.vehicle.VehicleResponse;
 import com.btk.staj.VIPTransferProject.service.VehicleService;
@@ -14,22 +15,28 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/vehicles")
+@RequestMapping("/api/vehicles")
 @RequiredArgsConstructor
 public class VehicleController {
 
     private final VehicleService vehicleService;
 
     /**
-     * Aktif araç listesi — kimlik doğrulaması gerektirmez (JWT ekibi SecurityConfig'e ekler).
+     * Aktif araÃ§ listesi â€” kimlik doÄŸrulamasÄ± gerektirmez (JWT ekibi SecurityConfig'e ekler).
      */
     @GetMapping
-    public ResponseEntity<List<VehicleResponse>> getActiveVehicles() {
+    public ResponseEntity<List<PublicVehicleResponse>> getActiveVehicles() {
         return ResponseEntity.ok(vehicleService.getActiveVehicles());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public ResponseEntity<List<VehicleResponse>> getAllVehicles() {
+        return ResponseEntity.ok(vehicleService.getAllVehicles());
+    }
+
     /**
-     * Yeni araç ekle — yalnızca ADMIN.
+     * Yeni araÃ§ ekle â€” yalnÄ±zca ADMIN.
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
@@ -37,12 +44,12 @@ public class VehicleController {
             @Valid @RequestBody CreateVehicleRequest request) {
         VehicleResponse created = vehicleService.createVehicle(request);
         return ResponseEntity
-                .created(URI.create("/api/v1/vehicles/" + created.getId()))
+                .created(URI.create("/api/vehicles/" + created.getId()))
                 .body(created);
     }
 
     /**
-     * Aracı kısmen güncelle — yalnızca ADMIN.
+     * AracÄ± kÄ±smen gÃ¼ncelle â€” yalnÄ±zca ADMIN.
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
@@ -53,7 +60,7 @@ public class VehicleController {
     }
 
     /**
-     * Aracı pasifleştir (soft delete) — yalnızca ADMIN.
+     * AracÄ± pasifleÅŸtir (soft delete) â€” yalnÄ±zca ADMIN.
      */
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")

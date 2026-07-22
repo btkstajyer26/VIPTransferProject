@@ -4,12 +4,14 @@ import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.entity.Vehicle;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.enums.VehicleClass;
+import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import com.btk.staj.VIPTransferProject.repository.VehicleRepository;
 import com.btk.staj.VIPTransferProject.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -25,38 +27,105 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final VehicleRepository vehicleRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoyaltyService loyaltyService;
+    private final LoyaltyTierConfigRepository loyaltyTierConfigRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) throws Exception {
+        seedLoyaltyTierConfigs();
+        log.info("Sistem başlatılıyor, varsayılan veriler kontrol ediliyor...");
+
         seedUsers();
         seedVehicles();
     }
 
-    private void seedUsers() {
-        if (userRepository.findByPhoneNumber("05551111111").isEmpty()) {
-            User admin = userRepository.save(User.builder()
-                    .phoneNumber("05551111111")
-                    .passwordHash(passwordEncoder.encode("123456"))
-                    .role(UserRole.ADMIN)
-                    .build());
-            loyaltyService.createLoyaltyAccount(admin.getId());
-            log.info("Admin kullanici olusturuldu: 05551111111 / 123456");
+    private void seedLoyaltyTierConfigs() {
+        if (loyaltyTierConfigRepository.count() > 0) {
+            log.info("Loyalty tier config kayitlari zaten mevcut, atlandi.");
+            return;
         }
 
+        String sql = "INSERT INTO loyalty_tier_config (tier, min_points, earn_rate, discount_percentage, priority_support, description) " +
+                     "VALUES (CAST(? AS loyalty_tier), ?, ?, ?, ?, ?)";
+
+        List<Object[]> configs = List.of(
+            new Object[]{"BRONZE",      0,     new BigDecimal("1.00"), new BigDecimal("0.00"),  false, "Başlangıç seviyesi"},
+            new Object[]{"SILVER",   1000,     new BigDecimal("1.50"), new BigDecimal("5.00"),  false, "Orta seviye"},
+            new Object[]{"GOLD",     5000,     new BigDecimal("2.00"), new BigDecimal("10.00"), false, "İleri seviye"},
+            new Object[]{"PLATINUM", 15000,    new BigDecimal("2.50"), new BigDecimal("15.00"), true,  "Premium seviye"},
+            new Object[]{"VIP",      50000,    new BigDecimal("3.00"), new BigDecimal("20.00"), true,  "En üst seviye"}
+        );
+
+        for (Object[] c : configs) {
+            jdbcTemplate.update(sql, c[0], c[1], c[2], c[3], c[4], c[5]);
+        }
+
+        log.info("Loyalty tier config kayitlari olusturuldu (5 tier).");
+    }
+
+    private void seedUsers() {
+        // 1. ADMIN KULLANICISI
+        if (userRepository.findByPhoneNumber("05551111111").isEmpty()) {
+            User admin = User.builder()
+                    .email("admin@admin.com")
+                    .phoneNumber("05551111111")
+                    .passwordHash(passwordEncoder.encode("123456"))
+                    .firstName("System")
+                    .lastName("Admin")
+                    .role(UserRole.ADMIN)
+                    .emailVerified(true)
+                    .phoneVerified(true)
+                    .guest(false)
+                    .active(true)
+                    .build();
+
+            User savedAdmin = userRepository.save(admin);
+
+            try {
+                loyaltyService.createLoyaltyAccount(savedAdmin.getId());
+            } catch (Exception e) {
+                log.warn("Admin için loyalty hesabı oluşturulurken durum oluştu: {}", e.getMessage());
+            }
+
+            log.info("Varsayılan ADMIN kullanıcısı oluşturuldu: admin@admin.com / 05551111111");
+        }
+
+        for (Long userId : List.of(1L, 5L)) {
+            if (userRepository.existsById(userId)) {
+                loyaltyService.createLoyaltyAccount(userId);
+            }
+        }
+
+        // 2. CUSTOMER KULLANICISI
         if (userRepository.findByPhoneNumber("05551111112").isEmpty()) {
-            User customer = userRepository.save(User.builder()
+            User customer = User.builder()
+                    .email("customer@test.com")
                     .phoneNumber("05551111112")
                     .passwordHash(passwordEncoder.encode("123456"))
+                    .firstName("Test")
+                    .lastName("Müşteri")
                     .role(UserRole.CUSTOMER)
-                    .build());
-            loyaltyService.createLoyaltyAccount(customer.getId());
-            log.info("Test musteri kullanicisi olusturuldu: 05551111112 / 123456");
+                    .emailVerified(true)
+                    .phoneVerified(true)
+                    .guest(false)
+                    .active(true)
+                    .build();
+
+            User savedCustomer = userRepository.save(customer);
+
+            try {
+                loyaltyService.createLoyaltyAccount(savedCustomer.getId());
+            } catch (Exception e) {
+                log.warn("Müşteri için loyalty hesabı oluşturulurken durum oluştu: {}", e.getMessage());
+            }
+
+            log.info("Varsayılan CUSTOMER kullanıcısı oluşturuldu: customer@test.com / 05551111112");
         }
     }
 
     private void seedVehicles() {
         if (vehicleRepository.count() > 0) {
-            log.info("Araclar zaten mevcut, vehicle seeding atlandi.");
+            log.info("Araçlar zaten mevcut, vehicle seeding atlandı.");
             return;
         }
 
@@ -94,6 +163,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         );
 
         vehicleRepository.saveAll(vehicles);
-        log.info("{} arac seed'lendi.", vehicles.size());
+        log.info("{} araç seed'lendi.", vehicles.size());
     }
 }

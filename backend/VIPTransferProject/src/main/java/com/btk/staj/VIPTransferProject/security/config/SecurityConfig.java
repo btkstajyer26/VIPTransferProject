@@ -44,7 +44,7 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // CSRF Korumasını Kapat: Token tabanlı (Stateless) çalıştığımız için buna ihtiyacımız yok
+                // CSRF KorumasÄ±nÄ± Kapat: Token tabanlÄ± (Stateless) Ã§alÄ±ÅŸtÄ±ÄŸÄ±mÄ±z iÃ§in buna ihtiyacÄ±mÄ±z yok
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -55,13 +55,13 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // OPTIONS isteklerine (Preflight) her zaman izin ver ki tarayıcı CORS kontrolü yapabilsin
+                        // OPTIONS isteklerine (Preflight) her zaman izin ver ki tarayÄ±cÄ± CORS kontrolÃ¼ yapabilsin
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/reservations").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/reservations/guest/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/translations/**").permitAll()
-                        // Monitoring için
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/guest/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/translations/**").permitAll()
+                        // Monitoring iÃ§in
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger / OpenAPI UI
                         .requestMatchers(
@@ -69,8 +69,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        //araç listesi için 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/vehicles").permitAll()
+                        //araÃ§ listesi iÃ§in 
+                        .requestMatchers(HttpMethod.GET, "/api/vehicles").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
@@ -85,20 +85,20 @@ public class SecurityConfig {
         log.info("CORS ayarlari yapilandiriliyor...");
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // React/Frontend uygulamasının çalıştığı adresleri buraya ekliyoruz
-        // Canlıya çıkarken buraya gerçek domain adresini de (örn: https://viptransfer.com) eklemelisin
+        // React/Frontend uygulamasÄ±nÄ±n Ã§alÄ±ÅŸtÄ±ÄŸÄ± adresleri buraya ekliyoruz
+        // CanlÄ±ya Ã§Ä±karken buraya gerÃ§ek domain adresini de (Ã¶rn: https://viptransfer.com) eklemelisin
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
 
-        // Frontend'in atabileceği HTTP metotları
+        // Frontend'in atabileceÄŸi HTTP metotlarÄ±
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-        // İzin verilen Header'lar. Authorization ve Content-Type mutlaka olmalı.
+        // Ä°zin verilen Header'lar. Authorization ve Content-Type mutlaka olmalÄ±.
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
 
-        // Kimlik bilgisi (Cookie veya Header üzerinden) taşınmasına izin ver
+        // Kimlik bilgisi (Cookie veya Header Ã¼zerinden) taÅŸÄ±nmasÄ±na izin ver
         configuration.setAllowCredentials(true);
 
-        // Bu CORS ayarlarını tüm uç noktalar (/**) için geçerli kıl
+        // Bu CORS ayarlarÄ±nÄ± tÃ¼m uÃ§ noktalar (/**) iÃ§in geÃ§erli kÄ±l
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
