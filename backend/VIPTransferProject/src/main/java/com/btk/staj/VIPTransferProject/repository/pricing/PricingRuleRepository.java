@@ -15,14 +15,26 @@ public interface PricingRuleRepository extends JpaRepository<PricingRule,Long>{
     List<PricingRule> findByZoneIdAndActiveTrue(Long zoneId);
 
     @Query("""
-    SELECT pr FROM PricingRule
+    SELECT pr FROM PricingRule pr
     WHERE pr.zone.id = :zoneId
-    AND pr.active = true
-    AND (pr.dayOfWeek IS NULL OR pr.dayOfWeek = :dayOffWeek)
-    AND pr.startTime <= :time
-    AND pr.endTime >= :time
-    AND (pr.validFrom IS NULL OR pr.validFrom <= :date)
-    AND (pr.validTo IS NULL OR pr.validTo >= :date)
+      AND pr.active = true
+      AND (pr.dayOfWeek IS NULL OR pr.dayOfWeek = :dayOfWeek)
+      AND (
+            -- Normal kural: aynı gün içinde başlayıp bitiyor
+            (pr.startTime < pr.endTime
+                AND pr.startTime <= :time AND pr.endTime >= :time
+                AND (pr.validFrom IS NULL OR pr.validFrom <= :date)
+                AND (pr.validTo IS NULL OR pr.validTo >= :date)
+            )
+         OR
+            -- Gece aşan kural: tam validFrom gecesi ya da tam validTo sabahı
+            (pr.startTime >= pr.endTime
+                AND (
+                      (pr.validFrom = :date AND :time >= pr.startTime)
+                   OR (pr.validTo = :date AND :time <= pr.endTime)
+                )
+            )
+          )
     """)
     List<PricingRule> findActiveRulesForZoneAtMoment(
             @Param("zoneId") Long zoneId,
