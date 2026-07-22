@@ -1,12 +1,18 @@
 import {
+  AlertCircle,
   CalendarDays,
   Car,
-  Megaphone,
-  TrendingUp,
+  Clock3,
+  RefreshCw,
   Users,
 } from "lucide-react";
 
+import {
+  Alert,
+  AlertDescription,
+} from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,80 +28,169 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import useDashboard from "@/hooks/useDashboard";
 
-const stats = [
-  {
-    title: "Toplam Kullanıcı",
-    value: "154",
-    description: "Sisteme kayıtlı kullanıcı",
-    change: "+12%",
-    icon: Users,
-  },
-  {
-    title: "Toplam Rezervasyon",
-    value: "328",
-    description: "Tüm rezervasyonlar",
-    change: "+8%",
-    icon: CalendarDays,
-  },
-  {
-    title: "Aktif Araç",
-    value: "26",
-    description: "Kullanıma hazır araç",
-    change: "+3",
-    icon: Car,
-  },
-  {
-    title: "Aktif Kampanya",
-    value: "4",
-    description: "Devam eden kampanya",
-    change: "+1",
-    icon: Megaphone,
-  },
-];
+const STATUS_LABELS = {
+  PENDING: "Bekliyor",
+  CONFIRMED: "Onaylandı",
+  DRIVER_ASSIGNED: "Sürücü Atandı",
+  ON_THE_WAY: "Yolda",
+  IN_PROGRESS: "Devam Ediyor",
+  COMPLETED: "Tamamlandı",
+  CANCELLED: "İptal Edildi",
+};
 
-const reservations = [
-  {
-    id: 1,
-    customer: "Ahmet Yılmaz",
-    route: "Esenboğa Havalimanı → Kızılay",
-    date: "15.07.2026 10:30",
-    vehicle: "Mercedes Vito",
-    status: "Bekliyor",
-  },
-  {
-    id: 2,
-    customer: "Elif Demir",
-    route: "Çankaya → Esenboğa Havalimanı",
-    date: "15.07.2026 12:15",
-    vehicle: "BMW 5 Serisi",
-    status: "Onaylandı",
-  },
-  {
-    id: 3,
-    customer: "Mehmet Kaya",
-    route: "Keçiören → AŞTİ",
-    date: "15.07.2026 14:00",
-    vehicle: "Mercedes E Serisi",
-    status: "Tamamlandı",
-  },
-];
+function getStatusLabel(status) {
+  return STATUS_LABELS[status] ?? status ?? "Bilinmiyor";
+}
 
 function getStatusVariant(status) {
-  if (status === "Tamamlandı") return "default";
-  if (status === "Onaylandı") return "secondary";
+  if (status === "COMPLETED") {
+    return "default";
+  }
+
+  if (
+    status === "CONFIRMED" ||
+    status === "DRIVER_ASSIGNED" ||
+    status === "ON_THE_WAY" ||
+    status === "IN_PROGRESS"
+  ) {
+    return "secondary";
+  }
+
+  if (status === "CANCELLED") {
+    return "destructive";
+  }
+
   return "outline";
 }
 
+function formatDate(value) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function formatPrice(value, currency = "TRY") {
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return "-";
+  }
+
+  try {
+    return new Intl.NumberFormat("tr-TR", {
+      style: "currency",
+      currency: currency || "TRY",
+    }).format(numericValue);
+  } catch {
+    return `${numericValue.toLocaleString("tr-TR")} ${
+      currency || ""
+    }`;
+  }
+}
+
+function getCustomerLabel(reservation) {
+  if (reservation.guestPhone) {
+    return reservation.guestPhone;
+  }
+
+  if (reservation.userId) {
+    return `Kullanıcı #${reservation.userId}`;
+  }
+
+  return "Misafir kullanıcı";
+}
+
 function DashboardPage() {
+  const {
+    totalUsers,
+    totalReservations,
+    activeVehicleCount,
+    pendingReservationCount,
+    latestReservations,
+
+    isLoading,
+    error,
+
+    fetchDashboard,
+  } = useDashboard();
+
+  const stats = [
+    {
+      title: "Toplam Kullanıcı",
+      value: totalUsers,
+      description: "Sistemdeki aktif kullanıcılar",
+      icon: Users,
+    },
+    {
+      title: "Toplam Rezervasyon",
+      value: totalReservations,
+      description: "Tüm rezervasyon kayıtları",
+      icon: CalendarDays,
+    },
+    {
+      title: "Aktif Araç",
+      value: activeVehicleCount,
+      description: "Kullanıma hazır araçlar",
+      icon: Car,
+    },
+    {
+      title: "Bekleyen Rezervasyon",
+      value: pendingReservationCount,
+      description: "Onay bekleyen rezervasyonlar",
+      icon: Clock3,
+    },
+  ];
+
   return (
     <section className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-semibold tracking-tight">Dashboard</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Sistemin genel durumunu buradan takip edebilirsiniz.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Dashboard
+          </h2>
+
+          <p className="mt-1 text-sm text-muted-foreground">
+            Sistemin genel durumunu ve son rezervasyonları takip
+            edin.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isLoading}
+          onClick={fetchDashboard}
+        >
+          <RefreshCw
+            className={`mr-2 size-4 ${
+              isLoading ? "animate-spin" : ""
+            }`}
+          />
+
+          Yenile
+        </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" />
+
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => {
@@ -114,18 +209,17 @@ function DashboardPage() {
               </CardHeader>
 
               <CardContent>
-                <div className="text-3xl font-semibold">{stat.value}</div>
-
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <p className="text-xs text-muted-foreground">
-                    {stat.description}
-                  </p>
-
-                  <Badge variant="secondary" className="gap-1">
-                    <TrendingUp className="size-3" />
-                    {stat.change}
-                  </Badge>
+                <div className="text-3xl font-semibold">
+                  {isLoading ? (
+                    <div className="h-9 w-16 animate-pulse rounded bg-muted" />
+                  ) : (
+                    stat.value
+                  )}
                 </div>
+
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {stat.description}
+                </p>
               </CardContent>
             </Card>
           );
@@ -135,43 +229,95 @@ function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Son Rezervasyonlar</CardTitle>
+
           <CardDescription>
-            En son oluşturulan rezervasyon kayıtları.
+            En son oluşturulan 5 rezervasyon kaydı.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Müşteri</TableHead>
-                  <TableHead>Güzergâh</TableHead>
-                  <TableHead>Tarih</TableHead>
-                  <TableHead>Araç</TableHead>
-                  <TableHead>Durum</TableHead>
-                </TableRow>
-              </TableHeader>
+          {isLoading ? (
+            <div className="flex min-h-56 items-center justify-center">
+              <RefreshCw className="mr-2 size-5 animate-spin" />
 
-              <TableBody>
-                {reservations.map((reservation) => (
-                  <TableRow key={reservation.id}>
-                    <TableCell className="font-medium">
-                      {reservation.customer}
-                    </TableCell>
-                    <TableCell>{reservation.route}</TableCell>
-                    <TableCell>{reservation.date}</TableCell>
-                    <TableCell>{reservation.vehicle}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(reservation.status)}>
-                        {reservation.status}
-                      </Badge>
-                    </TableCell>
+              <span className="text-sm text-muted-foreground">
+                Dashboard verileri yükleniyor...
+              </span>
+            </div>
+          ) : latestReservations.length === 0 ? (
+            <div className="flex min-h-56 items-center justify-center rounded-lg border border-dashed">
+              <p className="text-sm text-muted-foreground">
+                Henüz rezervasyon kaydı bulunmuyor.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Referans</TableHead>
+                    <TableHead>Müşteri</TableHead>
+                    <TableHead>Güzergâh</TableHead>
+                    <TableHead>Planlanan Tarih</TableHead>
+                    <TableHead>Araç</TableHead>
+                    <TableHead>Tutar</TableHead>
+                    <TableHead>Durum</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+
+                <TableBody>
+                  {latestReservations.map((reservation) => (
+                    <TableRow key={reservation.id}>
+                      <TableCell className="font-medium">
+                        {reservation.bookingReference || `#${reservation.id}`}
+                      </TableCell>
+
+                      <TableCell>
+                        {getCustomerLabel(reservation)}
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="max-w-72">
+                          <p className="truncate">
+                            {reservation.pickupAddress || "-"}
+                          </p>
+
+                          <p className="truncate text-xs text-muted-foreground">
+                            → {reservation.dropoffAddress || "-"}
+                          </p>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        {formatDate(reservation.scheduledTime)}
+                      </TableCell>
+
+                      <TableCell>
+                        {reservation.vehicleName || "-"}
+                      </TableCell>
+
+                      <TableCell>
+                        {formatPrice(
+                          reservation.calculatedPrice,
+                          reservation.currency,
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          variant={getStatusVariant(
+                            reservation.status,
+                          )}
+                        >
+                          {getStatusLabel(reservation.status)}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </section>

@@ -13,7 +13,11 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import HomePage from "../pages/public/HomePage";
 import ReservationPage from "../pages/public/ReservationPage";
+
 import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
+import VerifyEmailPendingPage from "../pages/auth/VerifyEmailPendingPage";
 
 import DashboardPage from "../pages/admin/DashboardPage";
 import UsersPage from "../pages/admin/UsersPage";
@@ -27,7 +31,7 @@ function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public sayfalar */}
+        {/* Public */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route
@@ -36,12 +40,21 @@ function AppRoutes() {
           />
         </Route>
 
-        {/* Auth sayfaları */}
+        {/* Auth */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/verify-email"
+            element={<VerifyEmailPage />}
+          />
+          <Route
+            path="/verify-email-pending"
+            element={<VerifyEmailPendingPage />}
+          />
         </Route>
 
-        {/* Sadece ADMIN rolü erişebilir */}
+        {/* Admin */}
         <Route
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]} />
@@ -51,7 +64,10 @@ function AppRoutes() {
             <Route
               index
               element={
-                <Navigate to="dashboard" replace />
+                <Navigate
+                  to="dashboard"
+                  replace
+                />
               }
             />
 
@@ -91,6 +107,12 @@ function AppRoutes() {
             />
           </Route>
         </Route>
+
+        {/* 404 */}
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
       </Routes>
     </BrowserRouter>
   );

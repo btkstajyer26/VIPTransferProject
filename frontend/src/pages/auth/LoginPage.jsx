@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate,} from "react-router-dom";
 import {
   AlertCircle,
   Eye,
@@ -353,6 +353,15 @@ export default function LoginPage() {
                   "Giriş Yap"
                 )}
               </button>
+                <p className="mt-6 text-center text-sm text-slate-400">
+                Henüz hesabınız yok mu?{" "}
+                <Link
+                  to="/register"
+                  className="font-medium text-blue-300 transition hover:text-blue-200"
+                >
+                  Kayıt olun
+                </Link>
+              </p>
             </form>
 
             <p className="mt-8 text-center text-xs leading-5 text-slate-500">
