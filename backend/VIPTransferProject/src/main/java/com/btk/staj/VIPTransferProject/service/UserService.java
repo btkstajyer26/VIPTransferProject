@@ -5,12 +5,13 @@ import com.btk.staj.VIPTransferProject.dto.UserResponse;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
 import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
+import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Slf4j
@@ -93,5 +94,28 @@ public class UserService {
                 .active(u.isActive())
                 .createdAt(u.getCreatedAt())
                 .build();
+    }
+    @Transactional
+    public void deleteUserById(Long userId, Long adminId) {
+
+        if (userId.equals(adminId)) {
+            throw new IllegalArgumentException(
+                    "Admin bu endpoint üzerinden kendi hesabını silemez."
+            );
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException(userId)
+                );
+
+        if (!user.isActive()) {
+            throw new UserNotFoundException(userId);
+        }
+
+        user.setActive(false);
+        user.setDeletedAt(OffsetDateTime.now());
+
+        userRepository.save(user);
     }
 }

@@ -5,13 +5,11 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 
 @Getter
 @Builder
-public class VehicleResponse {
+public class PublicVehicleResponse {
     private Long id;
-    private String plateNumber;
     private String brand;
     private String model;
     private VehicleClass vehicleClass;
@@ -20,8 +18,4 @@ public class VehicleResponse {
     private String photoUrl;
     private Short capacity;
     private BigDecimal openingPrice;
-    private BigDecimal basePriceMultiplier;
-    private boolean active;
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
 }

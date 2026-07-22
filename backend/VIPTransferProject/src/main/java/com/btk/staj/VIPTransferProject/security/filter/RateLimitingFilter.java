@@ -25,26 +25,26 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    // Farklı uç noktalar için IP bazlı ayrı kovalar tutuyoruz
+    // FarklÄ± uÃ§ noktalar iÃ§in IP bazlÄ± ayrÄ± kovalar tutuyoruz
     private final Map<String, Bucket> loginCache = new ConcurrentHashMap<>();
     private final Map<String, Bucket> generalCache = new ConcurrentHashMap<>();
 
-    // Nesneleri JSON'a çevirmek için Jackson ObjectMapper
+    // Nesneleri JSON'a Ã§evirmek iÃ§in Jackson ObjectMapper
     private final ObjectMapper objectMapper;
 
     public RateLimitingFilter() {
         this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule()); // OffsetDateTime dönüşümü için gerekli
+        this.objectMapper.registerModule(new JavaTimeModule()); // OffsetDateTime dÃ¶nÃ¼ÅŸÃ¼mÃ¼ iÃ§in gerekli
     }
 
-    // Login (Auth) için kural: Dakikada maksimum 5 istek (Brute-force'u engeller)
+    // Login (Auth) iÃ§in kural: Dakikada maksimum 5 istek (Brute-force'u engeller)
     private Bucket createLoginBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1))))
                 .build();
     }
 
-    // Genel API istekleri için kural: Dakikada maksimum 100 istek
+    // Genel API istekleri iÃ§in kural: Dakikada maksimum 100 istek
     private Bucket createGeneralBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
@@ -63,32 +63,32 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             return;
         }
 
-        // İstek atan kullanıcının IP adresini alıyoruz
-        // Not: Docker veya Nginx kullanıyorsan "X-Forwarded-For" header'ına bakmak daha güvenilir olabilir.
+        // Ä°stek atan kullanÄ±cÄ±nÄ±n IP adresini alÄ±yoruz
+        // Not: Docker veya Nginx kullanÄ±yorsan "X-Forwarded-For" header'Ä±na bakmak daha gÃ¼venilir olabilir.
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty()) {
             ip = request.getRemoteAddr();
         }
 
         Bucket bucket;
-        // İstek Auth işlemi mi (Login, Refresh, Logout) yoksa genel bir veri isteği mi?
-        if (path.startsWith("/api/v1/auth/")) {
+        // Ä°stek Auth iÅŸlemi mi (Login, Refresh, Logout) yoksa genel bir veri isteÄŸi mi?
+        if (path.startsWith("/api/auth/")) {
             bucket = loginCache.computeIfAbsent(ip, k -> createLoginBucket());
         } else {
             bucket = generalCache.computeIfAbsent(ip, k -> createGeneralBucket());
         }
 
-        // Kovadan 1 jeton tüketmeyi dene
+        // Kovadan 1 jeton tÃ¼ketmeyi dene
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
         } else {
-            // GÜVENLİK LOGU: IP adresi spam yapıyor
-            log.warn("RATE LIMIT AŞILDI! IP: {}, Path: {}", ip, path);
+            // GÃœVENLÄ°K LOGU: IP adresi spam yapÄ±yor
+            log.warn("RATE LIMIT AÅILDI! IP: {}, Path: {}", ip, path);
 
-            // Standart ApiResponse formatında hata dönüşü
+            // Standart ApiResponse formatÄ±nda hata dÃ¶nÃ¼ÅŸÃ¼
             ApiResponse<String> apiResponse = ApiResponse.<String>builder()
                     .status(429)
-                    .message("Çok fazla istek attınız. Lütfen bir süre bekleyip tekrar deneyin.")
+                    .message("Ã‡ok fazla istek attÄ±nÄ±z. LÃ¼tfen bir sÃ¼re bekleyip tekrar deneyin.")
                     .timestamp(OffsetDateTime.now())
                     .build();
 

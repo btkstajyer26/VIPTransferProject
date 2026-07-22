@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface PricingRuleRepository extends JpaRepository<PricingRule,Long>{
+public interface PricingRuleRepository extends JpaRepository<PricingRule, Long> {
     List<PricingRule> findByZoneIdAndActiveTrue(Long zoneId);
 
     @Query("""
