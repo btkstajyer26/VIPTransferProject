@@ -1,6 +1,7 @@
 import {
   createContext,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -46,16 +47,25 @@ export function AuthProvider({ children }) {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const saveTokens = useCallback(
-    ({ accessToken: newAccessToken, refreshToken: newRefreshToken }) => {
+    ({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    }) => {
       if (!newAccessToken) {
         throw new Error("Access token bulunamadı.");
       }
 
-      localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
+      localStorage.setItem(
+        ACCESS_TOKEN_KEY,
+        newAccessToken
+      );
       setAccessToken(newAccessToken);
 
       if (newRefreshToken) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+        localStorage.setItem(
+          REFRESH_TOKEN_KEY,
+          newRefreshToken
+        );
         setRefreshToken(newRefreshToken);
       }
     },
@@ -68,7 +78,11 @@ export function AuthProvider({ children }) {
       role: userData.role,
     };
 
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(authUser));
+    localStorage.setItem(
+      AUTH_USER_KEY,
+      JSON.stringify(authUser)
+    );
+
     setUser(authUser);
 
     return authUser;
@@ -92,14 +106,21 @@ export function AuthProvider({ children }) {
       });
 
       if (!authResponse?.accessToken) {
-        throw new Error("Backend access token döndürmedi.");
+        throw new Error(
+          "Backend access token döndürmedi."
+        );
       }
 
       if (!authResponse?.refreshToken) {
-        throw new Error("Backend refresh token döndürmedi.");
+        throw new Error(
+          "Backend refresh token döndürmedi."
+        );
       }
 
-      if (!authResponse?.role || authResponse?.userId == null) {
+      if (
+        !authResponse?.role ||
+        authResponse?.userId == null
+      ) {
         throw new Error(
           "Backend kullanıcı rolü veya kullanıcı ID'si döndürmedi."
         );
@@ -127,7 +148,8 @@ export function AuthProvider({ children }) {
 
   const renewAccessToken = useCallback(async () => {
     const storedRefreshToken =
-      refreshToken || localStorage.getItem(REFRESH_TOKEN_KEY);
+      refreshToken ||
+      localStorage.getItem(REFRESH_TOKEN_KEY);
 
     if (!storedRefreshToken) {
       clearSession();
@@ -135,16 +157,22 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const authResponse = await refreshTokenRequest(storedRefreshToken);
+      const authResponse =
+        await refreshTokenRequest(
+          storedRefreshToken
+        );
 
       if (!authResponse?.accessToken) {
-        throw new Error("Yeni access token alınamadı.");
+        throw new Error(
+          "Yeni access token alınamadı."
+        );
       }
 
       saveTokens({
         accessToken: authResponse.accessToken,
         refreshToken:
-          authResponse.refreshToken || storedRefreshToken,
+          authResponse.refreshToken ||
+          storedRefreshToken,
       });
 
       return authResponse.accessToken;
@@ -156,7 +184,8 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     const storedRefreshToken =
-      refreshToken || localStorage.getItem(REFRESH_TOKEN_KEY);
+      refreshToken ||
+      localStorage.getItem(REFRESH_TOKEN_KEY);
 
     try {
       if (storedRefreshToken) {
@@ -171,32 +200,51 @@ export function AuthProvider({ children }) {
     const initializeAuth = async () => {
       try {
         const storedAccessToken =
-          localStorage.getItem(ACCESS_TOKEN_KEY);
+          localStorage.getItem(
+            ACCESS_TOKEN_KEY
+          );
 
         const storedRefreshToken =
-          localStorage.getItem(REFRESH_TOKEN_KEY);
+          localStorage.getItem(
+            REFRESH_TOKEN_KEY
+          );
 
         const storedUser = getStoredUser();
 
-        if (storedAccessToken && storedRefreshToken && storedUser) {
+        if (
+          storedAccessToken &&
+          storedRefreshToken &&
+          storedUser
+        ) {
           setAccessToken(storedAccessToken);
-          setRefreshToken(storedRefreshToken);
+          setRefreshToken(
+            storedRefreshToken
+          );
           setUser(storedUser);
           return;
         }
 
-        if (storedRefreshToken && storedUser) {
+        if (
+          storedRefreshToken &&
+          storedUser
+        ) {
           const authResponse =
-            await refreshTokenRequest(storedRefreshToken);
+            await refreshTokenRequest(
+              storedRefreshToken
+            );
 
           if (!authResponse?.accessToken) {
-            throw new Error("Access token yenilenemedi.");
+            throw new Error(
+              "Access token yenilenemedi."
+            );
           }
 
           saveTokens({
-            accessToken: authResponse.accessToken,
+            accessToken:
+              authResponse.accessToken,
             refreshToken:
-              authResponse.refreshToken || storedRefreshToken,
+              authResponse.refreshToken ||
+              storedRefreshToken,
           });
 
           setUser(storedUser);
@@ -221,13 +269,19 @@ export function AuthProvider({ children }) {
       userId: user?.userId ?? null,
       accessToken,
       refreshToken,
+
       isAuthenticated: Boolean(
-        accessToken && refreshToken && user
+        accessToken &&
+          refreshToken &&
+          user
       ),
+
       isAuthLoading,
+
       login,
       logout,
       renewAccessToken,
+      clearSession,
     }),
     [
       user,
@@ -237,6 +291,7 @@ export function AuthProvider({ children }) {
       login,
       logout,
       renewAccessToken,
+      clearSession,
     ]
   );
 
@@ -245,4 +300,16 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth yalnızca AuthProvider içerisinde kullanılabilir."
+    );
+  }
+
+  return context;
 }
