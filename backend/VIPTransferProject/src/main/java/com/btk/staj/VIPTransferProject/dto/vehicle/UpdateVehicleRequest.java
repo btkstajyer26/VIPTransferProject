@@ -41,4 +41,6 @@ public class UpdateVehicleRequest {
 
     @DecimalMin(value = "0.0", message = "Başlangıç fiyatı negatif olamaz.")
     private BigDecimal openingPrice;
+
+    private Boolean active;
 }

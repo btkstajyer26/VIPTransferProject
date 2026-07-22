@@ -83,6 +83,7 @@ public class VehicleService {
 
         if (request.getPlateNumber()        != null) vehicle.setPlateNumber(request.getPlateNumber());
         if (request.getVehicleClass()       != null) vehicle.setVehicleClass(request.getVehicleClass());
+        if(request.getActive()              != null) vehicle.setActive(request.getActive());
         if (request.getBrand()              != null) vehicle.setBrand(request.getBrand());
         if (request.getModel()              != null) vehicle.setModel(request.getModel());
         if (request.getYear()               != null) vehicle.setYear(request.getYear());
