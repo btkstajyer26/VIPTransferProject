@@ -125,8 +125,8 @@ public class AuthService {
                     .phoneNumber(request.getPhoneNumber())
                     .passwordHash(passwordEncoder.encode(request.getPassword()))
                     .role(UserRole.CUSTOMER)
-                    .isGuest(false)
-                    .isEmailVerified(false)
+                    .guest(false)
+                    .emailVerified(false)
                     .build();
         }
 

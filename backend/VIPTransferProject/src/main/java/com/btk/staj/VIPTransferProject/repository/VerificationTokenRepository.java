@@ -1,5 +1,6 @@
 package com.btk.staj.VIPTransferProject.repository;
 
+import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.entity.VerificationToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,6 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     Optional<VerificationToken> findByToken(String token);
 
     void deleteByUserId(Long userId);
+
+    Optional<VerificationToken> findByUser(User savedUser);
 }
