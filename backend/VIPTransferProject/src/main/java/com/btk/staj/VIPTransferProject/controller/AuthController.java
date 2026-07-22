@@ -1,18 +1,13 @@
 package com.btk.staj.VIPTransferProject.controller;
 
-import com.btk.staj.VIPTransferProject.dto.AuthResponse;
-import com.btk.staj.VIPTransferProject.dto.LoginRequest;
-import com.btk.staj.VIPTransferProject.dto.RefreshTokenRequest;
-import com.btk.staj.VIPTransferProject.entity.RefreshToken;
-import com.btk.staj.VIPTransferProject.service.AuthService;
+import com.btk.staj.VIPTransferProject.model.RefreshToken;
+import com.btk.staj.VIPTransferProject.repository.RefreshTokenRepository;
 import com.btk.staj.VIPTransferProject.service.RefreshTokenService;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,44 +21,40 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
 
-    // 1. GİRİŞ YAP METODU
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request,HttpServletRequest httpRequest) {
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
-        AuthResponse authResponse = authService.login(request);
-
-        // IP ve Cihaz bilgisini HTTP isteğinden çekiyoruz
-        String ipAddress = httpRequest.getRemoteAddr();
-        String deviceInfo = httpRequest.getHeader("User-Agent"); // Örn: Mozilla/5.0 (Windows NT 10.0...)
-
-        // Token'ı IP ve Cihaz bilgisiyle üretiyoruz
-        String refreshTokenString = refreshTokenService.createRefreshToken(authResponse.getUserId(), ipAddress, deviceInfo).getToken();
-        authResponse.setRefreshToken(refreshTokenString);
-//        Cookie cookie = new Cookie("refreshToken", refreshTokenString);
-//        cookie.setPath("/api/v1/auth");
-//        cookie.setHttpOnly(true);
-//        cookie.setMaxAge(7 * 24 * 60 * 60);
-//        response.addCookie(cookie);
-
-        return ResponseEntity.ok(authResponse);
+    private String generateDummyAccessToken(String username) {
+        return "yeni_uretilmis_kisa_sureli_access_token_jwt_" + username;
     }
 
     // 2. YENİ ACCESS TOKEN ALMA (frontend'den gelen Request'teki Refresh Token okunarak yapılır)
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshRequest,HttpServletRequest httpRequest) {
-        String refreshTokenRequest = refreshRequest.getRefreshToken();
+    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        String requestRefreshToken = null;
+        
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    requestRefreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
         // İsteği yapanın anlık bilgilerini alıyoruz
         String currentIpAddress = httpRequest.getRemoteAddr();
         String currentDeviceInfo = httpRequest.getHeader("User-Agent");
 
-        return refreshTokenService.findByToken(refreshTokenRequest)
-                // Tüm güvenlik (süre, iptal, hırsızlık) doğrulamalarını tek satırda yapıyoruz
-                .map(token -> refreshTokenService.verifyExpiration(token, currentIpAddress, currentDeviceInfo))
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    // Güvenlik testlerini geçti, yeni Access Token üretiliyor
-                    String newAccessToken = jwtUtil.generateToken(user.getPhoneNumber(), user.getId(), user.getRole().name());
+                    String newAccessToken = generateDummyAccessToken(user.getEmail());
+                    
+                    Map<String, String> responseBody = new HashMap<>();
+                    responseBody.put("accessToken", newAccessToken);
+                    responseBody.put("tokenType", "Bearer");
 
                     return ResponseEntity.ok(AuthResponse.builder()
                             .accessToken(newAccessToken)
@@ -75,6 +66,7 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Refresh token sistemde bulunamadı!"));
     }
 
+    // 2. GÜVENLİ ÇIKIŞ (LOGOUT) ENDPOINT'İ
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
         String refreshTokenRequest = refreshRequest.getRefreshToken();
@@ -84,5 +76,22 @@ public class AuthController {
                 .ifPresent(refreshTokenService::revokeToken);
 
         return ResponseEntity.ok("Başarıyla çıkış yapıldı.");
+        // Token DB'de varsa silmek yerine revoked = true yapıyoruz
+        if (requestRefreshToken != null) {
+            refreshTokenService.findByToken(requestRefreshToken)
+                .ifPresent(token -> {
+                    token.setRevoked(true);
+                    refreshTokenRepository.save(token);
+                });
+        }
+
+        // Tarayıcıdaki HttpOnly çerezini sıfırlıyoruz
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setPath("/api/auth");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok("Başarıyla çıkış yapıldı ve token'lar iptal edildi!");
     }
 }
