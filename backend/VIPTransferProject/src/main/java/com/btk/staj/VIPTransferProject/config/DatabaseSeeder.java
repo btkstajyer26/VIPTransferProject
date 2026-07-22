@@ -33,6 +33,8 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         seedLoyaltyTierConfigs();
+        log.info("Sistem başlatılıyor, varsayılan veriler kontrol ediliyor...");
+
         seedUsers();
         seedVehicles();
     }
@@ -62,14 +64,30 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedUsers() {
+        // 1. ADMIN KULLANICISI
         if (userRepository.findByPhoneNumber("05551111111").isEmpty()) {
-            User admin = userRepository.save(User.builder()
+            User admin = User.builder()
+                    .email("admin@admin.com")
                     .phoneNumber("05551111111")
                     .passwordHash(passwordEncoder.encode("123456"))
+                    .firstName("System")
+                    .lastName("Admin")
                     .role(UserRole.ADMIN)
-                    .build());
-            loyaltyService.createLoyaltyAccount(admin.getId());
-            log.info("Admin kullanici olusturuldu: 05551111111 / 123456");
+                    .emailVerified(true)
+                    .phoneVerified(true)
+                    .guest(false)
+                    .active(true)
+                    .build();
+
+            User savedAdmin = userRepository.save(admin);
+
+            try {
+                loyaltyService.createLoyaltyAccount(savedAdmin.getId());
+            } catch (Exception e) {
+                log.warn("Admin için loyalty hesabı oluşturulurken durum oluştu: {}", e.getMessage());
+            }
+
+            log.info("Varsayılan ADMIN kullanıcısı oluşturuldu: admin@admin.com / 05551111111");
         }
 
         for (Long userId : List.of(1L, 5L)) {
@@ -78,20 +96,36 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
         }
 
+        // 2. CUSTOMER KULLANICISI
         if (userRepository.findByPhoneNumber("05551111112").isEmpty()) {
-            User customer = userRepository.save(User.builder()
+            User customer = User.builder()
+                    .email("customer@test.com")
                     .phoneNumber("05551111112")
                     .passwordHash(passwordEncoder.encode("123456"))
+                    .firstName("Test")
+                    .lastName("Müşteri")
                     .role(UserRole.CUSTOMER)
-                    .build());
-            loyaltyService.createLoyaltyAccount(customer.getId());
-            log.info("Test musteri kullanicisi olusturuldu: 05551111112 / 123456");
+                    .emailVerified(true)
+                    .phoneVerified(true)
+                    .guest(false)
+                    .active(true)
+                    .build();
+
+            User savedCustomer = userRepository.save(customer);
+
+            try {
+                loyaltyService.createLoyaltyAccount(savedCustomer.getId());
+            } catch (Exception e) {
+                log.warn("Müşteri için loyalty hesabı oluşturulurken durum oluştu: {}", e.getMessage());
+            }
+
+            log.info("Varsayılan CUSTOMER kullanıcısı oluşturuldu: customer@test.com / 05551111112");
         }
     }
 
     private void seedVehicles() {
         if (vehicleRepository.count() > 0) {
-            log.info("Araclar zaten mevcut, vehicle seeding atlandi.");
+            log.info("Araçlar zaten mevcut, vehicle seeding atlandı.");
             return;
         }
 
@@ -129,6 +163,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         );
 
         vehicleRepository.saveAll(vehicles);
-        log.info("{} arac seed'lendi.", vehicles.size());
+        log.info("{} araç seed'lendi.", vehicles.size());
     }
 }

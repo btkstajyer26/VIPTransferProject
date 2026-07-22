@@ -1,24 +1,30 @@
 package com.btk.staj.VIPTransferProject.security.config;
 
+import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import com.btk.staj.VIPTransferProject.security.filter.JwtAuthenticationFilter;
 import com.btk.staj.VIPTransferProject.security.filter.RateLimitingFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Slf4j
@@ -30,7 +36,7 @@ public class SecurityConfig {
 
     private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
-
+    //private final ObjectMapper objectMapper;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         log.info("Guvenlik duvari (SecurityFilterChain) yapilandiriliyor...");
@@ -42,6 +48,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // --- YENİ EKLENEN KISIM: SPRING SECURITY HATALARINI JSON'A ÇEVİR ---
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedEntryPoint())
+                )
 
                 .authorizeHttpRequests(auth -> auth
                         // OPTIONS isteklerine (Preflight) her zaman izin ver ki tarayÄ±cÄ± CORS kontrolÃ¼ yapabilsin
@@ -92,7 +103,32 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+    // Kimliksiz (Anonim) biri korumalı URL'ye istek atarsa 401 JSON döner
+    @Bean
+    public AuthenticationEntryPoint unauthorizedEntryPoint() {
+        return (request, response, authException) -> {
+            log.warn("[AUTH-401] [EntryPoint] Kimlik doğrulama başarısız (Kimliksiz İstek): Hedef URL ->  {}", request.getRequestURI());
 
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+
+            String timestamp = OffsetDateTime.now().toString();
+            String message = "Bu işlemi gerçekleştirmek için giriş yapmalısınız.";
+
+            // Text block ile JSON şablonu
+            String jsonResponse = """
+                    {
+                      "timestamp": "%s",
+                      "status": 401,
+                      "message": "%s",
+                      "data": null
+                    }
+                    """.formatted(timestamp, message);
+
+            response.getWriter().write(jsonResponse);
+        };
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         log.debug("Sistem icin BCrypt Password Encoder bean'i olusturuldu.");

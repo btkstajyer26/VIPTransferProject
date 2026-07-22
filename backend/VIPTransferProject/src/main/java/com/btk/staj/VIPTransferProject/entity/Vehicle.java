@@ -4,7 +4,9 @@ import com.btk.staj.VIPTransferProject.enums.VehicleClass;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode; // <-- YENİ EKLENDİ
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes; // <-- YENİ EKLENDİ
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -26,6 +28,7 @@ public class Vehicle {
     private String plateNumber;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM) // <-- YENİ EKLENDİ (PostgreSQL Custom Enum Türü İçin)
     @Builder.Default
     @Column(name = "vehicle_class", nullable = false, columnDefinition = "vehicle_class")
     private VehicleClass vehicleClass = VehicleClass.STANDARD;
