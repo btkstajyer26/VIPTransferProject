@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/translations")
+@RequestMapping("/api/translations")
 @RequiredArgsConstructor
 public class TranslationController {
 
@@ -21,7 +21,7 @@ public class TranslationController {
 
     @GetMapping("/{langCode}")
     public ResponseEntity<Map<String, String>> getAllTranslations(@PathVariable String langCode) {
-        log.info("HTTP GET /api/v1/translations/{} isteği alındı.", langCode);
+        log.info("HTTP GET /api/translations/{} isteÄŸi alÄ±ndÄ±.", langCode);
         Map<String, String> translations = localizationService.getAllTranslationsByLang(langCode);
         return ResponseEntity.ok(translations);
     }
@@ -29,21 +29,21 @@ public class TranslationController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<TranslationDto> createTranslation(@RequestBody CreateTranslationRequest request) {
-        log.info("HTTP POST /api/v1/translations isteği alındı.");
+        log.info("HTTP POST /api/translations isteÄŸi alÄ±ndÄ±.");
         return ResponseEntity.ok(localizationService.createTranslation(request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<TranslationDto> updateTranslation(@PathVariable Long id, @RequestBody UpdateTranslationRequest request) {
-        log.info("HTTP PUT /api/v1/translations/{} isteği alındı.", id);
+        log.info("HTTP PUT /api/translations/{} isteÄŸi alÄ±ndÄ±.", id);
         return ResponseEntity.ok(localizationService.updateTranslation(id, request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTranslation(@PathVariable Long id) {
-        log.info("HTTP DELETE /api/v1/translations/{} isteği alındı.", id);
+        log.info("HTTP DELETE /api/translations/{} isteÄŸi alÄ±ndÄ±.", id);
         localizationService.deleteTranslation(id);
         return ResponseEntity.noContent().build();
     }
@@ -53,28 +53,28 @@ public class TranslationController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/entity/{entityType}/{entityId}")
     public ResponseEntity<List<EntityTranslationDto>> getEntityTranslations(@PathVariable String entityType, @PathVariable Long entityId) {
-        log.info("HTTP GET /api/v1/translations/entity/{}/{} isteği alındı.", entityType, entityId);
+        log.info("HTTP GET /api/translations/entity/{}/{} isteÄŸi alÄ±ndÄ±.", entityType, entityId);
         return ResponseEntity.ok(localizationService.getEntityTranslations(entityType, entityId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/entity")
     public ResponseEntity<EntityTranslationDto> createEntityTranslation(@RequestBody CreateEntityTranslationRequest request) {
-        log.info("HTTP POST /api/v1/translations/entity isteği alındı.");
+        log.info("HTTP POST /api/translations/entity isteÄŸi alÄ±ndÄ±.");
         return ResponseEntity.ok(localizationService.createEntityTranslation(request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/entity/{id}")
     public ResponseEntity<EntityTranslationDto> updateEntityTranslation(@PathVariable Long id, @RequestBody UpdateEntityTranslationRequest request) {
-        log.info("HTTP PUT /api/v1/translations/entity/{} isteği alındı.", id);
+        log.info("HTTP PUT /api/translations/entity/{} isteÄŸi alÄ±ndÄ±.", id);
         return ResponseEntity.ok(localizationService.updateEntityTranslation(id, request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/entity/{id}")
     public ResponseEntity<Void> deleteEntityTranslation(@PathVariable Long id) {
-        log.info("HTTP DELETE /api/v1/translations/entity/{} isteği alındı.", id);
+        log.info("HTTP DELETE /api/translations/entity/{} isteÄŸi alÄ±ndÄ±.", id);
         localizationService.deleteEntityTranslation(id);
         return ResponseEntity.noContent().build();
     }

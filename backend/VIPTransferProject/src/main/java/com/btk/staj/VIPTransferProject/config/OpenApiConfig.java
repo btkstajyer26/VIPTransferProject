@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
         type = SecuritySchemeType.HTTP,
         scheme = "bearer",
         bearerFormat = "JWT",
-        description = "/api/v1/auth/login'den alınan accessToken'ı buraya girin (Bearer prefix olmadan)."
+        description = "/api/auth/login'den alÄ±nan accessToken'Ä± buraya girin (Bearer prefix olmadan)."
 )
 public class OpenApiConfig {
 
@@ -23,12 +23,12 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("VIP Transfer API")
-                        .version("v1")
+                        .version("1.0")
                         .description("""
                                 VIP Transfer rezervasyon platformu REST API'si.
 
-                                **Kimlik doğrulama:** Önce /api/v1/auth/login ile giriş yapın,
-                                dönen accessToken'ı sağ üstteki "Authorize" butonuna girin.
+                                **Kimlik doÄŸrulama:** Ã–nce /api/auth/login ile giriÅŸ yapÄ±n,
+                                dÃ¶nen accessToken'Ä± saÄŸ Ã¼stteki "Authorize" butonuna girin.
                                 """))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"));
     }
