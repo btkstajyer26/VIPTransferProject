@@ -198,6 +198,26 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- OWASP Dependency-Check (SCA) Eklentisi -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>10.0.4</version>
+				<configuration>
+					<!-- NVD indirmesinde takılmayı engeller -->
+					<autoUpdate>false</autoUpdate>
+					<!-- OSS Index 401 hatasını engeller -->
+					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
