@@ -63,6 +63,12 @@ public class VehicleController {
      * AracÄ± pasifleÅŸtir (soft delete) â€” yalnÄ±zca ADMIN.
      */
     @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<VehicleResponse> toggleVehicleStatus(@PathVariable Long id) {
+        return ResponseEntity.ok(vehicleService.toggleVehicleStatus(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivateVehicle(@PathVariable Long id) {
         vehicleService.deactivateVehicle(id);
