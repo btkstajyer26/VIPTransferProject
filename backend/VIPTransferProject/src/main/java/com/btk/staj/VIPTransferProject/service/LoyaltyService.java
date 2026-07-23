@@ -5,6 +5,7 @@ import com.btk.staj.VIPTransferProject.entity.LoyaltyAccount;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
+import com.btk.staj.VIPTransferProject.exception.InvalidTierConfigException;
 import com.btk.staj.VIPTransferProject.exception.TierConfigNotFoundException;
 import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.LoyaltyAccountRepository;
@@ -103,5 +104,47 @@ public class LoyaltyService {
                 .lifetimePoints(account.getLifetimePoints())
                 .tier(account.getTier().name())
                 .build();
+    }
+
+    private void checkTierHierarchy(LoyaltyTier tier, Integer newMinPoints) {
+        LoyaltyTier[] order = LoyaltyTier.values();
+        int currentIndex = tier.ordinal();
+
+        Integer lowerBound = 0;
+        if (currentIndex > 0) {
+            LoyaltyTier lowerTier = order[currentIndex - 1];
+            lowerBound = loyaltyTierConfigRepository.findByTier(lowerTier)
+                    .map(LoyaltyTierConfig::getMinPoints)
+                    .orElse(0);
+        }
+
+        Integer upperBound = null;
+        if (currentIndex < order.length - 1) {
+            LoyaltyTier upperTier = order[currentIndex + 1];
+            upperBound = loyaltyTierConfigRepository.findByTier(upperTier)
+                    .map(LoyaltyTierConfig::getMinPoints)
+                    .orElse(null);
+        }
+
+        if (newMinPoints.compareTo(lowerBound) <= 0 ||
+                (upperBound != null && newMinPoints.compareTo(upperBound) >= 0)) {
+            throw new InvalidTierConfigException( tier,lowerBound,upperBound);
+        }
+    }
+
+    public LoyaltyTierConfig updateTierConfig(LoyaltyTier tier, UpdateTierConfigRequest request) {
+        LoyaltyTierConfig config = loyaltyTierConfigRepository.findByTier(tier)
+                .orElseThrow(() -> new TierConfigNotFoundException(tier));
+
+        checkTierHierarchy(tier, request.getMinPoints());
+
+        config.setDescription(request.getDescription());
+        config.setMinPoints(request.getMinPoints());
+        config.setPrioritySupport(request.isPrioritySupport());
+        config.setEarnRate(request.getEarnRate());
+        config.setDiscountPercentage(request.getDiscountPercentage());
+
+        return loyaltyTierConfigRepository.save(config);
+
     }
 }
