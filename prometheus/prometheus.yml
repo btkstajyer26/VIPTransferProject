@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 5s # Verileri 5 saniyede bir topla
+
+scrape_configs:
+  # 1. Altyapı, CPU, RAM ve Ağ Gecikmeleri (cAdvisor üzerinden)
+  - job_name: 'docker-infrastructure'
+    static_configs:
+      - targets: ['vip-cadvisor:8080']
+
+  # 2. Sistem Sağlığı (Health Check) ve Java Metrikleri (Spring Actuator üzerinden)
+  - job_name: 'spring-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['vip-backend:8080']
+
+  # 3. Host CPU, RAM, Disk, Ağ Metrikleri (Node Exporter üzerinden)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['vip-node-exporter:9100']

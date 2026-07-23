@@ -32,6 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
+.DS_Store
+.idea/
+.env
+
 ### Firebase credentials ###
 *firebase-adminsdk*.json
 firebase-service-account*.json

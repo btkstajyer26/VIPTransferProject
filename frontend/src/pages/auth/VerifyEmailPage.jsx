@@ -1,0 +1,97 @@
+import { useEffect, useState } from "react";
+import {
+  CircleCheck,
+  CircleX,
+  LoaderCircle,
+} from "lucide-react";
+import {
+  Link,
+  useSearchParams,
+} from "react-router-dom";
+
+import { verifyEmail } from "@/api/authApi";
+
+export default function VerifyEmailPage() {
+  const [searchParams] = useSearchParams();
+
+  const token = searchParams.get("token");
+
+  const [status, setStatus] = useState("loading");
+  const [message, setMessage] = useState(
+    "E-posta adresiniz doğrulanıyor...",
+  );
+
+  useEffect(() => {
+    const confirmEmail = async () => {
+      if (!token) {
+        setStatus("error");
+        setMessage("Doğrulama tokenı bulunamadı.");
+        return;
+      }
+
+      try {
+        const response = await verifyEmail(token);
+
+        setStatus("success");
+        setMessage(
+          typeof response === "string"
+            ? response
+            : "E-posta adresiniz başarıyla doğrulandı.",
+        );
+      } catch (error) {
+        console.error("E-posta doğrulama hatası:", error);
+
+        const responseData = error.response?.data;
+
+        setStatus("error");
+        setMessage(
+          typeof responseData === "string"
+            ? responseData
+            : responseData?.message ||
+                "Doğrulama bağlantısı geçersiz veya süresi dolmuş.",
+        );
+      }
+    };
+
+    confirmEmail();
+  }, [token]);
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+      <section className="w-full max-w-lg rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur-xl">
+        {status === "loading" && (
+          <LoaderCircle className="mx-auto h-14 w-14 animate-spin text-blue-300" />
+        )}
+
+        {status === "success" && (
+          <CircleCheck className="mx-auto h-16 w-16 text-emerald-400" />
+        )}
+
+        {status === "error" && (
+          <CircleX className="mx-auto h-16 w-16 text-red-400" />
+        )}
+
+        <h1 className="mt-6 text-3xl font-semibold text-white">
+          {status === "loading"
+            ? "Doğrulanıyor"
+            : status === "success"
+              ? "Doğrulama başarılı"
+              : "Doğrulama başarısız"}
+        </h1>
+
+        <p className="mt-4 leading-7 text-slate-400">
+          {message}
+        </p>
+
+        {status !== "loading" && (
+          <Link
+            to="/login"
+            className="mt-8 inline-flex h-11 items-center justify-center rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white transition hover:bg-blue-500"
+          >
+            Giriş sayfasına git
+          </Link>
+        )}
+      </section>
+    </main>
+  );
+}
