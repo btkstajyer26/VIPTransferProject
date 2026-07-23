@@ -59,11 +59,16 @@ public class AppExceptionHandler {
     @ExceptionHandler({
         InvalidRequestException.class,
         IllegalArgumentException.class,
-        UnsupportedNotificationChannelException.class
+        UnsupportedNotificationChannelException.class,
+        InvalidTierConfigException.class
     })
     public ResponseEntity<ApiResponse<String>> handleBadRequest(RuntimeException ex) {
         log.warn("400 Bad Request: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+    public ResponseEntity<ApiResponse<String>> handleInvalidTierConfig(RuntimeException ex) {
+        log.warn("400 Bad Request: {}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, "Tier config is invalid.");
     }
 
     // ── 502 Bad Gateway ──────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
 import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -91,7 +92,16 @@ public class AuthController {
     }
 
     @GetMapping("/verify-email")
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
-        return ResponseEntity.ok(authService.verifyEmail(token));
+    public ResponseEntity<?> verifyEmail(
+            @RequestParam String token) {
+
+        authService.verifyEmail(token);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "success", true,
+                        "message", "E-posta başarıyla doğrulandı."
+                )
+        );
     }
-}
+    }

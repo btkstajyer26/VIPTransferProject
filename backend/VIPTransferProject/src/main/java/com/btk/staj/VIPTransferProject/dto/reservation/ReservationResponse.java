@@ -24,6 +24,9 @@ public class ReservationResponse {
     private String vehicleName;
 
     private short passengerCount;
+    private BigDecimal basePrice;
+    private BigDecimal loyaltyDiscount;
+    private BigDecimal discountAmount;
     private BigDecimal calculatedPrice;
     private String currency;
 

@@ -1,6 +1,8 @@
 package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.loyalty.*;
+import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
+import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
 import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import com.btk.staj.VIPTransferProject.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,15 @@ public class LoyaltyController {
             @PathVariable Long userId) {
         log.info("HTTP GET /api/loyalty/accounts/{} isteÄŸi alÄ±ndÄ±. (ADMIN)", userId);
         return ResponseEntity.ok(loyaltyService.getAccount(userId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/tier-config/{tier}")
+    public ResponseEntity<LoyaltyTierConfig> updateTierConfig(
+        @PathVariable LoyaltyTier tier,
+        @RequestBody UpdateTierConfigRequest request) {
+            log.info("HTTP PUT /api/loyalty/tier-config/{} isteği alındı. (ADMİN)", tier);
+            return ResponseEntity.ok(loyaltyService.updateTierConfig(tier, request));
     }
     /*
     // GiriÅŸ yapan kullanÄ±cÄ± iÃ§in belirli bir tutara uygulanacak indirimi hesaplar
