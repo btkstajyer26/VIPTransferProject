@@ -10,6 +10,7 @@ import com.btk.staj.VIPTransferProject.enums.DiscountType;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.dto.loyalty.AccruePointsRequests;
+import com.btk.staj.VIPTransferProject.dto.loyalty.LoyaltyDiscountResponse;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
 import com.btk.staj.VIPTransferProject.exception.ForbiddenOperationException;
 import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
@@ -73,27 +74,40 @@ public class ReservationService {
         BigDecimal basePrice = openingPrice;
         BigDecimal vehicleAdjusted = basePrice.multiply(vehicle.getBasePriceMultiplier()).setScale(2, RoundingMode.HALF_UP);
 
-        // 5. Kampanya indirimi
-        BigDecimal discountAmount = BigDecimal.ZERO;
+        // 5. Loyalty tier indirimi (sadece kayıtlı, misafir olmayan kullanıcılar)
+        BigDecimal loyaltyDiscountAmount = BigDecimal.ZERO;
+        if (userId != null && !user.isGuest()) {
+            try {
+                LoyaltyDiscountResponse tierDiscount = loyaltyService.calculateDiscount(userId, vehicleAdjusted);
+                loyaltyDiscountAmount = tierDiscount.getDiscountAmount();
+            } catch (Exception e) {
+                log.warn("Loyalty tier indirimi hesaplanamadı. userId={}, hata={}", userId, e.getMessage());
+            }
+        }
+
+        BigDecimal priceAfterTier = vehicleAdjusted.subtract(loyaltyDiscountAmount).max(BigDecimal.ZERO);
+
+        // 6. Kampanya indirimi (tier sonrası fiyat üzerine)
+        BigDecimal campaignDiscountAmount = BigDecimal.ZERO;
         Campaign campaign = null;
         if (request.getCampaignCode() != null && !request.getCampaignCode().isBlank()) {
             campaign = campaignRepository.findByCodeAndActiveTrue(request.getCampaignCode())
                     .orElse(null);
-            if (campaign != null && vehicleAdjusted.compareTo(campaign.getMinOrderAmount()) >= 0) {
+            if (campaign != null && priceAfterTier.compareTo(campaign.getMinOrderAmount()) >= 0) {
                 if (campaign.getDiscountType() == DiscountType.PERCENTAGE) {
-                    discountAmount = vehicleAdjusted
+                    campaignDiscountAmount = priceAfterTier
                             .multiply(campaign.getDiscountValue())
                             .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
                     if (campaign.getMaxDiscountAmount() != null) {
-                        discountAmount = discountAmount.min(campaign.getMaxDiscountAmount());
+                        campaignDiscountAmount = campaignDiscountAmount.min(campaign.getMaxDiscountAmount());
                     }
                 } else {
-                    discountAmount = campaign.getDiscountValue();
+                    campaignDiscountAmount = campaign.getDiscountValue();
                 }
             }
         }
 
-        BigDecimal calculatedPrice = vehicleAdjusted.subtract(discountAmount).max(BigDecimal.ZERO);
+        BigDecimal calculatedPrice = priceAfterTier.subtract(campaignDiscountAmount).max(BigDecimal.ZERO);
 
         // 6. Reservation oluştur
         Reservation reservation = Reservation.builder()
@@ -108,7 +122,8 @@ public class ReservationService {
                 .passengerCount(request.getPassengerCount())
                 .openingPrice(openingPrice)
                 .basePrice(basePrice)
-                .discountAmount(discountAmount)
+                .loyaltyDiscount(loyaltyDiscountAmount)
+                .discountAmount(campaignDiscountAmount)
                 .calculatedPrice(calculatedPrice)
                 .campaign(campaign)
                 .flightNumber(request.getFlightNumber())
@@ -365,6 +380,9 @@ public class ReservationService {
                 .scheduledTime(r.getScheduledTime())
                 .vehicleName(vehicleName)
                 .passengerCount(r.getPassengerCount())
+                .basePrice(r.getBasePrice())
+                .loyaltyDiscount(r.getLoyaltyDiscount())
+                .discountAmount(r.getDiscountAmount())
                 .calculatedPrice(r.getCalculatedPrice())
                 .currency(r.getCurrency())
                 .status(r.getStatus())
