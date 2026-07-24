@@ -4,6 +4,11 @@ import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import com.btk.staj.VIPTransferProject.dto.AuthResponse;
 import com.btk.staj.VIPTransferProject.dto.LoginRequest;
 import com.btk.staj.VIPTransferProject.dto.RefreshTokenRequest;
+import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
+import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
+import com.btk.staj.VIPTransferProject.dto.auth.ForgotPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.ResetPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.VerifyEmailRequest;
 import com.btk.staj.VIPTransferProject.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -12,11 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
-import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -74,15 +76,40 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/verify-email")
-    public ResponseEntity<Map<String, Object>> verifyEmail(@RequestParam("token") String token) {
-        String message = authService.verifyEmail(token);
+    // ==========================================
+    // E-POSTA DOĞRULAMA VE ŞİFRE SIFIRLAMA (OTP)
+    // ==========================================
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "success", true,
-                        "message", message
-                )
-        );
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("E-posta adresiniz başarıyla doğrulandı.")
+                .timestamp(OffsetDateTime.now())
+                .build());
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Eğer bu e-posta adresi sistemde kayıtlıysa, şifre sıfırlama kodu gönderilmiştir.")
+                .timestamp(OffsetDateTime.now())
+                .build());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Şifreniz başarıyla sıfırlandı. Artık yeni şifrenizle giriş yapabilirsiniz.")
+                .timestamp(OffsetDateTime.now())
+                .build());
     }
 }
