@@ -95,17 +95,14 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshAccessToken(String refreshTokenRequest, String currentIpAddress, String currentDeviceInfo) {
-        // Hata yakalama işi burada (Eskiden Controller'da RuntimeException ile yapıyordun)
         RefreshToken token = refreshTokenService.findByToken(refreshTokenRequest)
                 .orElseThrow(() -> new TokenRefreshException("Refresh token sistemde bulunamadı veya geçersiz!"));
 
-        // Güvenlik doğrulaması
         refreshTokenService.verifyExpiration(token, currentIpAddress, currentDeviceInfo);
 
         User user = token.getUser();
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
 
-        // Yeni token üretimi
         String newAccessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(),token.getId());
 
         return AuthResponse.builder()
@@ -128,7 +125,7 @@ public class AuthService {
 
     @Transactional
     public RegisterResponseDto register(RegisterRequestDto request) {
-        // ... (Bu metotta bir değişiklik yok, senin gönderdiğin haliyle kalacak)
+
         log.info("Yeni kayıt denemesi. Email: {}, Telefon: {}", request.getEmail(), request.getPhoneNumber());
 
         userRepository.findByEmail(request.getEmail()).ifPresent(existingUser -> {

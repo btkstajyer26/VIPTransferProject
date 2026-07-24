@@ -69,7 +69,6 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
-        // AuthService doğrudan RegisterResponseDto nesnesini oluşturup dönmelidir.
         RegisterResponseDto response = authService.register(request);
 
         return ResponseEntity.ok(response);
@@ -77,8 +76,6 @@ public class AuthController {
 
     @GetMapping("/verify-email")
     public ResponseEntity<Map<String, Object>> verifyEmail(@RequestParam("token") String token) {
-        // AuthService'in mesaj döndüğünü varsayıyoruz.
-        // Eğer void dönüyorsa "E-posta başarıyla doğrulandı." şeklinde statik bir string de geçebilirsin.
         String message = authService.verifyEmail(token);
 
         return ResponseEntity.ok(
