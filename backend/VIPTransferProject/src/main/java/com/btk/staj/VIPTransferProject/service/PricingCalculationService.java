@@ -58,7 +58,7 @@ public class PricingCalculationService{
 
         BigDecimal campaignDiscount = calculateCampaignDiscount(
                 reservation.getCampaign(), reservation.getUser(), afterSurge);
-        BigDecimal loyaltyDiscount = calculateLoyaltyDiscount(reservation.getUser(), afterSurge);
+        BigDecimal loyaltyDiscount = calculateLoyaltyDiscount(reservation.getUser(), afterSurge.subtract(campaignDiscount));
 
         BigDecimal finalPrice = calculateFinalPrice(afterSurge,campaignDiscount,loyaltyDiscount,pickupZone.getMinPrice());
 
@@ -159,7 +159,7 @@ public class PricingCalculationService{
         }
         if (user != null) {
             long usedByUser = reservationRepository.countByUserIdAndCampaignIdAndStatusNot(
-                    user.getId(), campaign.getId(), ReservationStatus.CANCELLED);
+                    user.getId(), campaign.getId(), ReservationStatus.CANCELLED.name());
             if (usedByUser >= campaign.getMaxUsesPerUser()) {
                 throw new InvalidPricingRuleException("Bu kampanyayı kullanım limitinize ulaştınız: " + campaign.getCode());
             }

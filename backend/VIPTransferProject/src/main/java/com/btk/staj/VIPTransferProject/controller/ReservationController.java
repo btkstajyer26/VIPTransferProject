@@ -2,6 +2,8 @@ package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.reservation.CreateReservationRequest;
 import com.btk.staj.VIPTransferProject.dto.reservation.GuestReservationResponse;
+import com.btk.staj.VIPTransferProject.dto.reservation.PricePreviewRequest;
+import com.btk.staj.VIPTransferProject.dto.reservation.PricePreviewResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.ReservationResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.ReservationStatusHistoryResponse;
 import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
@@ -94,6 +96,17 @@ public class ReservationController {
             @RequestParam String phone) {
         log.info("HTTP GET /api/reservations/guest/{} isteÄŸi alÄ±ndÄ±. (misafir gÃ¶rÃ¼ntÃ¼leme)", bookingReference);
         return ResponseEntity.ok(reservationService.getGuestReservation(bookingReference, phone));
+    }
+
+    // Rezervasyon oluşturmadan önce fiyat önizlemesi — kayıtlı kullanıcı opsiyonel
+    // NOT: Misafir erişimi için security ekibine permitAll eklenmesi gerekiyor
+    @PostMapping("/price-preview")
+    public ResponseEntity<PricePreviewResponse> previewPrice(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody PricePreviewRequest request) {
+        Long userId = principal != null ? principal.id() : null;
+        log.info("HTTP POST /api/reservations/price-preview isteği alındı.");
+        return ResponseEntity.ok(reservationService.previewPrice(request, userId));
     }
 
     // Rezervasyonun durum geÃ§miÅŸini getir

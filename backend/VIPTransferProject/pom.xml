@@ -146,6 +146,13 @@
 			<version>3.0.3</version>
 		</dependency>
 
+		<!-- Google Maps Java Client — Directions API + Polyline decode -->
+		<dependency>
+			<groupId>com.google.maps</groupId>
+			<artifactId>google-maps-services</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

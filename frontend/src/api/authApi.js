@@ -2,7 +2,7 @@ import apiClient from "@/api/apiClient";
 
 export async function login(credentials) {
   const response = await apiClient.post("/auth/login", credentials);
-  return response.data;
+  return response.data?.data ?? response.data;
 }
 
 export async function register(payload) {
@@ -25,7 +25,7 @@ export async function refreshToken(refreshTokenValue) {
     refreshToken: refreshTokenValue,
   });
 
-  return response.data;
+  return response.data?.data ?? response.data;
 }
 
 export async function logout(refreshTokenValue) {

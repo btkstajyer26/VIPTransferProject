@@ -8,10 +8,19 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PricingZoneRepository extends JpaRepository<PricingZone, Long>{
     List<PricingZone> findByActiveTrue();
+
+    @Query(value = """
+            SELECT * FROM pricing_zones pz
+            WHERE pz.is_active = true
+              AND ST_Within(ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), pz.polygon_geom)
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<PricingZone> findZoneContainingPoint(@Param("lon") double lon, @Param("lat") double lat);
 
     @Query(value = """
         SELECT pz.id AS zoneId,
