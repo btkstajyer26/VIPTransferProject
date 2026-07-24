@@ -16,6 +16,7 @@ import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
 import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -67,26 +68,24 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponseDto>> register(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
+        // AuthService doğrudan RegisterResponseDto nesnesini oluşturup dönmelidir.
         RegisterResponseDto response = authService.register(request);
 
-        return ResponseEntity.ok(ApiResponse.<RegisterResponseDto>builder()
-                .status(HttpStatus.OK.value())
-                .message("Kayıt işlemi alındı.")
-                .data(response)
-                .timestamp(OffsetDateTime.now())
-                .build());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/verify-email")
-    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam("token") String token) {
+    public ResponseEntity<Map<String, Object>> verifyEmail(@RequestParam("token") String token) {
+        // AuthService'in mesaj döndüğünü varsayıyoruz.
+        // Eğer void dönüyorsa "E-posta başarıyla doğrulandı." şeklinde statik bir string de geçebilirsin.
         String message = authService.verifyEmail(token);
 
-        return ResponseEntity.ok(ApiResponse.<String>builder()
-                .status(HttpStatus.OK.value())
-                .message("Doğrulama sonucu.")
-                .data(message)
-                .timestamp(OffsetDateTime.now())
-                .build());
+        return ResponseEntity.ok(
+                Map.of(
+                        "success", true,
+                        "message", message
+                )
+        );
     }
 }
