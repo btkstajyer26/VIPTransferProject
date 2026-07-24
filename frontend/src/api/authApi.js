@@ -11,13 +11,13 @@ export async function register(payload) {
 }
 
 export async function verifyEmail(token) {
-  const response = await apiClient.get("/auth/verify-email", {
-    params: {
-      token,
-    },
-  });
+    const response = await apiClient.get("/auth/verify-email", {
+        params: {
+            token,
+        },
+    });
 
-  return response.data;
+    return response.data;
 }
 
 export async function refreshToken(refreshTokenValue) {

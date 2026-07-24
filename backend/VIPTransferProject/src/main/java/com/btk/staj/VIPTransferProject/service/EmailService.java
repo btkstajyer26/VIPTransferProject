@@ -16,15 +16,21 @@ public class EmailService {
     private String baseUrl;
 
     public void sendVerificationEmail(String toEmail, String token) {
-        String confirmationUrl = baseUrl + "/api/auth/verify-email?token=" + token;
+
+        String frontendUrl = baseUrl.replace(":8080", ":5173");
+
+        String confirmationUrl =
+                frontendUrl + "/verify-email?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
         message.setSubject("VIP Transfer - E-Posta Doğrulama");
-        message.setText("VIP Transfer Sistemine hoş geldiniz!\n\n" +
-                "Hesabınızı aktifleştirmek için lütfen aşağıdaki bağlantıya tıklayın:\n" +
-                confirmationUrl + "\n\n" +
-                "Bu bağlantı 30 dakika boyunca geçerlidir.");
+        message.setText(
+                "VIP Transfer Sistemine hoş geldiniz!\n\n" +
+                "Hesabınızı aktifleştirmek için aşağıdaki bağlantıya tıklayın:\n\n" +
+                confirmationUrl +
+                "\n\nBu bağlantı 30 dakika boyunca geçerlidir."
+        );
 
         mailSender.send(message);
     }
