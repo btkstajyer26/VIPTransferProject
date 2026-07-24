@@ -19,8 +19,23 @@ import pandas as pd
 # DOSYA YOLU VE DOSYA KONTROLÜ
 # --------------------------------------------------
 
-file_path = Path("data/raw/yellow_tripdata_2025-01.csv" \
-"")
+if "__file__" in globals():
+    project_root = Path(__file__).resolve().parent.parent
+else:
+    current_path = Path.cwd().resolve()
+
+    if current_path.name == "notebooks":
+        project_root = current_path.parent
+    else:
+        project_root = current_path
+
+
+file_path = (
+    project_root
+    / "data"
+    / "raw"
+    / "yellow_tripdata_2025-01.csv"
+)
 
 print("=" * 60)
 print("DOSYA KONTROLÜ")
