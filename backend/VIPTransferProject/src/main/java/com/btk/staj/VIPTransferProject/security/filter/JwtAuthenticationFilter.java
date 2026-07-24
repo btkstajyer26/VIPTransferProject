@@ -1,8 +1,10 @@
 package com.btk.staj.VIPTransferProject.security.filter;
 
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
 import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
+import com.btk.staj.VIPTransferProject.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     //private final ObjectMapper objectMapper;
-
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -44,6 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String phoneNumber;
         final String role;
         final Long userId;
+        final Long sessionId;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -59,12 +62,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 role= jwtUtil.extractRole(jwt);
                 phoneNumber = jwtUtil.extractUsername(jwt);
                 userId= jwtUtil.extractUserId(jwt);
+                sessionId= jwtUtil.extractSessionId(jwt);
+                if (sessionId != null) {
+                    boolean isSessionValid = refreshTokenService.isRefreshTokenValidById(sessionId);
+                    if (!isSessionValid) {
+                        // Eğer oturum geçerli değilse, kod aşağıya (5. adıma) geçemez.
+                        throw new UnauthorizedException("Bu oturum sonlandırılmış veya başka bir cihazdan çıkış yapılmış!");
+                    }
+                }
+
                 if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
-                    log.debug("[JwtFilter] SecurityContext'e atanacak Yetki (Authority): {}", authority);
+                    log.debug("[JwtFilter] SecurityContext'e atanacak Yetki (Authority): UserId:{} , phoneNumber: {} , sessionId:{} ", userId,phoneNumber,sessionId);
                     // GÜVENLİK ONAYLANDI
-                    UserPrincipal principal = new UserPrincipal(userId,phoneNumber);
+                    UserPrincipal principal = new UserPrincipal(userId,phoneNumber,sessionId);
+                    log.debug("[JwtFilter] SecurityContext'e atanacak kimlik: {}", authority);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             principal, null, authorities
                     );

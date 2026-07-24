@@ -20,7 +20,7 @@ public class JwtUtil {
     private final JwtKeyProvider keyProvider;
     private static final long EXPIRATION_TIME = 1000 * 60 * 15; // 15dk Access Token
 
-    public String generateToken(String username, Long userId, String role) {
+    public String generateToken(String username, Long userId, String role, Long sessionId) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Token üretimi için geçerli bir kullanıcı adı gereklidir.");
         }
@@ -29,6 +29,7 @@ public class JwtUtil {
                 .setSubject(username)
                 .claim("userId", userId)
                 .claim("role",role)
+                .claim("sessionId",sessionId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(keyProvider.getPrivateKey(), SignatureAlgorithm.RS256)
@@ -73,7 +74,10 @@ public class JwtUtil {
         Number userId = extractAllClaims(token).get("userId", Number.class);
         return userId != null ? userId.longValue() : null;
     }
-
+    public Long extractSessionId(String token) {
+        Number sessionId = extractAllClaims(token).get("sessionId", Number.class);
+        return sessionId != null ? sessionId.longValue() : null;
+    }
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(keyProvider.getPublicKey())
