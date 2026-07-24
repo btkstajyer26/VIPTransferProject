@@ -11,7 +11,7 @@ public class VerifyEmailRequest {
     @Email
     private String email;
 
-    @NotBlank
-    @Size(min = 6, max = 6)
+    @NotBlank(message = "Doğrulama kodu boş olamaz.")
+    @Size(min = 6, max = 6, message = "Doğrulama kodu 6 haneli olmalıdır.")
     private String code;
 }

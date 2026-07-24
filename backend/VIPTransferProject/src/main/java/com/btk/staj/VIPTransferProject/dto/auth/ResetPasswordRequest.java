@@ -7,15 +7,15 @@ import lombok.Data;
 
 @Data
 public class ResetPasswordRequest {
-    @NotBlank
-    @Email
+    @NotBlank(message = "E-posta boş olamaz.")
+    @Email(message = "Geçerli bir e-posta adresi girin.")
     private String email;
 
-    @NotBlank
-    @Size(min = 6, max = 6)
+    @NotBlank(message = "Doğrulama kodu boş olamaz.")
+    @Size(min = 6, max = 6, message = "Doğrulama kodu 6 haneli olmalıdır.")
     private String code;
 
-    @NotBlank
-    @Size(min = 6, max = 100)
+    @NotBlank(message = "Yeni şifre boş olamaz.")
+    @Size(min = 6, max = 100, message = "Şifre en az 6 karakter olmalıdır.")
     private String newPassword;
 }
