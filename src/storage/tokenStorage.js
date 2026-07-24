@@ -28,9 +28,12 @@ function normalizeAuthSession(authResponse) {
 }
 
 export async function saveAuthSession(authResponse) {
+  console.log("Backend'den gelen ham yanıt:", authResponse);
+
   const session = normalizeAuthSession(authResponse);
 
   if (!session) {
+    console.log("HATA: Gelen veri normalize edilemedi ve reddedildi!");
     return null;
   }
 

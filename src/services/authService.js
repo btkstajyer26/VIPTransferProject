@@ -16,6 +16,14 @@ function isValidLoginResponse(response) {
 }
 
 export async function login(loginRequest) {
+  // Geliştirme aşaması: Backend kapalı olduğu için sahte (mock) başarılı yanıt dönüyoruz
+  const response = {
+    accessToken: "sahte_jwt_token_12345",
+    tokenType: "Bearer",
+    role: "USER"
+  };
+
+  /* GERÇEK İSTEK - Backend ile bağlanırken aşağıdaki yorum satırlarını kaldıracağız
   const response = await apiClient.request(AUTH_LOGIN_PATH, {
     method: 'POST',
     body: {
@@ -24,6 +32,7 @@ export async function login(loginRequest) {
     },
     requiresAuth: false,
   });
+  */
 
   if (!isValidLoginResponse(response)) {
     throw {

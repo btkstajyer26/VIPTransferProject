@@ -59,6 +59,11 @@ export default function AppNavigator() {
           options={{ title: 'Transfer Planla' }}
         />
         <Stack.Screen
+          name="VehicleSelection"
+          component={VehicleSelectionScreen}
+          options={{ title: 'Araç Seçimi' }}
+        />
+        <Stack.Screen
           name="ThemeSettings"
           component={ThemeSettingsScreen}
           options={{ title: 'Tema Seçimi' }}

@@ -12,10 +12,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { createLoginStyles } from '../styles/loginStyles';
+import { useAuth } from '../context/AuthContext'; // Düzeltildi: Doğru import yolu
 
 export default function LoginScreen({ navigation }) {
   const { theme } = useTheme();
   const styles = useMemo(() => createLoginStyles(theme), [theme]);
+  const { login } = useAuth();
+  
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -62,24 +65,23 @@ export default function LoginScreen({ navigation }) {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleLogin() {
+  async function handleLogin() {
     const isFormValid = validateForm();
 
-    if (!isFormValid) {
-      return;
-    }
-
-    if (loading) {
+    if (!isFormValid || loading) {
       return;
     }
 
     setLoading(true);
 
-    // TODO: Simülasyon, Auth Service giriş entegrasyonu hazır olduğunda değiştirilecek.
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await login({ phoneNumber: phone, password });
       navigation.replace('Home');
-    }, 800);
+    } catch (error) {
+      Alert.alert('Giriş Hatası', error?.message || 'Bir hata oluştu, lütfen tekrar deneyin.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleForgotPassword() {

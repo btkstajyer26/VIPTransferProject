@@ -84,6 +84,7 @@ async function request(
 
     if (requiresAuth) {
       const session = await getAuthSession();
+      console.log("Session Durumu:", session); // ---> Kontrol için eklediğimiz satır
 
       if (session?.accessToken) {
         const tokenType = session.tokenType || 'Bearer';

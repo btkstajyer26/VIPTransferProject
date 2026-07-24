@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import * as authService from '../services/authService';
 import { getAuthSession } from '../storage/tokenStorage';
 
@@ -46,12 +46,12 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const login = useCallback(async (phoneNumber, password) => {
+  const login = useCallback(async (credentials) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const authenticatedSession = await authService.login({ phoneNumber, password });
+      const authenticatedSession = await authService.login(credentials);
       setSession(authenticatedSession);
       return authenticatedSession;
     } catch (loginError) {
@@ -104,4 +104,14 @@ export function AuthProvider({ children }) {
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (context === undefined) {
+    throw new Error('useAuth, AuthProvider içinde kullanılmalıdır.');
+  }
+
+  return context;
 }

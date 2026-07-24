@@ -32,7 +32,7 @@ function normalizeVehicle(vehicle) {
   };
 }
 
-export async function getVehicles() {
+export async function getActiveVehicles() {
   try {
     const response = await apiClient.request(VEHICLES_PATH, {
       requiresAuth: false,
@@ -47,7 +47,7 @@ export async function getVehicles() {
   } catch (error) {
     throw {
       status: error?.status ?? 0,
-      message: error?.message || 'Araçlar yüklenemedi. Lütfen tekrar deneyin.',
+      message: error?.message || 'Araç listesi alınamadı. Lütfen tekrar deneyin.',
       data: error?.data ?? null,
     };
   }
