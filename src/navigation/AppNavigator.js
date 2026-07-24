@@ -6,6 +6,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import GuestInfoScreen from '../screens/GuestInfoScreen';
 import TransferSearchScreen from '../screens/TransferSearchScreen';
+import VehicleSelectionScreen from '../screens/VehicleSelectionScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ReservationScreen from '../screens/ReservationScreen';
 import ReservationsScreen from '../screens/ReservationsScreen';
@@ -63,6 +64,11 @@ export default function AppNavigator() {
           options={{ title: 'Tema Seçimi' }}
         />
         <Stack.Screen
+          name="VehicleSelection"
+          component={VehicleSelectionScreen}
+          options={{ title: 'Araç Seçimi' }}
+        />
+        <Stack.Screen
           name="GuestInfo"
           component={GuestInfoScreen}
           options={{ title: 'Misafir Bilgileri' }}
@@ -75,7 +81,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Reservation"
           component={ReservationScreen}
-          options={{ title: 'Rezervasyon' }}
+          options={{ title: 'Rezervasyon ve Ödeme' }}
         />
         <Stack.Screen
           name="Reservations"

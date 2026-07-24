@@ -1,14 +1,11 @@
 import { StyleSheet } from 'react-native';
 
-export function createGuestInfoStyles(theme) {
+export function createVehicleSelectionStyles(theme) {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
       overflow: 'hidden',
       backgroundColor: theme.background,
-    },
-    keyboardView: {
-      flex: 1,
     },
     decorations: {
       ...StyleSheet.absoluteFillObject,
@@ -16,7 +13,7 @@ export function createGuestInfoStyles(theme) {
     topOrb: {
       position: 'absolute',
       top: -120,
-      right: -105,
+      right: -100,
       width: 270,
       height: 270,
       borderRadius: 135,
@@ -25,22 +22,22 @@ export function createGuestInfoStyles(theme) {
     },
     topRing: {
       position: 'absolute',
-      top: 58,
-      right: -34,
-      width: 120,
-      height: 120,
+      top: 54,
+      right: -35,
+      width: 124,
+      height: 124,
       borderWidth: 1,
       borderColor: theme.accent,
-      borderRadius: 60,
+      borderRadius: 62,
       opacity: 0.18,
     },
     bottomOrb: {
       position: 'absolute',
-      bottom: -140,
-      left: -100,
-      width: 290,
-      height: 290,
-      borderRadius: 145,
+      bottom: -150,
+      left: -110,
+      width: 300,
+      height: 300,
+      borderRadius: 150,
       backgroundColor: theme.primary,
       opacity: 0.12,
     },
@@ -48,7 +45,7 @@ export function createGuestInfoStyles(theme) {
       flexGrow: 1,
       paddingHorizontal: 22,
       paddingTop: 18,
-      paddingBottom: 32,
+      paddingBottom: 132,
     },
     stepIndicator: {
       flexDirection: 'row',
@@ -131,9 +128,9 @@ export function createGuestInfoStyles(theme) {
     title: {
       marginTop: 9,
       color: theme.text,
-      fontSize: 31,
+      fontSize: 32,
       fontWeight: '800',
-      lineHeight: 38,
+      lineHeight: 39,
       letterSpacing: -0.6,
     },
     highlightedTitle: {
@@ -145,14 +142,17 @@ export function createGuestInfoStyles(theme) {
       fontSize: 14,
       lineHeight: 21,
     },
-    bookingSummary: {
+    tripSummary: {
       position: 'relative',
+      flexDirection: 'row',
+      alignItems: 'center',
       marginTop: 22,
       borderWidth: 1,
       borderColor: theme.border,
       borderRadius: 18,
       overflow: 'hidden',
-      padding: 17,
+      paddingHorizontal: 17,
+      paddingVertical: 15,
       backgroundColor: theme.surface,
       shadowColor: theme.shadow,
       shadowOffset: { width: 0, height: 5 },
@@ -168,17 +168,21 @@ export function createGuestInfoStyles(theme) {
       width: 4,
       backgroundColor: theme.accent,
     },
+    summaryRoute: {
+      flex: 1,
+      minWidth: 0,
+    },
     summaryEyebrow: {
       color: theme.textSecondary,
       fontSize: 8,
       fontWeight: '800',
       letterSpacing: 1.1,
     },
-    summaryRouteRow: {
+    routeRow: {
       flexDirection: 'row',
-      marginTop: 10,
+      marginTop: 9,
     },
-    summaryMarkerColumn: {
+    routeMarkerColumn: {
       width: 20,
       alignItems: 'center',
       paddingVertical: 4,
@@ -191,7 +195,7 @@ export function createGuestInfoStyles(theme) {
       borderRadius: 5,
       backgroundColor: theme.surface,
     },
-    summaryRouteLine: {
+    routeLine: {
       width: 1,
       height: 21,
       backgroundColor: theme.divider,
@@ -204,187 +208,315 @@ export function createGuestInfoStyles(theme) {
       borderRadius: 3,
       backgroundColor: theme.surface,
     },
-    summaryLocations: {
+    routeNames: {
       flex: 1,
       justifyContent: 'space-between',
       minHeight: 48,
       paddingLeft: 6,
     },
-    summaryLocation: {
+    routeName: {
       color: theme.text,
       fontSize: 12,
       fontWeight: '700',
     },
-    summaryDivider: {
-      height: 1,
-      marginVertical: 13,
-      backgroundColor: theme.divider,
-    },
-    vehicleSummaryRow: {
-      flexDirection: 'row',
+    tripMeta: {
       alignItems: 'center',
+      marginLeft: 12,
+      borderLeftWidth: 1,
+      borderLeftColor: theme.divider,
+      paddingLeft: 15,
     },
-    vehicleMonogram: {
-      width: 42,
-      height: 42,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: theme.accent,
-      borderRadius: 13,
-      backgroundColor: theme.primary,
-    },
-    vehicleMonogramText: {
+    tripMetaValue: {
       color: theme.accent,
-      fontSize: 11,
+      fontSize: 22,
       fontWeight: '800',
-      letterSpacing: 1,
     },
-    vehicleSummaryText: {
-      flex: 1,
-      minWidth: 0,
-      marginLeft: 11,
-    },
-    vehicleSummaryLabel: {
+    tripMetaLabel: {
+      marginTop: 2,
       color: theme.textSecondary,
       fontSize: 8,
       fontWeight: '800',
       letterSpacing: 0.8,
     },
-    vehicleSummaryName: {
+    listHeader: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      marginTop: 28,
+      marginBottom: 12,
+    },
+    sectionEyebrow: {
+      color: theme.textSecondary,
+      fontSize: 9,
+      fontWeight: '800',
+      letterSpacing: 1.2,
+    },
+    sectionTitle: {
       marginTop: 4,
       color: theme.text,
-      fontSize: 14,
+      fontSize: 20,
       fontWeight: '800',
     },
-    passengerBadge: {
-      alignItems: 'center',
-      marginLeft: 10,
-    },
-    passengerBadgeValue: {
+    vehicleCount: {
       color: theme.accent,
-      fontSize: 18,
+      fontSize: 11,
       fontWeight: '800',
     },
-    passengerBadgeLabel: {
-      color: theme.textSecondary,
-      fontSize: 7,
-      fontWeight: '800',
-      letterSpacing: 0.6,
+    vehicleList: {
+      gap: 14,
     },
-    formCard: {
-      marginTop: 18,
+    vehicleCardWrapper: {
+      width: '100%',
+    },
+    vehicleCard: {
       borderWidth: 1,
       borderColor: theme.border,
       borderRadius: 20,
-      padding: 18,
+      overflow: 'hidden',
       backgroundColor: theme.surface,
       shadowColor: theme.shadow,
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.12,
       shadowRadius: 12,
       elevation: 4,
-      gap: 15,
     },
-    formHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 2,
+    selectedVehicleCard: {
+      borderWidth: 2,
+      borderColor: theme.accent,
+      shadowOpacity: 0.2,
+      elevation: 7,
     },
-    formEyebrow: {
-      color: theme.textSecondary,
-      fontSize: 8,
-      fontWeight: '800',
-      letterSpacing: 1,
+    unavailableVehicleCard: {
+      opacity: 0.48,
     },
-    formTitle: {
-      marginTop: 4,
-      color: theme.text,
-      fontSize: 19,
-      fontWeight: '800',
+    pressedCard: {
+      opacity: 0.86,
     },
-    secureBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 5,
-      borderRadius: 12,
-      paddingHorizontal: 9,
-      paddingVertical: 6,
+    imageArea: {
+      position: 'relative',
+      height: 166,
+      overflow: 'hidden',
       backgroundColor: theme.surfaceSecondary,
     },
-    secureBadgeIcon: {
+    vehicleImage: {
+      width: '100%',
+      height: '100%',
+    },
+    imageFallback: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.primary,
+    },
+    imageFallbackIcon: {
       color: theme.accent,
-      fontSize: 10,
+      fontSize: 25,
       fontWeight: '800',
+      letterSpacing: 3,
     },
-    secureBadgeText: {
+    imageFallbackText: {
+      marginTop: 7,
       color: theme.textSecondary,
-      fontSize: 8,
-      fontWeight: '800',
-      letterSpacing: 0.7,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1.1,
+      textTransform: 'uppercase',
     },
-    nameRow: {
+    classBadge: {
+      position: 'absolute',
+      top: 12,
+      left: 12,
+      borderWidth: 1,
+      borderColor: theme.accent,
+      borderRadius: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: theme.primary,
+    },
+    classBadgeText: {
+      color: theme.accent,
+      fontSize: 9,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+      textTransform: 'uppercase',
+    },
+    selectedBadge: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      width: 31,
+      height: 31,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
+      backgroundColor: theme.accent,
+    },
+    selectedBadgeIcon: {
+      color: theme.buttonText,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    vehicleContent: {
+      padding: 17,
+    },
+    vehicleHeading: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      gap: 11,
+      justifyContent: 'space-between',
+      gap: 12,
     },
-    nameField: {
+    vehicleNameArea: {
       flex: 1,
       minWidth: 0,
     },
-    fieldGroup: {
-      gap: 7,
-    },
-    label: {
+    vehicleBrand: {
       color: theme.textSecondary,
-      fontSize: 11,
-      fontWeight: '700',
-    },
-    input: {
-      minHeight: 52,
-      borderWidth: 1,
-      borderColor: theme.border,
-      borderRadius: 13,
-      paddingHorizontal: 14,
-      backgroundColor: theme.inputBackground,
-      color: theme.text,
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    inputError: {
-      borderColor: theme.error,
-    },
-    errorText: {
-      color: theme.error,
       fontSize: 10,
-      lineHeight: 15,
+      fontWeight: '800',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
     },
-    privacyBox: {
+    vehicleModel: {
+      marginTop: 4,
+      color: theme.text,
+      fontSize: 20,
+      fontWeight: '800',
+    },
+    priceArea: {
+      alignItems: 'flex-end',
+    },
+    priceLabel: {
+      color: theme.textSecondary,
+      fontSize: 8,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+    },
+    priceValue: {
+      marginTop: 3,
+      color: theme.accent,
+      fontSize: 21,
+      fontWeight: '800',
+    },
+    vehicleDetails: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 9,
-      borderLeftWidth: 2,
-      borderLeftColor: theme.accent,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 11,
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 15,
+    },
+    detailPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderRadius: 12,
+      paddingHorizontal: 9,
+      paddingVertical: 7,
       backgroundColor: theme.surfaceSecondary,
     },
-    privacyIcon: {
-      marginTop: 2,
+    detailIcon: {
       color: theme.accent,
-      fontSize: 9,
+      fontSize: 8,
     },
-    privacyText: {
+    detailText: {
+      color: theme.textSecondary,
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    cardFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 15,
+      borderTopWidth: 1,
+      borderTopColor: theme.divider,
+      paddingTop: 13,
+    },
+    availabilityText: {
       flex: 1,
       color: theme.textSecondary,
       fontSize: 10,
-      lineHeight: 16,
+      fontWeight: '600',
     },
-    actions: {
-      marginTop: 20,
-      gap: 15,
+    unavailableText: {
+      color: theme.error,
+    },
+    selectText: {
+      marginLeft: 10,
+      color: theme.textSecondary,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1,
+    },
+    selectedText: {
+      color: theme.accent,
+    },
+    stateCard: {
+      alignItems: 'center',
+      marginTop: 6,
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 20,
+      paddingHorizontal: 26,
+      paddingVertical: 34,
+      backgroundColor: theme.surface,
+    },
+    stateIcon: {
+      width: 50,
+      height: 50,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.accent,
+      borderRadius: 16,
+      backgroundColor: theme.surfaceSecondary,
+    },
+    stateIconText: {
+      color: theme.accent,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    stateTitle: {
+      marginTop: 15,
+      color: theme.text,
+      fontSize: 17,
+      fontWeight: '800',
+      textAlign: 'center',
+    },
+    stateDescription: {
+      marginTop: 7,
+      color: theme.textSecondary,
+      fontSize: 12,
+      lineHeight: 18,
+      textAlign: 'center',
+    },
+    retryButton: {
+      marginTop: 17,
+      borderWidth: 1,
+      borderColor: theme.accent,
+      borderRadius: 13,
+      paddingHorizontal: 18,
+      paddingVertical: 11,
+    },
+    retryButtonText: {
+      color: theme.accent,
+      fontSize: 12,
+      fontWeight: '800',
+    },
+    footer: {
+      position: 'absolute',
+      right: 0,
+      bottom: 0,
+      left: 0,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      paddingHorizontal: 22,
+      paddingTop: 12,
+      paddingBottom: 17,
+      backgroundColor: theme.surface,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      elevation: 10,
     },
     continueButton: {
       minHeight: 58,
@@ -401,6 +533,15 @@ export function createGuestInfoStyles(theme) {
       shadowRadius: 8,
       elevation: 4,
     },
+    continueButtonDisabled: {
+      opacity: 0.42,
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    continueButtonPressed: {
+      opacity: 0.8,
+      transform: [{ scale: 0.99 }],
+    },
     continueButtonText: {
       color: theme.buttonText,
       fontSize: 16,
@@ -411,27 +552,11 @@ export function createGuestInfoStyles(theme) {
       fontSize: 20,
       fontWeight: '700',
     },
-    continueButtonPressed: {
-      opacity: 0.8,
-      transform: [{ scale: 0.99 }],
-    },
-    disabledButton: {
-      opacity: 0.55,
-    },
-    loginArea: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
-    },
-    loginPrompt: {
+    footerHint: {
+      marginBottom: 8,
       color: theme.textSecondary,
-      fontSize: 13,
-    },
-    loginLink: {
-      color: theme.accent,
-      fontSize: 13,
-      fontWeight: '800',
+      fontSize: 10,
+      textAlign: 'center',
     },
     pressed: {
       opacity: 0.72,

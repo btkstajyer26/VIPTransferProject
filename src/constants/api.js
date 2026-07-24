@@ -1,4 +1,5 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ?? '';
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ?? '';
 
 if (__DEV__ && !API_BASE_URL) {
   console.warn(

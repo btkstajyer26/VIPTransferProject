@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,56 +10,91 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import colors from '../theme/colors';
+import GuestBookingSummary from '../components/guest/GuestBookingSummary';
+import VehicleBookingSteps from '../components/vehicle/VehicleBookingSteps';
 import { createGuestInfoStyles } from '../styles/guestInfoStyles';
+import { useTheme } from '../theme/ThemeContext';
 
-const styles = createGuestInfoStyles(colors);
+function getAnimatedStyle(animation, translateDistance = 16) {
+  return {
+    opacity: animation,
+    transform: [
+      {
+        translateY: animation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [translateDistance, 0],
+        }),
+      },
+    ],
+  };
+}
 
-export default function GuestInfoScreen({ navigation }) {
+function FormField({
+  error,
+  inputProps,
+  label,
+  onChangeText,
+  styles,
+  theme,
+  value,
+}) {
+  return (
+    <View style={styles.fieldGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        {...inputProps}
+        onChangeText={onChangeText}
+        placeholderTextColor={theme.placeholder}
+        style={[styles.input, error && styles.inputError]}
+        value={value}
+      />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    </View>
+  );
+}
+
+export default function GuestInfoScreen({ navigation, route }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createGuestInfoStyles(theme), [theme]);
+  const transferDetails = route.params?.transferDetails;
+  const selectedVehicle = route.params?.selectedVehicle;
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const headingAnimation = useRef(new Animated.Value(0)).current;
+  const summaryAnimation = useRef(new Animated.Value(0)).current;
+  const formAnimation = useRef(new Animated.Value(0)).current;
+  const actionsAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animate = (value, duration = 400) =>
+      Animated.timing(value, {
+        toValue: 1,
+        duration,
+        useNativeDriver: true,
+      });
+
+    Animated.stagger(90, [
+      animate(headingAnimation, 440),
+      animate(summaryAnimation),
+      animate(formAnimation),
+      animate(actionsAnimation),
+    ]).start();
+  }, [actionsAnimation, formAnimation, headingAnimation, summaryAnimation]);
 
   function clearFieldError(fieldName) {
-    if (errors[fieldName]) {
-      setErrors((currentErrors) => ({ ...currentErrors, [fieldName]: undefined }));
-    }
-  }
-
-  function handleFirstNameChange(value) {
-    setFirstName(value);
-    clearFieldError('firstName');
-  }
-
-  function handleLastNameChange(value) {
-    setLastName(value);
-    clearFieldError('lastName');
-  }
-
-  function handlePhoneNumberChange(value) {
-    setPhoneNumber(value.replace(/\D/g, '').slice(0, 11));
-    clearFieldError('phoneNumber');
-  }
-
-  function handleEmailChange(value) {
-    setEmail(value);
-    clearFieldError('email');
+    setErrors((currentErrors) => ({ ...currentErrors, [fieldName]: undefined }));
   }
 
   function validateForm() {
     const nextErrors = {};
     const normalizedEmail = email.trim();
 
-    if (!firstName.trim()) {
-      nextErrors.firstName = 'Ad gerekli.';
-    }
-
-    if (!lastName.trim()) {
-      nextErrors.lastName = 'Soyad gerekli.';
-    }
+    if (!firstName.trim()) nextErrors.firstName = 'Ad gerekli.';
+    if (!lastName.trim()) nextErrors.lastName = 'Soyad gerekli.';
 
     if (!phoneNumber) {
       nextErrors.phoneNumber = 'Telefon numarası gerekli.';
@@ -77,17 +113,14 @@ export default function GuestInfoScreen({ navigation }) {
   }
 
   function handleContinue() {
-    const isFormValid = validateForm();
-
-    if (!isFormValid || loading) {
-      return;
-    }
+    if (!validateForm() || loading) return;
 
     setLoading(true);
-
     setTimeout(() => {
       setLoading(false);
       navigation.navigate('Reservation', {
+        transferDetails,
+        selectedVehicle,
         guestInfo: {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
@@ -101,6 +134,12 @@ export default function GuestInfoScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <View pointerEvents="none" style={styles.decorations}>
+        <View style={styles.topOrb} />
+        <View style={styles.topRing} />
+        <View style={styles.bottomOrb} />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -110,119 +149,151 @@ export default function GuestInfoScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brandArea}>
-            <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>VIP</Text>
-            </View>
-            <View>
-              <Text style={styles.brandName}>VIP Transfer</Text>
-              <Text style={styles.brandTagline}>PREMIUM ULAŞIM</Text>
-            </View>
-          </View>
+          <VehicleBookingSteps activeStep={2} styles={styles} />
 
-          <View style={styles.headingArea}>
-            <View style={styles.accentLine} />
-            <Text style={styles.title}>Misafir Olarak Devam Et</Text>
-            <Text style={styles.description}>
-              Rezervasyonunuzu oluşturabilmemiz ve size ulaşabilmemiz için iletişim
-              bilgilerinizi girin.
+          <Animated.View style={[styles.headingArea, getAnimatedStyle(headingAnimation)]}>
+            <Text style={styles.eyebrow}>SON BİR ADIM</Text>
+            <Text style={styles.title}>
+              Sizi tanıyalım,{'\n'}
+              <Text style={styles.highlightedTitle}>yolculuğu tamamlayalım.</Text>
             </Text>
-          </View>
+            <Text style={styles.description}>
+              Sürücünüzün size ulaşabilmesi ve rezervasyonunuzu hazırlayabilmemiz için
+              iletişim bilgilerinizi girin.
+            </Text>
+          </Animated.View>
 
-          <View style={styles.form}>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Ad</Text>
-              <TextInput
-                accessibilityLabel="Ad"
-                autoCapitalize="words"
-                autoComplete="given-name"
-                editable={!loading}
-                onChangeText={handleFirstNameChange}
-                placeholder="Adınızı girin"
-                placeholderTextColor={colors.muted}
-                style={[styles.input, errors.firstName && styles.inputError]}
-                value={firstName}
-              />
-              {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
+          <Animated.View style={getAnimatedStyle(summaryAnimation, 18)}>
+            <GuestBookingSummary
+              selectedVehicle={selectedVehicle}
+              styles={styles}
+              transferDetails={transferDetails}
+            />
+          </Animated.View>
+
+          <Animated.View style={[styles.formCard, getAnimatedStyle(formAnimation, 20)]}>
+            <View style={styles.formHeader}>
+              <View>
+                <Text style={styles.formEyebrow}>MİSAFİR BİLGİLERİ</Text>
+                <Text style={styles.formTitle}>İletişim Bilgileri</Text>
+              </View>
+              <View style={styles.secureBadge}>
+                <Text style={styles.secureBadgeIcon}>✓</Text>
+                <Text style={styles.secureBadgeText}>GÜVENLİ</Text>
+              </View>
             </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Soyad</Text>
-              <TextInput
-                accessibilityLabel="Soyad"
-                autoCapitalize="words"
-                autoComplete="family-name"
-                editable={!loading}
-                onChangeText={handleLastNameChange}
-                placeholder="Soyadınızı girin"
-                placeholderTextColor={colors.muted}
-                style={[styles.input, errors.lastName && styles.inputError]}
-                value={lastName}
-              />
-              {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
+            <View style={styles.nameRow}>
+              <View style={styles.nameField}>
+                <FormField
+                  error={errors.firstName}
+                  inputProps={{
+                    accessibilityLabel: 'Ad',
+                    autoCapitalize: 'words',
+                    autoComplete: 'given-name',
+                    editable: !loading,
+                    placeholder: 'Adınız',
+                  }}
+                  label="Ad"
+                  onChangeText={(value) => {
+                    setFirstName(value);
+                    clearFieldError('firstName');
+                  }}
+                  styles={styles}
+                  theme={theme}
+                  value={firstName}
+                />
+              </View>
+              <View style={styles.nameField}>
+                <FormField
+                  error={errors.lastName}
+                  inputProps={{
+                    accessibilityLabel: 'Soyad',
+                    autoCapitalize: 'words',
+                    autoComplete: 'family-name',
+                    editable: !loading,
+                    placeholder: 'Soyadınız',
+                  }}
+                  label="Soyad"
+                  onChangeText={(value) => {
+                    setLastName(value);
+                    clearFieldError('lastName');
+                  }}
+                  styles={styles}
+                  theme={theme}
+                  value={lastName}
+                />
+              </View>
             </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Telefon numarası</Text>
-              <TextInput
-                accessibilityLabel="Telefon numarası"
-                autoComplete="tel"
-                editable={!loading}
-                keyboardType="phone-pad"
-                maxLength={11}
-                onChangeText={handlePhoneNumberChange}
-                placeholder="05XX XXX XX XX"
-                placeholderTextColor={colors.muted}
-                style={[styles.input, errors.phoneNumber && styles.inputError]}
-                value={phoneNumber}
-              />
-              {errors.phoneNumber ? (
-                <Text style={styles.errorText}>{errors.phoneNumber}</Text>
-              ) : null}
-            </View>
+            <FormField
+              error={errors.phoneNumber}
+              inputProps={{
+                accessibilityLabel: 'Telefon numarası',
+                autoComplete: 'tel',
+                editable: !loading,
+                keyboardType: 'phone-pad',
+                maxLength: 11,
+                placeholder: '05XX XXX XX XX',
+              }}
+              label="Telefon numarası"
+              onChangeText={(value) => {
+                setPhoneNumber(value.replace(/\D/g, '').slice(0, 11));
+                clearFieldError('phoneNumber');
+              }}
+              styles={styles}
+              theme={theme}
+              value={phoneNumber}
+            />
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>E-posta (opsiyonel)</Text>
-              <TextInput
-                accessibilityLabel="E-posta adresi, opsiyonel"
-                autoCapitalize="none"
-                autoComplete="email"
-                autoCorrect={false}
-                editable={!loading}
-                keyboardType="email-address"
-                onChangeText={handleEmailChange}
-                placeholder="ornek@email.com"
-                placeholderTextColor={colors.muted}
-                style={[styles.input, errors.email && styles.inputError]}
-                value={email}
-              />
-              {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
-            </View>
+            <FormField
+              error={errors.email}
+              inputProps={{
+                accessibilityLabel: 'E-posta adresi, opsiyonel',
+                autoCapitalize: 'none',
+                autoComplete: 'email',
+                autoCorrect: false,
+                editable: !loading,
+                keyboardType: 'email-address',
+                placeholder: 'ornek@email.com',
+              }}
+              label="E-posta (opsiyonel)"
+              onChangeText={(value) => {
+                setEmail(value);
+                clearFieldError('email');
+              }}
+              styles={styles}
+              theme={theme}
+              value={email}
+            />
 
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                Misafir rezervasyonlarında sadakat puanı ve üye indirimleri uygulanmaz.
+            <View style={styles.privacyBox}>
+              <Text style={styles.privacyIcon}>◆</Text>
+              <Text style={styles.privacyText}>
+                Bilgileriniz yalnızca rezervasyon ve sürücü iletişimi için kullanılır.
               </Text>
             </View>
+          </Animated.View>
 
+          <Animated.View style={[styles.actions, getAnimatedStyle(actionsAnimation, 18)]}>
             <Pressable
               accessibilityRole="button"
               disabled={loading}
               onPress={handleContinue}
               style={({ pressed }) => [
-                styles.button,
-                styles.primaryButton,
+                styles.continueButton,
                 loading && styles.disabledButton,
-                pressed && !loading && styles.pressed,
+                pressed && !loading && styles.continueButtonPressed,
               ]}
             >
-              <Text style={styles.primaryButtonText}>
+              <Text style={styles.continueButtonText}>
                 {loading ? 'Hazırlanıyor...' : 'Rezervasyona Devam Et'}
               </Text>
+              <Text style={styles.continueArrow}>→</Text>
             </Pressable>
 
             <View style={styles.loginArea}>
-              <Text style={styles.loginPrompt}>Zaten hesabın var mı?</Text>
+              <Text style={styles.loginPrompt}>Zaten hesabınız var mı?</Text>
               <Pressable
                 accessibilityRole="button"
                 hitSlop={8}
@@ -232,7 +303,7 @@ export default function GuestInfoScreen({ navigation }) {
                 <Text style={styles.loginLink}>Giriş Yap</Text>
               </Pressable>
             </View>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
