@@ -1,269 +1,537 @@
 import { StyleSheet } from 'react-native';
 
+
+
 export function createHomeStyles(theme) {
+
   return StyleSheet.create({
+
     safeArea: { flex: 1, backgroundColor: theme.background },
+
     scrollContent: {
+
       flexGrow: 1,
+
       paddingHorizontal: 22,
+
       paddingTop: 18,
+
       paddingBottom: 32,
+
       backgroundColor: theme.background,
+
     },
+
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+
     errorText: { color: theme.error, fontSize: 15, textAlign: 'center' },
+
     retryButton: {
+
       minHeight: 48,
+
       alignItems: 'center',
+
       justifyContent: 'center',
+
       borderRadius: 12,
+
       paddingHorizontal: 20,
+
       backgroundColor: theme.accent,
+
     },
+
     retryButtonText: { color: theme.buttonText, fontSize: 15, fontWeight: '700' },
+
     headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+
     brandArea: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+
     logoPlaceholder: {
+
       width: 42,
+
       height: 42,
+
       alignItems: 'center',
+
       justifyContent: 'center',
+
       borderWidth: 1,
+
       borderColor: theme.accent,
+
       borderRadius: 14,
+
       backgroundColor: theme.surface,
+
     },
+
     logoText: { color: theme.accent, fontSize: 13, fontWeight: '800', letterSpacing: 1.3 },
+
     brandName: { color: theme.text, fontSize: 16, fontWeight: '800' },
+
     brandTagline: { marginTop: 2, color: theme.accent, fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
+
     settingsButton: {
+
       width: 42,
+
       height: 42,
+
       alignItems: 'center',
+
       justifyContent: 'center',
+
       borderWidth: 1,
+
       borderColor: theme.accent,
+
       borderRadius: 14,
+
       backgroundColor: theme.surface,
+
     },
+
     settingsIcon: { color: theme.accent, fontSize: 19 },
+
     greeting: { marginTop: 32, color: theme.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
+
     subtitle: { marginTop: 6, color: theme.textSecondary, fontSize: 15, lineHeight: 22 },
-    
+
+   
+
     loyaltyCard: {
+
       marginTop: 28,
+
       padding: 24,
+
       borderRadius: 28,
+
       backgroundColor: theme.surface,
+
       borderWidth: 1,
+
       borderColor: 'rgba(255, 255, 255, 0.08)',
+
       shadowColor: '#000',
+
       shadowOffset: { width: 0, height: 12 },
+
       shadowOpacity: 0.35,
+
       shadowRadius: 20,
+
       elevation: 8,
+
       alignItems: 'center',
+
     },
-    
+
+   
+
     gaugesRow: {
+
       flexDirection: 'row',
+
       width: '100%',
+
       justifyContent: 'space-between',
+
     },
+
     gaugeUnit: {
+
       alignItems: 'center',
+
       width: 132,
+
     },
+
     fullCircleGaugeBox: {
+
       width: 132,
+
       height: 132,
+
       borderRadius: 66,
+
       overflow: 'hidden',
+
       position: 'relative',
+
       alignItems: 'center',
+
       justifyContent: 'center',
+
     },
+
     gaugeDialFace: {
+
       position: 'absolute',
+
       top: 0,
+
       left: 0,
+
       width: '100%',
+
       height: '100%',
+
       borderRadius: 66,
+
       backgroundColor: theme.background,
+
       borderWidth: 1,
+
       borderColor: 'rgba(255, 255, 255, 0.08)',
+
     },
+
     gaugeTickWrapper: {
+
       position: 'absolute',
+
       top: 0,
+
       left: 0,
+
       width: '100%',
+
       height: '100%',
+
       alignItems: 'center',
+
     },
+
     gaugeTick: {
+
       width: 1.5,
+
       height: 5,
+
       marginTop: 3,
+
       backgroundColor: theme.textSecondary,
+
       opacity: 0.8,
+
       borderRadius: 1,
+
     },
+
     gaugeLabelWrapper: {
+
       position: 'absolute',
+
       top: 0,
+
       left: 0,
+
       width: '100%',
+
       height: '100%',
+
     },
+
     gaugeLabelText: {
+
       position: 'absolute',
+
       top: 13,
+
       left: '50%',
+
       width: 32,
+
       marginLeft: -16,
+
       fontSize: 8.5,
+
       fontWeight: '800',
+
       color: theme.textSecondary,
+
       textAlign: 'center',
+
     },
+
     gaugeNeedleWrapper: {
+
       position: 'absolute',
+
       top: 0,
+
       left: 0,
+
       width: '100%',
+
       height: '100%',
+
     },
+
     gaugeNeedle: {
+
       position: 'absolute',
+
       top: 26,
+
       left: '50%',
+
       marginLeft: -1.5,
+
       width: 3,
+
       height: 32,
+
       borderRadius: 2,
+
       backgroundColor: theme.text,
+
     },
+
     // Kadranın tam geometrik merkezine (pivot noktasına) kusursuz oturan, ideal boyutlu sarı nokta
+
     needlePivotDot: {
+
       position: 'absolute',
+
       top: '50%',
+
       left: '50%',
+
       marginTop: -6,
+
       marginLeft: -8,
+
       width: 16,
+
       height: 16,
+
       borderRadius: 8,
+
       backgroundColor: theme.accent,
+
       borderWidth: 2,
+
       borderColor: theme.background,
+
     },
+
     gaugeCenterContent: {
+
       position: 'absolute',
+
       top: 0,
+
       left: 0,
+
       right: 0,
+
       bottom: 0,
+
       alignItems: 'center',
+
       justifyContent: 'center',
+
       paddingTop: 54 ,
+
     },
+
     gaugeCaption: {
+
       fontSize: 10,
+
       fontWeight: '700',
+
       color: theme.textSecondary,
+
       letterSpacing: 1.1,
+
     },
+
     gaugeValueText: {
+
       marginTop: 2,
+
       fontSize: 14,
+
       fontWeight: '900',
+
       color: theme.accent,
+
       letterSpacing: -0.3,
+
     },
+
+
 
     // Açılır-Kapanır Bilgi Alanı Stilleri
+
     loyaltyDropdownContainer: {
+
       width: '100%',
+
       marginTop: 20,
+
       borderTopWidth: 1,
+
       borderTopColor: 'rgba(255, 255, 255, 0.08)',
+
       paddingTop: 14,
-    },
-    infoToggleButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 4,
-    },
-    infoToggleText: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: theme.accent,
-    },
-    infoToggleIcon: {
-      fontSize: 11,
-      color: theme.accent,
-      fontWeight: '800',
-    },
-    loyaltyInfoBox: {
-      marginTop: 12,
-      paddingTop: 12,
-      borderTopWidth: 1,
-      borderTopColor: 'rgba(255, 255, 255, 0.05)',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 12,
-    },
-    loyaltyInfoItem: {
-      flex: 1,
-    },
-    loyaltyDivider: {
-      width: 1,
-      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    },
-    loyaltyInfoTitle: {
-      fontSize: 11,
-      fontWeight: '800',
-      color: theme.text,
-      marginBottom: 4,
-    },
-    loyaltyInfoText: {
-      fontSize: 10,
-      lineHeight: 14,
-      color: theme.textSecondary,
+
     },
 
-    actionGroup: { marginTop: 32, gap: 16 },
-    primaryButton: {
-      minHeight: 58,
+    infoToggleButton: {
+
       flexDirection: 'row',
+
       alignItems: 'center',
-      justifyContent: 'center',
+
+      justifyContent: 'space-between',
+
+      paddingVertical: 4,
+
+    },
+
+    infoToggleText: {
+
+      fontSize: 12,
+
+      fontWeight: '700',
+
+      color: theme.accent,
+
+    },
+
+    infoToggleIcon: {
+
+      fontSize: 11,
+
+      color: theme.accent,
+
+      fontWeight: '800',
+
+    },
+
+    loyaltyInfoBox: {
+
+      marginTop: 12,
+
+      paddingTop: 12,
+
+      borderTopWidth: 1,
+
+      borderTopColor: 'rgba(255, 255, 255, 0.05)',
+
+      flexDirection: 'row',
+
+      justifyContent: 'space-between',
+
       gap: 12,
-      borderRadius: 16,
-      backgroundColor: theme.accent,
-      shadowColor: theme.accent,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.25,
-      shadowRadius: 12,
-      elevation: 6,
+
     },
-    primaryButtonText: { color: theme.buttonText, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
-    buttonArrow: { color: theme.buttonText, fontSize: 18, fontWeight: '800' },
-    secondaryButton: {
+
+    loyaltyInfoItem: {
+
+      flex: 1,
+
+    },
+
+    loyaltyDivider: {
+
+      width: 1,
+
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+
+    },
+
+    loyaltyInfoTitle: {
+
+      fontSize: 11,
+
+      fontWeight: '800',
+
+      color: theme.text,
+
+      marginBottom: 4,
+
+    },
+
+    loyaltyInfoText: {
+
+      fontSize: 10,
+
+      lineHeight: 14,
+
+      color: theme.textSecondary,
+
+    },
+
+
+
+    actionGroup: { marginTop: 32, gap: 16 },
+
+    primaryButton: {
+
       minHeight: 58,
+
+      flexDirection: 'row',
+
       alignItems: 'center',
+
       justifyContent: 'center',
-      borderWidth: 1.5,
-      borderColor: 'rgba(255, 255, 255, 0.1)',
+
+      gap: 12,
+
       borderRadius: 16,
-      backgroundColor: 'transparent',
+
+      backgroundColor: theme.accent,
+
+      shadowColor: theme.accent,
+
+      shadowOffset: { width: 0, height: 6 },
+
+      shadowOpacity: 0.25,
+
+      shadowRadius: 12,
+
+      elevation: 6,
+
     },
+
+    primaryButtonText: { color: theme.buttonText, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+
+    buttonArrow: { color: theme.buttonText, fontSize: 18, fontWeight: '800' },
+
+    secondaryButton: {
+
+      minHeight: 58,
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      borderWidth: 1.5,
+
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+
+      borderRadius: 16,
+
+      backgroundColor: 'transparent',
+
+    },
+
     secondaryButtonText: { color: theme.text, fontSize: 15, fontWeight: '700' },
+
     logoutArea: { marginTop: 36, alignItems: 'center' },
+
     logoutText: { color: theme.textSecondary, fontSize: 14, fontWeight: '700' },
+
     pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
+
   });
+
 }
