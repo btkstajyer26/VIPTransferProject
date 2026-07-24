@@ -5,6 +5,7 @@ import com.btk.staj.VIPTransferProject.dto.notification.IletiMerkeziSmsRequest;
 import com.btk.staj.VIPTransferProject.dto.notification.IletiMerkeziSmsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -21,6 +22,7 @@ public class IletiMerkeziSmsClient {
             String phoneNumber,
             String message
     ) {
+        validateConfiguration();
         validateRequest(phoneNumber, message);
 
         IletiMerkeziSmsRequest requestBody = createRequestBody(
@@ -43,6 +45,21 @@ public class IletiMerkeziSmsClient {
             throw new IllegalStateException(
                     "İleti Merkezi SMS servisine bağlanırken hata oluştu.",
                     exception
+            );
+        }
+    }
+
+    private void validateConfiguration() {
+        requireConfiguration(properties.getApiUrl(), "ILETIMERKEZI_API_URL");
+        requireConfiguration(properties.getApiKey(), "ILETIMERKEZI_API_KEY");
+        requireConfiguration(properties.getApiHash(), "ILETIMERKEZI_API_HASH");
+        requireConfiguration(properties.getSender(), "ILETIMERKEZI_SENDER");
+    }
+
+    private void requireConfiguration(String value, String variableName) {
+        if (!StringUtils.hasText(value)) {
+            throw new IllegalStateException(
+                    variableName + " environment variable'i tanimli degil."
             );
         }
     }

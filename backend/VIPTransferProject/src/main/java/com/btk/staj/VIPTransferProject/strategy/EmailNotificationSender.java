@@ -44,7 +44,7 @@ public class EmailNotificationSender implements NotificationSender {
             throw new NotificationSendException(
                     notification.getId(),
                     notification.getChannel(),
-                    exception.getMessage(),
+                    "Email servisine gonderim sirasinda hata olustu.",
                     exception
             );
         }

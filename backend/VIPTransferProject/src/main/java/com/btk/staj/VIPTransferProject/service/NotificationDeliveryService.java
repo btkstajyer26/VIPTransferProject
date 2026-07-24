@@ -57,7 +57,7 @@ public class NotificationDeliveryService {
 
         } catch (NotificationSendException exception) {
 
-            markAsFailed(notification, exception.getMessage());
+            markAsFailed(notification, exception.getFailureReason());
 
             log.error(
                     "Notification gönderilemedi. id={}, channel={}",
@@ -70,9 +70,8 @@ public class NotificationDeliveryService {
 
         } catch (RuntimeException exception) {
 
-            String reason = exception.getMessage() == null
-                    ? "Beklenmeyen bir gönderim hatası oluştu."
-                    : exception.getMessage();
+            String reason =
+                    "Bildirim saglayicisinda beklenmeyen bir hata olustu.";
 
             markAsFailed(notification, reason);
 

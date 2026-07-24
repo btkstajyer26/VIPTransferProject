@@ -40,14 +40,10 @@ public class WhatsappNotificationSender implements NotificationSender {
         } catch (NotificationSendException exception) {
             throw exception;
         } catch (RuntimeException exception) {
-            String reason = StringUtils.hasText(exception.getMessage())
-                    ? exception.getMessage()
-                    : "WhatsApp servisine gonderim sirasinda hata olustu.";
-
             throw new NotificationSendException(
                     notification.getId(),
                     NotificationChannel.WHATSAPP,
-                    reason,
+                    "WhatsApp servisine gonderim sirasinda hata olustu.",
                     exception
             );
         }
