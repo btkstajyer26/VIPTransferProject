@@ -46,14 +46,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         String sql = "INSERT INTO loyalty_tier_config (tier, min_points, earn_rate, discount_percentage, priority_support, description) " +
-                     "VALUES (CAST(? AS loyalty_tier), ?, ?, ?, ?, ?)";
+                "VALUES (CAST(? AS loyalty_tier), ?, ?, ?, ?, ?)";
 
         List<Object[]> configs = List.of(
-            new Object[]{"BRONZE",      0,     new BigDecimal("1.00"), new BigDecimal("0.00"),  false, "Başlangıç seviyesi"},
-            new Object[]{"SILVER",   1000,     new BigDecimal("1.50"), new BigDecimal("5.00"),  false, "Orta seviye"},
-            new Object[]{"GOLD",     5000,     new BigDecimal("2.00"), new BigDecimal("10.00"), false, "İleri seviye"},
-            new Object[]{"PLATINUM", 15000,    new BigDecimal("2.50"), new BigDecimal("15.00"), true,  "Premium seviye"},
-            new Object[]{"VIP",      50000,    new BigDecimal("3.00"), new BigDecimal("20.00"), true,  "En üst seviye"}
+                new Object[]{"BRONZE",      0,     new BigDecimal("1.00"), new BigDecimal("0.00"),  false, "Başlangıç seviyesi"},
+                new Object[]{"SILVER",   1000,     new BigDecimal("1.50"), new BigDecimal("5.00"),  false, "Orta seviye"},
+                new Object[]{"GOLD",     5000,     new BigDecimal("2.00"), new BigDecimal("10.00"), false, "İleri seviye"},
+                new Object[]{"PLATINUM", 15000,    new BigDecimal("2.50"), new BigDecimal("15.00"), true,  "Premium seviye"},
+                new Object[]{"VIP",      50000,    new BigDecimal("3.00"), new BigDecimal("20.00"), true,  "En üst seviye"}
         );
 
         for (Object[] c : configs) {
