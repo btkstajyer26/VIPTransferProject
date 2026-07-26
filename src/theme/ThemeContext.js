@@ -56,7 +56,11 @@ export function ThemeProvider({ children }) {
     return <View style={styles.loadingContainer} />;
   }
 
-  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={contextValue}>
+      <View style={[styles.appContainer, { backgroundColor: theme.background }]}>{children}</View>
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
@@ -66,6 +70,9 @@ export function useTheme() {
 }
 
 const styles = StyleSheet.create({
+  appContainer: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     backgroundColor: colors.primary,

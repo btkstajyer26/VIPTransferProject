@@ -1,4 +1,4 @@
-import { Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { LocationSuggestions } from './LocationSuggestions';
 
 export function RouteField({
@@ -11,15 +11,21 @@ export function RouteField({
   error,
   loading,
   searchError,
+  hasSearched,
   suggestions,
-  onBlur,
   onChangeText,
   onFocus,
+  onSearch,
   onSelect,
   styles,
   theme,
 }) {
   const isActive = activeField === fieldName;
+
+  function handleSearch() {
+    Keyboard.dismiss();
+    onSearch();
+  }
 
   return (
     <View style={styles.routeFieldRow}>
@@ -28,17 +34,38 @@ export function RouteField({
       </View>
       <View style={styles.routeFieldContent}>
         <Text style={styles.routeLabel}>{label}</Text>
-        <TextInput
-          accessibilityLabel={label}
-          autoCapitalize="words"
-          onBlur={onBlur}
-          onChangeText={onChangeText}
-          onFocus={onFocus}
-          placeholder={placeholder}
-          placeholderTextColor={theme.placeholder}
-          style={[styles.routeInput, isActive && styles.activeRouteInput, error && styles.inputError]}
-          value={location.displayName}
-        />
+        <View style={styles.routeInputRow}>
+          <TextInput
+            accessibilityLabel={label}
+            autoCapitalize="words"
+            enterKeyHint="search"
+            onChangeText={onChangeText}
+            onFocus={onFocus}
+            onSubmitEditing={handleSearch}
+            placeholder={placeholder}
+            placeholderTextColor={theme.placeholder}
+            returnKeyType="search"
+            style={[
+              styles.routeInput,
+              isActive && styles.activeRouteInput,
+              error && styles.inputError,
+            ]}
+            value={location.displayName}
+          />
+          <Pressable
+            accessibilityLabel={`${label} adresini ara`}
+            accessibilityRole="button"
+            disabled={loading}
+            onPress={handleSearch}
+            style={({ pressed }) => [
+              styles.routeSearchButton,
+              loading && styles.disabled,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.routeSearchButtonText}>{loading ? '...' : 'Ara'}</Text>
+          </Pressable>
+        </View>
         {location.placeId && location.address ? (
           <Text numberOfLines={2} style={styles.routeAddress}>
             {location.address}
@@ -46,6 +73,7 @@ export function RouteField({
         ) : null}
         <LocationSuggestions
           error={searchError}
+          hasSearched={hasSearched}
           items={suggestions}
           loading={loading}
           onSelect={onSelect}

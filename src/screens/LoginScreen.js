@@ -10,11 +10,18 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  isValidReservationDraft,
+  useReservationDraft,
+} from '../context/ReservationDraftContext';
+import useAuth from '../hooks/useAuth';
 import { useTheme } from '../theme/ThemeContext';
 import { createLoginStyles } from '../styles/loginStyles';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { login } = useAuth();
+  const { clearReservationDraft, reservationDraft } = useReservationDraft();
   const styles = useMemo(() => createLoginStyles(theme), [theme]);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -62,7 +69,7 @@ export default function LoginScreen({ navigation }) {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleLogin() {
+  async function handleLogin() {
     const isFormValid = validateForm();
 
     if (!isFormValid) {
@@ -73,13 +80,41 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
+      await login(phone, password);
 
-    // TODO: Simülasyon, Auth Service giriş entegrasyonu hazır olduğunda değiştirilecek.
-    setTimeout(() => {
-      setLoading(false);
+      if (
+        route.params?.fromReservationFlow === true &&
+        isValidReservationDraft(reservationDraft)
+      ) {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: route.params?.returnTo || 'Reservation',
+              params: { fromReservationFlow: true },
+            },
+          ],
+        });
+        return;
+      }
+
+      if (route.params?.fromReservationFlow === true) {
+        clearReservationDraft();
+      }
+
       navigation.replace('Home');
-    }, 800);
+    } catch (loginError) {
+      setErrors((currentErrors) => ({
+        ...currentErrors,
+        form:
+          loginError?.message ||
+          'Giriş işlemi tamamlanamadı. Lütfen bilgilerinizi kontrol edin.',
+      }));
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleForgotPassword() {
@@ -88,6 +123,11 @@ export default function LoginScreen({ navigation }) {
 
   function handleRegister() {
     Alert.alert('Bilgi', 'Bu özellik henüz hazırlanıyor.');
+  }
+
+  function handleContinueAsGuest() {
+    clearReservationDraft();
+    navigation.navigate('TransferSearch');
   }
 
   return (
@@ -202,6 +242,7 @@ export default function LoginScreen({ navigation }) {
                 {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
               </Text>
             </Pressable>
+            {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
 
             <View style={styles.registerArea}>
               <Text style={styles.registerPrompt}>Hesabın yok mu?</Text>
@@ -224,7 +265,7 @@ export default function LoginScreen({ navigation }) {
             <Pressable
               accessibilityRole="button"
               disabled={loading}
-              onPress={() => navigation.navigate('TransferSearch')}
+              onPress={handleContinueAsGuest}
               style={({ pressed }) => [
                 styles.button,
                 styles.secondaryButton,

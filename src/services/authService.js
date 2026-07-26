@@ -24,8 +24,9 @@ export async function login(loginRequest) {
     },
     requiresAuth: false,
   });
+  const payload = response?.data ?? response;
 
-  if (!isValidLoginResponse(response)) {
+  if (!isValidLoginResponse(payload)) {
     throw {
       status: 0,
       message: 'Sunucudan geçersiz giriş yanıtı alındı.',
@@ -33,7 +34,7 @@ export async function login(loginRequest) {
     };
   }
 
-  const session = await saveAuthSession(response);
+  const session = await saveAuthSession(payload);
 
   if (!session) {
     throw {

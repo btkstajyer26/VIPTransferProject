@@ -1,41 +1,66 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { searchLocations } from '../api/locationApi';
 
-const SEARCH_DELAY_MS = 375;
-
-export function useLocationSearch(location) {
+export function useLocationSearch() {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
+  const controllerRef = useRef(null);
 
-  useEffect(() => {
-    let active = true;
-    const query = location.displayName.trim();
+  useEffect(
+    () => () => {
+      controllerRef.current?.abort();
+    },
+    [],
+  );
 
-    if (location.placeId || query.length < 2) {
+  function clearSearch() {
+    controllerRef.current?.abort();
+    setSuggestions([]);
+    setSearchError('');
+    setHasSearched(false);
+    setLoading(false);
+  }
+
+  async function search(query) {
+    const normalizedQuery = String(query ?? '').trim();
+
+    if (normalizedQuery.length < 3) {
       setSuggestions([]);
-      setLoading(false);
-      return undefined;
+      setHasSearched(false);
+      setSearchError('Adres aramak için en az 3 karakter yazın.');
+      return;
     }
 
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
     setLoading(true);
     setSearchError('');
-    const timer = setTimeout(async () => {
-      try {
-        const results = await searchLocations(query);
-        if (active) setSuggestions(results);
-      } catch {
-        if (active) setSearchError('Konumlar yüklenemedi. Tekrar deneyin.');
-      } finally {
-        if (active) setLoading(false);
+    setHasSearched(true);
+
+    try {
+      const results = await searchLocations(normalizedQuery, { signal: controller.signal });
+      if (controllerRef.current === controller) setSuggestions(results);
+    } catch (error) {
+      if (error?.name !== 'AbortError' && controllerRef.current === controller) {
+        setSuggestions([]);
+        setSearchError(error?.message || 'Konumlar yüklenemedi. Tekrar deneyin.');
       }
-    }, SEARCH_DELAY_MS);
+    } finally {
+      if (controllerRef.current === controller) setLoading(false);
+    }
+  }
 
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [location.displayName, location.placeId]);
-
-  return { suggestions, setSuggestions, loading, searchError, setSearchError };
+  return {
+    suggestions,
+    setSuggestions,
+    loading,
+    searchError,
+    setSearchError,
+    hasSearched,
+    search,
+    clearSearch,
+  };
 }

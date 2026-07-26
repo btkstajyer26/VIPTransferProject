@@ -36,6 +36,17 @@ function getOffsetDateTime(value) {
   return scheduledDate.toISOString();
 }
 
+function getCoordinate(value, minimum, maximum) {
+  const coordinate = Number(value);
+
+  return Number.isFinite(coordinate) &&
+    coordinate >= minimum &&
+    coordinate <= maximum &&
+    coordinate !== 0
+    ? coordinate
+    : null;
+}
+
 export async function createGuestReservation({ phoneNumber, reservationData } = {}) {
   const normalizedPhoneNumber = getRequiredText(phoneNumber, 'Telefon numarası gerekli.');
 
@@ -44,6 +55,18 @@ export async function createGuestReservation({ phoneNumber, reservationData } = 
   }
 
   try {
+    if (__DEV__) {
+      console.info('[Reservation] POST payload özeti', {
+        pickupLatitude: reservationData.pickupLat,
+        pickupLongitude: reservationData.pickupLon,
+        dropoffLatitude: reservationData.dropoffLat,
+        dropoffLongitude: reservationData.dropoffLon,
+        vehicleId: reservationData.vehicleId,
+        pickupTime: reservationData.scheduledTime,
+        passengerCount: reservationData.passengerCount,
+      });
+    }
+
     return await apiClient.request(RESERVATIONS_PATH, {
       method: 'POST',
       body: reservationData,
@@ -55,8 +78,25 @@ export async function createGuestReservation({ phoneNumber, reservationData } = 
   }
 }
 
-export function buildGuestReservationData({
+export async function createAuthenticatedReservation({ reservationData } = {}) {
+  if (!reservationData || typeof reservationData !== 'object' || Array.isArray(reservationData)) {
+    throw createValidationError('Rezervasyon bilgileri gerekli.');
+  }
+
+  try {
+    return await apiClient.request(RESERVATIONS_PATH, {
+      method: 'POST',
+      body: reservationData,
+      requiresAuth: true,
+    });
+  } catch (error) {
+    rethrowApiError(error, 'Rezervasyon oluşturulamadı. Lütfen tekrar deneyin.');
+  }
+}
+
+function buildReservationData({
   guestInfo,
+  includeGuestName,
   notes = '',
   selectedVehicle,
   transferDetails,
@@ -65,16 +105,28 @@ export function buildGuestReservationData({
   const dropoff = transferDetails?.dropoffLocation;
   const pickupAddress = pickup?.address || pickup?.displayName;
   const dropoffAddress = dropoff?.address || dropoff?.displayName;
+  const pickupLatitude = getCoordinate(pickup?.latitude, -90, 90);
+  const pickupLongitude = getCoordinate(pickup?.longitude, -180, 180);
+  const dropoffLatitude = getCoordinate(dropoff?.latitude, -90, 90);
+  const dropoffLongitude = getCoordinate(dropoff?.longitude, -180, 180);
   const passengerCount = Number(transferDetails?.passengerCount);
   const vehicleId = Number(selectedVehicle?.id);
 
   if (
+    pickupLatitude === null ||
+    pickupLongitude === null ||
+    dropoffLatitude === null ||
+    dropoffLongitude === null ||
+    (pickupLatitude === dropoffLatitude && pickupLongitude === dropoffLongitude)
+  ) {
+    throw createValidationError(
+      'Başlangıç veya varış konumu koordinatları alınamadı. Lütfen konumları tekrar seçin.',
+    );
+  }
+
+  if (
     !pickupAddress ||
     !dropoffAddress ||
-    !Number.isFinite(Number(pickup?.latitude)) ||
-    !Number.isFinite(Number(pickup?.longitude)) ||
-    !Number.isFinite(Number(dropoff?.latitude)) ||
-    !Number.isFinite(Number(dropoff?.longitude)) ||
     !transferDetails?.scheduledTime ||
     !Number.isFinite(vehicleId) ||
     !Number.isFinite(passengerCount) ||
@@ -83,24 +135,35 @@ export function buildGuestReservationData({
     throw createValidationError('Transfer veya araç bilgileri eksik.');
   }
 
-  const guestName = `${guestInfo?.firstName || ''} ${guestInfo?.lastName || ''}`.trim();
-  getRequiredText(guestName, 'Misafir adı gerekli.');
-
-  return {
+  const reservationData = {
     pickupAddress,
-    pickupLat: Number(pickup.latitude),
-    pickupLon: Number(pickup.longitude),
+    pickupLat: pickupLatitude,
+    pickupLon: pickupLongitude,
     dropoffAddress,
-    dropoffLat: Number(dropoff.latitude),
-    dropoffLon: Number(dropoff.longitude),
+    dropoffLat: dropoffLatitude,
+    dropoffLon: dropoffLongitude,
     scheduledTime: getOffsetDateTime(transferDetails.scheduledTime),
     vehicleId,
     passengerCount,
-    guestName,
-    campaignCode: '',
-    flightNumber: '',
+    campaignCode: transferDetails?.campaignCode || '',
+    flightNumber: transferDetails?.flightNumber || '',
     notes: typeof notes === 'string' ? notes.trim() : '',
   };
+
+  if (includeGuestName) {
+    const guestName = `${guestInfo?.firstName || ''} ${guestInfo?.lastName || ''}`.trim();
+    reservationData.guestName = getRequiredText(guestName, 'Misafir adı gerekli.');
+  }
+
+  return reservationData;
+}
+
+export function buildGuestReservationData(options = {}) {
+  return buildReservationData({ ...options, includeGuestName: true });
+}
+
+export function buildAuthenticatedReservationData(options = {}) {
+  return buildReservationData({ ...options, includeGuestName: false });
 }
 
 export async function getGuestReservation({ bookingReference, phoneNumber } = {}) {

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GuestBookingSummary from '../components/guest/GuestBookingSummary';
 import VehicleBookingSteps from '../components/vehicle/VehicleBookingSteps';
+import { useReservationDraft } from '../context/ReservationDraftContext';
 import { createGuestInfoStyles } from '../styles/guestInfoStyles';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -55,6 +56,7 @@ function FormField({
 
 export default function GuestInfoScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { saveReservationDraft } = useReservationDraft();
   const styles = useMemo(() => createGuestInfoStyles(theme), [theme]);
   const transferDetails = route.params?.transferDetails;
   const selectedVehicle = route.params?.selectedVehicle;
@@ -91,7 +93,7 @@ export default function GuestInfoScreen({ navigation, route }) {
 
   function validateForm() {
     const nextErrors = {};
-    const normalizedEmail = email.trim();
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (!firstName.trim()) nextErrors.firstName = 'Ad gerekli.';
     if (!lastName.trim()) nextErrors.lastName = 'Soyad gerekli.';
@@ -100,8 +102,8 @@ export default function GuestInfoScreen({ navigation, route }) {
       nextErrors.phoneNumber = 'Telefon numarası gerekli.';
     } else if (phoneNumber.length !== 11) {
       nextErrors.phoneNumber = 'Telefon numarası 11 haneli olmalı.';
-    } else if (!phoneNumber.startsWith('0')) {
-      nextErrors.phoneNumber = 'Telefon numarası 0 ile başlamalı.';
+    } else if (!phoneNumber.startsWith('05')) {
+      nextErrors.phoneNumber = 'Telefon numarası 05 ile başlamalı.';
     }
 
     if (normalizedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
@@ -125,11 +127,19 @@ export default function GuestInfoScreen({ navigation, route }) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           phoneNumber,
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
         },
         isGuest: true,
       });
     }, 500);
+  }
+
+  function handleLogin() {
+    saveReservationDraft({ transferDetails, selectedVehicle });
+    navigation.navigate('Login', {
+      fromReservationFlow: true,
+      returnTo: 'Reservation',
+    });
   }
 
   return (
@@ -297,7 +307,7 @@ export default function GuestInfoScreen({ navigation, route }) {
               <Pressable
                 accessibilityRole="button"
                 hitSlop={8}
-                onPress={() => navigation.navigate('Login')}
+                onPress={handleLogin}
                 style={({ pressed }) => pressed && styles.pressed}
               >
                 <Text style={styles.loginLink}>Giriş Yap</Text>

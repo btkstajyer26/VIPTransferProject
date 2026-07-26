@@ -7,7 +7,7 @@ function normalizeAuthSession(authResponse) {
     return null;
   }
 
-  const { accessToken, tokenType, role } = authResponse;
+  const { accessToken, refreshToken, tokenType, role, userId } = authResponse;
 
   if (
     typeof accessToken !== 'string' ||
@@ -20,10 +20,21 @@ function normalizeAuthSession(authResponse) {
     return null;
   }
 
+  const normalizedTokenType = tokenType.trim();
+  const tokenPrefixPattern = new RegExp(`^${normalizedTokenType}\\s+`, 'i');
+  const normalizedAccessToken = accessToken.trim().replace(tokenPrefixPattern, '');
+
+  if (!normalizedAccessToken) {
+    return null;
+  }
+
   return {
-    accessToken: accessToken.trim(),
-    tokenType: tokenType.trim(),
+    accessToken: normalizedAccessToken,
+    refreshToken:
+      typeof refreshToken === 'string' && refreshToken.trim() ? refreshToken.trim() : null,
+    tokenType: normalizedTokenType,
     role: role.trim(),
+    userId: Number.isFinite(Number(userId)) ? Number(userId) : null,
   };
 }
 

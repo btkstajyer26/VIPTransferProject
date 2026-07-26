@@ -1,8 +1,16 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useReservationDraft } from '../context/ReservationDraftContext';
 import { mockUser } from '../data/mockData';
 import colors from '../theme/colors';
 
 export default function HomeScreen({ navigation }) {
+  const { clearReservationDraft } = useReservationDraft();
+
+  function handleNewReservation() {
+    clearReservationDraft();
+    navigation.navigate('TransferSearch');
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.greeting}>Merhaba, {mockUser.name}</Text>
@@ -17,7 +25,7 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.actionGroup}>
         <Pressable
           style={styles.primaryButton}
-          onPress={() => navigation.navigate('Reservation')}
+          onPress={handleNewReservation}
         >
           <Text style={styles.primaryButtonText}>Yeni Rezervasyon Olustur</Text>
         </Pressable>

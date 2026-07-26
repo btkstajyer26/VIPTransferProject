@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   ActivityIndicator,
   Animated,
   Pressable,
@@ -10,11 +11,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  buildAuthenticatedReservationData,
   buildGuestReservationData,
+  createAuthenticatedReservation,
   createGuestReservation,
 } from '../api/reservationApi';
 import ReservationSummaryCard from '../components/reservation/ReservationSummaryCard';
 import VehicleBookingSteps from '../components/vehicle/VehicleBookingSteps';
+import {
+  isValidReservationDraft,
+  useReservationDraft,
+} from '../context/ReservationDraftContext';
+import useAuth from '../hooks/useAuth';
 import { createReservationStyles } from '../styles/reservationStyles';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -34,9 +42,12 @@ function animatedStyle(animation, distance = 16) {
 
 export default function ReservationScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
+  const { clearReservationDraft, reservationDraft } = useReservationDraft();
   const styles = useMemo(() => createReservationStyles(theme), [theme]);
-  const transferDetails = route.params?.transferDetails;
-  const selectedVehicle = route.params?.selectedVehicle;
+  const transferDetails = route.params?.transferDetails ?? reservationDraft?.transferDetails;
+  const selectedVehicle = route.params?.selectedVehicle ?? reservationDraft?.selectedVehicle;
+  const hasReservationData = isValidReservationDraft({ transferDetails, selectedVehicle });
   const guestInfo = route.params?.guestInfo;
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,29 +74,46 @@ export default function ReservationScreen({ navigation, route }) {
     ]).start();
   }, [actionAnimation, headerAnimation, paymentAnimation, summaryAnimation]);
 
+  useEffect(() => {
+    if (hasReservationData) return;
+
+    clearReservationDraft();
+    Alert.alert(
+      'Rezervasyon bilgileri eksik',
+      'Lütfen yolculuk bilgilerinizi yeniden seçin.',
+    );
+    navigation.replace('TransferSearch');
+  }, [clearReservationDraft, hasReservationData, navigation]);
+
   async function handleCreateReservation() {
-    if (loading || reservation) return;
+    if (loading || reservation || !hasReservationData) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const reservationData = buildGuestReservationData({
+      const buildReservationData = isAuthenticated
+        ? buildAuthenticatedReservationData
+        : buildGuestReservationData;
+      const reservationData = buildReservationData({
         guestInfo,
         notes,
         selectedVehicle,
         transferDetails,
       });
-      const response = await createGuestReservation({
-        phoneNumber: guestInfo?.phoneNumber,
-        reservationData,
-      });
+      const response = isAuthenticated
+        ? await createAuthenticatedReservation({ reservationData })
+        : await createGuestReservation({
+            phoneNumber: guestInfo?.phoneNumber,
+            reservationData,
+          });
 
       if (!response || typeof response !== 'object' || Array.isArray(response)) {
         throw { message: 'Sunucudan geçerli bir rezervasyon cevabı alınamadı.' };
       }
 
       setReservation(response);
+      clearReservationDraft();
     } catch (requestError) {
       setError(requestError?.message || 'Rezervasyon oluşturulamadı. Lütfen tekrar deneyin.');
     } finally {
@@ -101,6 +129,10 @@ export default function ReservationScreen({ navigation, route }) {
   }
 
   const bookingReference = reservation?.bookingReference;
+
+  if (!hasReservationData) {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
