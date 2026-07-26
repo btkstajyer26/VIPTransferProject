@@ -1,0 +1,42 @@
+{
+    "release_id": "random_forest_weather_v1-20260726T204517Z",
+    "release_name": "random_forest_weather_v1",
+    "package_version": "data-science-release-v1",
+    "created_at_utc": "2026-07-26T20:45:17+00:00",
+    "demand_model_version": "random-forest-demand-weather-v1",
+    "segmentation_model_version": "kmeans-rfm-v1",
+    "validation_passed": true,
+    "failed_error_count": 0,
+    "warning_count": 1,
+    "forecast": {
+        "forecast_row_count": 1440,
+        "forecast_zone_count": 60,
+        "forecast_hour_count": 24,
+        "pricing_contract_row_count": 1440,
+        "future_weather_is_synthetic": true,
+        "forecast_start_utc": "2025-01-31 21:00:00+00:00",
+        "forecast_end_utc": "2025-02-01 20:00:00+00:00"
+    },
+    "customers": {
+        "customer_count": 250000,
+        "top_recommendation_count": 1000,
+        "admin_actionable_count": 250000
+    },
+    "models": {
+        "random_forest_mae": 12.594135846415439,
+        "seasonal_baseline_mae": 15.906051587301587,
+        "random_forest_beats_baseline": true,
+        "core_validation_passed": true
+    },
+    "package_purpose": "Data Science analytics, model artifacts and backend read-only integration contracts.",
+    "is_sql_import_package": false,
+    "contains_users_sql_table": false,
+    "contains_reservations_sql_table": false,
+    "contains_vehicles_sql_table": false,
+    "contains_weather_enriched_reservations_as_sql_table": false,
+    "pricing_service_auto_apply": false,
+    "pricing_rule_merge_strategy": "MAX",
+    "admin_recommendations_auto_execute": false,
+    "currency": "TRY",
+    "backend_ready_sql_package_stage": "22_prepare_backend_ready_csvs.py"
+}
