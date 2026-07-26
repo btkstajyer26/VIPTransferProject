@@ -31,7 +31,10 @@ public class AppExceptionHandler {
     }
 
     // ── 403 Forbidden ────────────────────────────────────────────────────────
-    @ExceptionHandler(ForbiddenOperationException.class)
+    @ExceptionHandler({
+            ForbiddenOperationException.class,
+            TokenRefreshException.class // Önceki adımda tasarladığımız exception
+    })
     public ResponseEntity<ApiResponse<String>> handleForbidden(ForbiddenOperationException ex) {
         log.warn("403 Forbidden: {}", ex.getMessage());
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
