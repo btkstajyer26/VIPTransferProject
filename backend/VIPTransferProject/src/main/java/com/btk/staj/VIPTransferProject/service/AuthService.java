@@ -66,15 +66,27 @@ public class AuthService {
         }
 
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
-        String token = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name());
+        log.warn("{} {}",user.getPhoneNumber(),user.getEmail());
+        log.info("1 - User bulundu: {}", user.getId());
 
-        log.info("Güvenlik - Başarılı Giriş: Kullanıcı ({}) için token üretildi.", identifier);
+        String token = jwtUtil.generateToken(identifier,user.getId(),user.getRole().name());
+        log.info("2 - Token üretildi");
 
-        return AuthResponse.builder()
+        Long userId = user.getId();
+        log.info("3 - User ID alındı: {}", userId);
+
+        String role = user.getRole().name();
+        log.info("4 - Role alındı: {}", role);
+
+        AuthResponse response = AuthResponse.builder()
                 .accessToken(token)
-                .userId(user.getId())
-                .role(user.getRole().name())
+                .userId(userId)
+                .role(role)
                 .build();
+
+        log.info("5 - AuthResponse oluşturuldu");
+
+        return response;
     }
 
     @Transactional

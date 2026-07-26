@@ -1,5 +1,6 @@
 package com.btk.staj.VIPTransferProject.controller;
 
+import com.btk.staj.VIPTransferProject.dto.ChangePasswordRequest;
 import com.btk.staj.VIPTransferProject.dto.UpdateUserRequest;
 import com.btk.staj.VIPTransferProject.dto.UserResponse;
 import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping({"/api/users", "/api/v1/users"})
 @RequiredArgsConstructor
 public class UserController {
 
@@ -45,6 +46,16 @@ public class UserController {
         return ResponseEntity.ok(
                 userService.updateCurrentUser(principal.id(), request)
         );
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        userService.changePassword(principal.id(), request);
+
+        return ResponseEntity.noContent().build();
     }
 
     /*
