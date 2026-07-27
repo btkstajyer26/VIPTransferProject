@@ -9,6 +9,7 @@ function AdminSidebar() {
     { path: "/admin/campaigns", label: "Kampanyalar" },
     { path: "/admin/loyalty", label: "Sadakat Sistemi" },
     { path: "/admin/pricing-zones", label: "Fiyat Bölgeleri" },
+    { path: "/admin/notifications", label: "Bildirimler" },
   ];
 
   return (

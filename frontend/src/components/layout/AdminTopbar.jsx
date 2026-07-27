@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import NotificationBell from "@/components/notifications/NotificationBell";
 import useAuth from "@/hooks/useAuth";
 
 function AdminTopbar() {
@@ -25,6 +26,7 @@ function AdminTopbar() {
       </div>
 
       <div className="admin-profile">
+        <NotificationBell />
         <div className="admin-avatar">A</div>
 
         <div className="admin-profile-info">
