@@ -23,6 +23,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -36,6 +38,7 @@ public class SecurityConfig {
 
     private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final HandlerExceptionResolver handlerExceptionResolver;
     //private final ObjectMapper objectMapper;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -65,6 +68,7 @@ public class SecurityConfig {
                         // Monitoring iÃ§in
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger / OpenAPI UI
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -110,24 +114,9 @@ public class SecurityConfig {
         return (request, response, authException) -> {
             log.warn("[AUTH-401] [EntryPoint] Kimlik doğrulama başarısız (Kimliksiz İstek): Hedef URL ->  {}", request.getRequestURI());
 
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setCharacterEncoding("UTF-8");
-
-            String timestamp = OffsetDateTime.now().toString();
-            String message = "Bu işlemi gerçekleştirmek için giriş yapmalısınız.";
-
-            // Text block ile JSON şablonu
-            String jsonResponse = """
-                    {
-                      "timestamp": "%s",
-                      "status": 401,
-                      "message": "%s",
-                      "data": null
-                    }
-                    """.formatted(timestamp, message);
-
-            response.getWriter().write(jsonResponse);
+            // Yukarıda tanımladığımız handlerExceptionResolver'ı doğrudan kullanıyoruz
+            handlerExceptionResolver.resolveException(request, response, null,
+                    new UnauthorizedException("Bu işlemi gerçekleştirmek için giriş yapmalısınız."));
         };
     }
     @Bean

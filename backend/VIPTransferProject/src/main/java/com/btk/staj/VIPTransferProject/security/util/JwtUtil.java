@@ -20,7 +20,7 @@ public class JwtUtil {
     private final JwtKeyProvider keyProvider;
     private static final long EXPIRATION_TIME = 1000 * 60 * 15; // 15dk Access Token
 
-    public String generateToken(String username, Long userId, String role, Long sessionId) {
+    public String generateToken(String username, Long userId, String role, Long sessionId,String deviceInfo) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Token üretimi için geçerli bir kullanıcı adı gereklidir.");
         }
@@ -30,6 +30,7 @@ public class JwtUtil {
                 .claim("userId", userId)
                 .claim("role",role)
                 .claim("sessionId",sessionId)
+                .claim("deviceInfo", deviceInfo)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(keyProvider.getPrivateKey(), SignatureAlgorithm.RS256)
@@ -76,7 +77,9 @@ public class JwtUtil {
     }
     public Long extractSessionId(String token) {
         Number sessionId = extractAllClaims(token).get("sessionId", Number.class);
-        return sessionId != null ? sessionId.longValue() : null;
+        return sessionId != null ? sessionId.longValue() : null; }
+    public String extractDeviceInfo(String token) {
+        return extractAllClaims(token).get("deviceInfo", String.class);
     }
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
