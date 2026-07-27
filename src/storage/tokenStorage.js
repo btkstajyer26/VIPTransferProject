@@ -2,6 +2,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AUTH_SESSION_STORAGE_KEY = '@vip_transfer/auth_session';
 
+function decodeJwtPayload(accessToken) {
+  const payload = accessToken.split('.')[1];
+
+  if (!payload) return null;
+
+  try {
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const decoded = globalThis.atob(padded);
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
+function hasCurrentAccessToken(accessToken) {
+  const payload = decodeJwtPayload(accessToken);
+  return Number.isFinite(Number(payload?.exp)) && Number(payload.exp) * 1000 > Date.now();
+}
+
 function normalizeAuthSession(authResponse) {
   if (!authResponse || typeof authResponse !== 'object') {
     return null;
@@ -24,7 +44,7 @@ function normalizeAuthSession(authResponse) {
   const tokenPrefixPattern = new RegExp(`^${normalizedTokenType}\\s+`, 'i');
   const normalizedAccessToken = accessToken.trim().replace(tokenPrefixPattern, '');
 
-  if (!normalizedAccessToken) {
+  if (!normalizedAccessToken || !hasCurrentAccessToken(normalizedAccessToken)) {
     return null;
   }
 

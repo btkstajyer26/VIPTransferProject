@@ -9,6 +9,8 @@ import TransferSearchScreen from '../screens/TransferSearchScreen';
 import VehicleSelectionScreen from '../screens/VehicleSelectionScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ReservationScreen from '../screens/ReservationScreen';
+import ReservationLookupScreen from '../screens/ReservationLookupScreen';
+import ReservationDetailsScreen from '../screens/ReservationDetailsScreen';
 import ReservationsScreen from '../screens/ReservationsScreen';
 import ThemeSettingsScreen from '../screens/ThemeSettingsScreen';
 import { useTheme } from '../theme/ThemeContext';
@@ -87,6 +89,16 @@ export default function AppNavigator() {
           name="Reservations"
           component={ReservationsScreen}
           options={{ title: 'Rezervasyonlarim' }}
+        />
+        <Stack.Screen
+          name="ReservationLookup"
+          component={ReservationLookupScreen}
+          options={{ title: 'Rezervasyonumu Görüntüle' }}
+        />
+        <Stack.Screen
+          name="ReservationDetails"
+          component={ReservationDetailsScreen}
+          options={{ title: 'Rezervasyon Detayları' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

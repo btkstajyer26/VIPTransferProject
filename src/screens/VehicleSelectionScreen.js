@@ -5,6 +5,7 @@ import VehicleBookingSteps from '../components/vehicle/VehicleBookingSteps';
 import VehicleCard from '../components/vehicle/VehicleCard';
 import VehicleListState from '../components/vehicle/VehicleListState';
 import VehicleTripSummary from '../components/vehicle/VehicleTripSummary';
+import useAuth from '../hooks/useAuth';
 import { useVehicles } from '../hooks/useVehicles';
 import { createVehicleSelectionStyles } from '../styles/vehicleSelectionStyles';
 import { useTheme } from '../theme/ThemeContext';
@@ -33,6 +34,7 @@ function getVehicleAnimation(animationMap, vehicleId) {
 
 export default function VehicleSelectionScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
   const styles = useMemo(() => createVehicleSelectionStyles(theme), [theme]);
   const transferDetails = route.params?.transferDetails;
   const passengerCount = transferDetails?.passengerCount ?? 1;
@@ -84,9 +86,10 @@ export default function VehicleSelectionScreen({ navigation, route }) {
   function handleContinue() {
     if (!selectedVehicle) return;
 
-    navigation.navigate('GuestInfo', {
+    navigation.navigate(isAuthenticated ? 'Reservation' : 'GuestInfo', {
       transferDetails,
       selectedVehicle,
+      isGuest: !isAuthenticated,
     });
   }
 

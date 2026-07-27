@@ -306,7 +306,7 @@ export function createVehicleSelectionStyles(theme) {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: theme.primary,
+      backgroundColor: theme.mode === 'light' ? theme.surfaceSecondary : theme.primary,
     },
     imageFallbackIcon: {
       color: theme.accent,

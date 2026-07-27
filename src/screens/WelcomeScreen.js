@@ -166,6 +166,18 @@ export default function WelcomeScreen({ navigation }) {
             >
               <Text style={styles.secondaryButtonText}>Giriş Yap</Text>
             </Pressable>
+
+            <Pressable
+              accessibilityLabel="Rezervasyonumu görüntüle"
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('ReservationLookup')}
+              style={({ pressed }) => [
+                styles.lookupButton,
+                pressed && styles.secondaryButtonPressed,
+              ]}
+            >
+              <Text style={styles.lookupButtonText}>Rezervasyonumu Görüntüle</Text>
+            </Pressable>
           </View>
 
           <Text style={styles.trustText}>

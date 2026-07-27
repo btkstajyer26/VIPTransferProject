@@ -93,7 +93,7 @@ export default function LoginScreen({ navigation, route }) {
           routes: [
             {
               name: route.params?.returnTo || 'Reservation',
-              params: { fromReservationFlow: true },
+              params: { fromReservationFlow: true, isGuest: false },
             },
           ],
         });

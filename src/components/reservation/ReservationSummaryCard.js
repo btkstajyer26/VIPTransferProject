@@ -4,17 +4,55 @@ function locationName(location, fallback) {
   return location?.displayName || location?.address || fallback;
 }
 
+function numericValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function currencySymbol(currency) {
+  return currency === 'TRY' ? '₺' : currency;
+}
+
+function formatMoney(value, currency) {
+  const number = numericValue(value);
+  return number === null
+    ? '—'
+    : `${number.toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} ${currencySymbol(currency)}`;
+}
+
+function PriceRow({ label, styles, value, valueStyle }) {
+  return (
+    <View style={styles.priceDetailRow}>
+      <Text style={styles.priceDetailLabel}>{label}</Text>
+      <Text style={[styles.priceDetailValue, valueStyle]}>{value}</Text>
+    </View>
+  );
+}
+
 export default function ReservationSummaryCard({
   reservation,
   selectedVehicle,
   styles,
   transferDetails,
 }) {
-  const exactPrice = Number(reservation?.calculatedPrice);
-  const openingPrice = Number(selectedVehicle?.openingPrice);
-  const hasExactPrice = Number.isFinite(exactPrice) && exactPrice >= 0;
-  const displayedPrice = hasExactPrice ? exactPrice : openingPrice;
   const currency = reservation?.currency || 'TRY';
+  const finalPrice = numericValue(reservation?.finalPrice ?? reservation?.calculatedPrice);
+  const campaignDiscount = numericValue(
+    reservation?.campaignDiscount ?? reservation?.discountAmount,
+  );
+  const loyaltyDiscount = numericValue(reservation?.loyaltyDiscount);
+  const distanceKm = numericValue(reservation?.distanceKm);
+  const hasExactPrice = finalPrice !== null && finalPrice >= 0;
+  const openingEstimate = numericValue(selectedVehicle?.openingPrice);
+  const pickupAddress =
+    reservation?.pickupAddress ||
+    locationName(transferDetails?.pickupLocation, 'Başlangıç noktası');
+  const dropoffAddress =
+    reservation?.dropoffAddress ||
+    locationName(transferDetails?.dropoffLocation, 'Varış noktası');
 
   return (
     <View style={styles.summaryCard}>
@@ -40,13 +78,13 @@ export default function ReservationSummaryCard({
           <View>
             <Text style={styles.locationLabel}>BAŞLANGIÇ</Text>
             <Text style={styles.locationValue}>
-              {locationName(transferDetails?.pickupLocation, 'Başlangıç noktası')}
+              {pickupAddress}
             </Text>
           </View>
           <View>
             <Text style={styles.locationLabel}>VARIŞ</Text>
             <Text style={styles.locationValue}>
-              {locationName(transferDetails?.dropoffLocation, 'Varış noktası')}
+              {dropoffAddress}
             </Text>
           </View>
         </View>
@@ -68,24 +106,67 @@ export default function ReservationSummaryCard({
         </View>
       </View>
 
-      <View style={styles.priceBox}>
-        <View>
-          <Text style={styles.priceLabel}>
-            {hasExactPrice ? 'HESAPLANAN TOPLAM' : 'BAŞLANGIÇ TAHMİNİ'}
-          </Text>
-          <Text style={styles.priceHint}>
-            {hasExactPrice
-              ? 'Rota mesafesine göre hesaplandı'
-              : 'Kesin fiyat rezervasyon sırasında hesaplanır'}
+      {hasExactPrice ? (
+        <View style={styles.priceBreakdown}>
+          <Text style={styles.priceBreakdownTitle}>FİYAT ÖZETİ</Text>
+          {distanceKm !== null ? (
+            <PriceRow
+              label="Toplam Mesafe"
+              styles={styles}
+              value={`${distanceKm.toLocaleString('tr-TR', {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              })} km`}
+            />
+          ) : null}
+          <PriceRow
+            label="Açılış Ücreti"
+            styles={styles}
+            value={formatMoney(reservation?.flagFee ?? reservation?.openingPrice, currency)}
+          />
+          <PriceRow
+            label="Mesafe Ücreti"
+            styles={styles}
+            value={formatMoney(reservation?.distanceFee, currency)}
+          />
+          {campaignDiscount > 0 ? (
+            <PriceRow
+              label="Kampanya İndirimi"
+              styles={styles}
+              value={`-${formatMoney(campaignDiscount, currency)}`}
+              valueStyle={styles.discountValue}
+            />
+          ) : null}
+          {loyaltyDiscount > 0 ? (
+            <PriceRow
+              label="Sadakat İndirimi"
+              styles={styles}
+              value={`-${formatMoney(loyaltyDiscount, currency)}`}
+              valueStyle={styles.discountValue}
+            />
+          ) : null}
+          <View style={styles.priceTotalDivider} />
+          <PriceRow
+            label="Toplam Tutar"
+            styles={styles}
+            value={formatMoney(finalPrice, currency)}
+            valueStyle={styles.priceTotalValue}
+          />
+          <PriceRow label="Para Birimi" styles={styles} value={currency} />
+        </View>
+      ) : (
+        <View style={styles.priceBox}>
+          <View>
+            <Text style={styles.priceLabel}>BAŞLANGIÇ TAHMİNİ</Text>
+            <Text style={styles.priceHint}>
+              Kesin ücret, rota ve seçtiğiniz araca göre rezervasyon sırasında hesaplanır
+            </Text>
+          </View>
+          <Text style={styles.priceValue}>
+            {openingEstimate !== null ? formatMoney(openingEstimate, currency) : '—'}
           </Text>
         </View>
-        <Text style={styles.priceValue}>
-          {Number.isFinite(displayedPrice) ? `₺${displayedPrice.toLocaleString('tr-TR')}` : '—'}
-        </Text>
-      </View>
-      {hasExactPrice && currency !== 'TRY' ? (
-        <Text style={styles.currencyText}>Para birimi: {currency}</Text>
-      ) : null}
+      )}
     </View>
   );
 }

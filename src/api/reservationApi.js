@@ -48,7 +48,16 @@ function getCoordinate(value, minimum, maximum) {
 }
 
 export async function createGuestReservation({ phoneNumber, reservationData } = {}) {
-  const normalizedPhoneNumber = getRequiredText(phoneNumber, 'Telefon numarası gerekli.');
+  const normalizedPhoneNumber = getRequiredText(
+    typeof phoneNumber === 'string' ? phoneNumber.replace(/\D/g, '') : phoneNumber,
+    'Telefon bilgisi bulunamadı. Lütfen bilgilerinizi yeniden kontrol edin.',
+  );
+
+  if (normalizedPhoneNumber.length !== 11 || !normalizedPhoneNumber.startsWith('05')) {
+    throw createValidationError(
+      'Telefon bilgisi bulunamadı. Lütfen bilgilerinizi yeniden kontrol edin.',
+    );
+  }
 
   if (!reservationData || typeof reservationData !== 'object' || Array.isArray(reservationData)) {
     throw createValidationError('Rezervasyon bilgileri gerekli.');
@@ -95,6 +104,7 @@ export async function createAuthenticatedReservation({ reservationData } = {}) {
 }
 
 function buildReservationData({
+  campaignCode,
   guestInfo,
   includeGuestName,
   notes = '',
@@ -145,7 +155,10 @@ function buildReservationData({
     scheduledTime: getOffsetDateTime(transferDetails.scheduledTime),
     vehicleId,
     passengerCount,
-    campaignCode: transferDetails?.campaignCode || '',
+    campaignCode:
+      typeof campaignCode === 'string'
+        ? campaignCode.trim()
+        : transferDetails?.campaignCode?.trim() || '',
     flightNumber: transferDetails?.flightNumber || '',
     notes: typeof notes === 'string' ? notes.trim() : '',
   };

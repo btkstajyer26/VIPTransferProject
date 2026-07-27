@@ -40,6 +40,18 @@ function animatedStyle(animation, distance = 16) {
   };
 }
 
+function getReservationErrorMessage(error) {
+  const message = typeof error?.message === 'string' ? error.message.trim() : '';
+  const technicalErrorPattern =
+    /\b(sql|jdbc|hibernate|postgres|constraint|exception|stack trace)\b|column .+ type/i;
+
+  if (!message || technicalErrorPattern.test(message)) {
+    return 'Rezervasyon oluşturulamadı. Lütfen tekrar deneyin.';
+  }
+
+  return message;
+}
+
 export default function ReservationScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
@@ -49,7 +61,14 @@ export default function ReservationScreen({ navigation, route }) {
   const selectedVehicle = route.params?.selectedVehicle ?? reservationDraft?.selectedVehicle;
   const hasReservationData = isValidReservationDraft({ transferDetails, selectedVehicle });
   const guestInfo = route.params?.guestInfo;
+  const guestPhoneNumber = route.params?.guestInfo?.phoneNumber;
+  const normalizedGuestPhoneNumber = String(guestPhoneNumber ?? '')
+    .replace(/\D/g, '')
+    .trim();
+  const isGuestFlow = route.params?.isGuest === true;
+  const canCreateAuthenticatedReservation = !isGuestFlow && isAuthenticated;
   const [notes, setNotes] = useState('');
+  const [campaignCode, setCampaignCode] = useState(transferDetails?.campaignCode || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reservation, setReservation] = useState(null);
@@ -57,6 +76,7 @@ export default function ReservationScreen({ navigation, route }) {
   const summaryAnimation = useRef(new Animated.Value(0)).current;
   const paymentAnimation = useRef(new Animated.Value(0)).current;
   const actionAnimation = useRef(new Animated.Value(0)).current;
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     const timing = (value, duration = 400) =>
@@ -86,27 +106,46 @@ export default function ReservationScreen({ navigation, route }) {
   }, [clearReservationDraft, hasReservationData, navigation]);
 
   async function handleCreateReservation() {
-    if (loading || reservation || !hasReservationData) return;
+    if (
+      isSubmittingRef.current ||
+      loading ||
+      reservation ||
+      !hasReservationData ||
+      (!isGuestFlow && !canCreateAuthenticatedReservation)
+    ) {
+      return;
+    }
 
+    isSubmittingRef.current = true;
     setLoading(true);
     setError('');
 
     try {
-      const buildReservationData = isAuthenticated
-        ? buildAuthenticatedReservationData
-        : buildGuestReservationData;
+      if (
+        isGuestFlow &&
+        (normalizedGuestPhoneNumber.length !== 11 || !normalizedGuestPhoneNumber.startsWith('05'))
+      ) {
+        throw {
+          message: 'Telefon bilgisi bulunamadı. Lütfen bilgilerinizi yeniden kontrol edin.',
+        };
+      }
+
+      const buildReservationData = isGuestFlow
+        ? buildGuestReservationData
+        : buildAuthenticatedReservationData;
       const reservationData = buildReservationData({
+        campaignCode,
         guestInfo,
         notes,
         selectedVehicle,
         transferDetails,
       });
-      const response = isAuthenticated
-        ? await createAuthenticatedReservation({ reservationData })
-        : await createGuestReservation({
-            phoneNumber: guestInfo?.phoneNumber,
+      const response = isGuestFlow
+        ? await createGuestReservation({
+            phoneNumber: normalizedGuestPhoneNumber,
             reservationData,
-          });
+          })
+        : await createAuthenticatedReservation({ reservationData });
 
       if (!response || typeof response !== 'object' || Array.isArray(response)) {
         throw { message: 'Sunucudan geçerli bir rezervasyon cevabı alınamadı.' };
@@ -115,8 +154,9 @@ export default function ReservationScreen({ navigation, route }) {
       setReservation(response);
       clearReservationDraft();
     } catch (requestError) {
-      setError(requestError?.message || 'Rezervasyon oluşturulamadı. Lütfen tekrar deneyin.');
+      setError(getReservationErrorMessage(requestError));
     } finally {
+      isSubmittingRef.current = false;
       setLoading(false);
     }
   }
@@ -169,7 +209,7 @@ export default function ReservationScreen({ navigation, route }) {
           <Text style={styles.description}>
             {reservation
               ? 'Rezervasyon bilgileriniz kaydedildi. Referans numaranızı saklayın.'
-              : 'Rota bilgilerinize göre kesin tutar rezervasyon oluşturulurken backend tarafından hesaplanır.'}
+              : 'Kesin ücret, rota ve seçtiğiniz araca göre rezervasyon sırasında hesaplanır.'}
           </Text>
         </Animated.View>
 
@@ -183,7 +223,7 @@ export default function ReservationScreen({ navigation, route }) {
               Sürücü ve araç bilgileri transfer saatinden önce sizinle paylaşılacaktır.
             </Text>
             <View style={styles.referenceBox}>
-              <Text style={styles.referenceLabel}>REZERVASYON NUMARASI</Text>
+              <Text style={styles.referenceLabel}>REZERVASYON KODUNUZ</Text>
               <Text selectable style={styles.referenceValue}>
                 {bookingReference || '—'}
               </Text>
@@ -214,13 +254,20 @@ export default function ReservationScreen({ navigation, route }) {
             <Text style={styles.paymentDescription}>
               Ödemenizi transfer tamamlandığında doğrudan sürücünüze yapabilirsiniz.
             </Text>
-            <View style={styles.paymentNotice}>
-              <Text style={styles.paymentNoticeIcon}>◆</Text>
-              <Text style={styles.paymentNoticeText}>
-                Online kart ödeme altyapısı henüz etkin olmadığı için bu aşamada kart bilgisi
-                alınmaz.
-              </Text>
-            </View>
+
+            <Text style={styles.campaignLabel}>Kampanya kodu (opsiyonel)</Text>
+            <TextInput
+              accessibilityLabel="Kampanya kodu"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!loading}
+              maxLength={50}
+              onChangeText={setCampaignCode}
+              placeholder="Kampanya kodunuz"
+              placeholderTextColor={theme.placeholder}
+              style={styles.campaignInput}
+              value={campaignCode}
+            />
 
             <Text style={styles.notesLabel}>Sürücüye not (opsiyonel)</Text>
             <TextInput

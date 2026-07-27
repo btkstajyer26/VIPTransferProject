@@ -330,6 +330,13 @@ export function createWelcomeStyles(theme) {
       borderColor: theme.accent,
       backgroundColor: theme.surface,
     },
+    lookupButton: {
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    },
     primaryButtonText: {
       color: theme.buttonText,
       fontSize: 16,
@@ -344,6 +351,12 @@ export function createWelcomeStyles(theme) {
       color: theme.accent,
       fontSize: 15,
       fontWeight: '800',
+    },
+    lookupButtonText: {
+      color: theme.textSecondary,
+      fontSize: 13,
+      fontWeight: '700',
+      textDecorationLine: 'underline',
     },
     primaryButtonPressed: {
       opacity: 0.78,
