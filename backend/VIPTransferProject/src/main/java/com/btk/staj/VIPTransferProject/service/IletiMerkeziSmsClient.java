@@ -4,6 +4,7 @@ import com.btk.staj.VIPTransferProject.config.IletiMerkeziProperties;
 import com.btk.staj.VIPTransferProject.dto.notification.IletiMerkeziSmsRequest;
 import com.btk.staj.VIPTransferProject.dto.notification.IletiMerkeziSmsResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -12,6 +13,7 @@ import org.springframework.web.client.RestClientException;
 import java.util.List;
 
 @Component
+@ConditionalOnProperty(name = "app.sms.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class IletiMerkeziSmsClient {
 

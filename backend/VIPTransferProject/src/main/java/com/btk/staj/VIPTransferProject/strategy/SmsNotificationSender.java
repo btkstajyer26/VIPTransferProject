@@ -6,9 +6,11 @@ import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 import com.btk.staj.VIPTransferProject.exception.NotificationSendException;
 import com.btk.staj.VIPTransferProject.service.IletiMerkeziSmsClient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "app.sms.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class SmsNotificationSender implements NotificationSender {
 
