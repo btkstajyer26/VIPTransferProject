@@ -4,6 +4,7 @@ import com.btk.staj.VIPTransferProject.config.WhatsappProperties;
 import com.btk.staj.VIPTransferProject.dto.notification.WhatsappSendResponse;
 import com.btk.staj.VIPTransferProject.dto.notification.WhatsappTextMessageRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 @Component
+@ConditionalOnProperty(name = "app.whatsapp.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class MetaWhatsappClient {
 

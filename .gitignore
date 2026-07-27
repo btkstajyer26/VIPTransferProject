@@ -15,3 +15,12 @@ grafana_data/
 
 # Ignore local VS Code settings and workspace configurations
 .vscode/
+
+# Yerel ortam değişkenleri ve servis anahtarları
+.env
+**/.env
+secrets/*
+!secrets/.gitkeep
+*firebase-admin*.json
+*serviceAccountKey*.json
+docker-compose.override.yml
