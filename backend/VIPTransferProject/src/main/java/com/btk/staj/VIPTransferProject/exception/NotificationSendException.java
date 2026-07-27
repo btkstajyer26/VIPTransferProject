@@ -4,12 +4,15 @@ import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 
 public class NotificationSendException extends RuntimeException {
 
+    private final String failureReason;
+
     public NotificationSendException(
             Long notificationId,
             NotificationChannel channel,
             String message
     ) {
         super(buildMessage(notificationId, channel, message));
+        this.failureReason = normalizeReason(message);
     }
 
     public NotificationSendException(
@@ -22,6 +25,11 @@ public class NotificationSendException extends RuntimeException {
                 buildMessage(notificationId, channel, message),
                 cause
         );
+        this.failureReason = normalizeReason(message);
+    }
+
+    public String getFailureReason() {
+        return failureReason;
     }
 
     private static String buildMessage(
@@ -34,6 +42,12 @@ public class NotificationSendException extends RuntimeException {
                 + ", channel: "
                 + channel
                 + ", reason: "
-                + message;
+                + normalizeReason(message);
+    }
+
+    private static String normalizeReason(String message) {
+        return message == null || message.isBlank()
+                ? "Bilinmeyen gonderim hatasi."
+                : message;
     }
 }
