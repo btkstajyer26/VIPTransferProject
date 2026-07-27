@@ -9,6 +9,7 @@ import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 import com.btk.staj.VIPTransferProject.dto.auth.ForgotPasswordRequest;
 import com.btk.staj.VIPTransferProject.dto.auth.ResetPasswordRequest;
 import com.btk.staj.VIPTransferProject.dto.auth.VerifyEmailRequest;
+import com.btk.staj.VIPTransferProject.security.util.IpUtil;
 import com.btk.staj.VIPTransferProject.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,7 +31,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        String ipAddress = httpRequest.getRemoteAddr();
+        String ipAddress = IpUtil.getClientIp(httpRequest);
         String deviceInfo = httpRequest.getHeader("User-Agent");
 
         AuthResponse authResponse = authService.login(request, ipAddress, deviceInfo);
@@ -45,7 +46,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshRequest, HttpServletRequest httpRequest) {
-        String ipAddress = httpRequest.getRemoteAddr();
+        String ipAddress = IpUtil.getClientIp(httpRequest);
         String deviceInfo = httpRequest.getHeader("User-Agent");
 
         AuthResponse authResponse = authService.refreshAccessToken(refreshRequest.getRefreshToken(), ipAddress, deviceInfo);
