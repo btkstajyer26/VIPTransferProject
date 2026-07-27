@@ -2,11 +2,13 @@ package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.campaign.CampaignRequestDto;
 import com.btk.staj.VIPTransferProject.dto.campaign.CampaignResponseDto;
+import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import com.btk.staj.VIPTransferProject.service.CampaignService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +23,9 @@ public class CampaignController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public CampaignResponseDto create(@Valid @RequestBody CampaignRequestDto request) {
-        return campaignService.create(request);
+    public CampaignResponseDto create(@Valid @RequestBody CampaignRequestDto request,
+                                      @AuthenticationPrincipal UserPrincipal principal) {
+        return campaignService.create(request, principal.id());
     }
 
     @PutMapping("/{id}")
@@ -39,21 +42,28 @@ public class CampaignController {
     }
 
     @GetMapping("/code/{code}")
-    // Not: authentication gerekiyor ama rol kısıtı yok — müşteri de erişebilir
+    @PreAuthorize("hasRole('ADMIN')")
     public CampaignResponseDto getByCode(@PathVariable String code) {
         return campaignService.getByCode(code);
     }
 
     @GetMapping
-    // Not: authentication gerekiyor ama rol kısıtı yok — müşteri de erişebilir
+    @PreAuthorize("hasRole('ADMIN')")
     public List<CampaignResponseDto> getAll() {
         return campaignService.getAll();
     }
 
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivate(@PathVariable Long id) {
         campaignService.deactivate(id);
+    }
+
+    @PatchMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void activate(@PathVariable Long id) {
+        campaignService.activate(id);
     }
 }

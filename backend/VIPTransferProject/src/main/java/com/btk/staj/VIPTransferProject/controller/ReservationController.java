@@ -66,7 +66,8 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationById(id, userId));
     }
 
-    // Durum gÃ¼ncelle: PENDINGâ†’ASSIGNED, ASSIGNEDâ†’COMPLETED / NO_SHOW, PENDING/ASSIGNEDâ†’CANCELLED
+    // Durum güncelle: PENDING→ASSIGNED, ASSIGNED→COMPLETED / NO_SHOW, PENDING/ASSIGNED→CANCELLED
+    @PreAuthorize("hasRole(‘ADMIN’)")
     @PatchMapping("/{id}/status")
     public ResponseEntity<ReservationResponse> updateStatus(
             @PathVariable Long id,

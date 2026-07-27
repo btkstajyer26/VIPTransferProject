@@ -47,6 +47,4 @@ public class CampaignRequestDto {
 
     @NotNull(message = "validTo zorunludur")
     private OffsetDateTime validTo;
-
-    private Long createdById;
 }
