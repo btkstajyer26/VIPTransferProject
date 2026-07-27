@@ -26,6 +26,7 @@ import VehiclesPage from "../pages/admin/VehiclesPage";
 import CampaignsPage from "../pages/admin/CampaignsPage";
 import LoyaltyPage from "../pages/admin/LoyaltyPage";
 import PricingZonesPage from "../pages/admin/PricingZonesPage";
+import NotificationsPage from "../pages/admin/NotificationsPage";
 
 function AppRoutes() {
   return (
@@ -104,6 +105,11 @@ function AppRoutes() {
             <Route
               path="pricing-zones"
               element={<PricingZonesPage />}
+            />
+
+            <Route
+              path="notifications"
+              element={<NotificationsPage />}
             />
           </Route>
         </Route>

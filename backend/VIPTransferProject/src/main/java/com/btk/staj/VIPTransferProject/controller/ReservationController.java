@@ -67,7 +67,7 @@ public class ReservationController {
     }
 
     // Durum güncelle: PENDING→ASSIGNED, ASSIGNED→COMPLETED / NO_SHOW, PENDING/ASSIGNED→CANCELLED
-    @PreAuthorize("hasRole(‘ADMIN’)")
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<ReservationResponse> updateStatus(
             @PathVariable Long id,

@@ -10,14 +10,9 @@ export async function register(payload) {
   return response.data;
 }
 
-export async function verifyEmail(token) {
-    const response = await apiClient.get("/auth/verify-email", {
-        params: {
-            token,
-        },
-    });
-
-    return response.data;
+export async function verifyEmail(email, code) {
+  const response = await apiClient.post("/auth/verify-email", { email, code });
+  return response.data;
 }
 
 export async function refreshToken(refreshTokenValue) {
