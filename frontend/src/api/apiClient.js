@@ -132,7 +132,7 @@ apiClient.interceptors.response.use(
             const {
               accessToken: newAccessToken,
               refreshToken: newRefreshToken,
-            } = response.data;
+            } = response.data?.data ?? response.data;
 
             if (!newAccessToken) {
               throw new Error(

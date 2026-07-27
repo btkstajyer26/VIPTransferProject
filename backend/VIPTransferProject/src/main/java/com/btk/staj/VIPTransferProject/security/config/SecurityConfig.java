@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations/price-preview").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/guest/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/translations/**").permitAll()
                         // Monitoring iÃ§in
@@ -87,7 +88,7 @@ public class SecurityConfig {
 
         // React/Frontend uygulamasÄ±nÄ±n Ã§alÄ±ÅŸtÄ±ÄŸÄ± adresleri buraya ekliyoruz
         // CanlÄ±ya Ã§Ä±karken buraya gerÃ§ek domain adresini de (Ã¶rn: https://viptransfer.com) eklemelisin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173" , "http://192.168.*.*:5173"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:5173", "http://192.168.*.*:5173"));
 
         // Frontend'in atabileceÄŸi HTTP metotlarÄ±
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
