@@ -30,3 +30,17 @@ export async function logout(refreshTokenValue) {
 
   return response.data;
 }
+
+export async function forgotPassword(email) {
+  const response = await apiClient.post("/auth/forgot-password", { email });
+  return response.data;
+}
+
+export async function resetPassword(email, code, newPassword) {
+  const response = await apiClient.post("/auth/reset-password", {
+    email,
+    code,
+    newPassword,
+  });
+  return response.data;
+}
