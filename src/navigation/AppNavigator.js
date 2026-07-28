@@ -1,7 +1,10 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useMemo } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import useAuth from '../hooks/useAuth';
+import AdminNavigator from './AdminNavigator';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import GuestInfoScreen from '../screens/GuestInfoScreen';
@@ -19,6 +22,8 @@ const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const { theme, isDark } = useTheme();
+  const { isAuthenticated, isInitializing, role } = useAuth();
+  const isAdmin = isAuthenticated && role?.trim().toUpperCase() === 'ADMIN';
   const navigationTheme = useMemo(() => {
     const baseTheme = isDark ? DarkTheme : DefaultTheme;
     return {
@@ -34,17 +39,28 @@ export default function AppNavigator() {
     };
   }, [isDark, theme]);
 
+  if (isInitializing) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator color={theme.accent} size="large" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator
-        initialRouteName="Welcome"
-        screenOptions={{
-          headerStyle: { backgroundColor: theme.headerBackground },
-          headerTintColor: theme.headerText,
-          headerTitleStyle: { fontWeight: '700' },
-          contentStyle: { backgroundColor: theme.background },
-        }}
-      >
+      {isAdmin ? (
+        <AdminNavigator />
+      ) : (
+        <Stack.Navigator
+          initialRouteName="Welcome"
+          screenOptions={{
+            headerStyle: { backgroundColor: theme.headerBackground },
+            headerTintColor: theme.headerText,
+            headerTitleStyle: { fontWeight: '700' },
+            contentStyle: { backgroundColor: theme.background },
+          }}
+        >
         <Stack.Screen
           name="Welcome"
           component={WelcomeScreen}
@@ -100,7 +116,16 @@ export default function AppNavigator() {
           component={ReservationDetailsScreen}
           options={{ title: 'Rezervasyon Detayları' }}
         />
-      </Stack.Navigator>
+        </Stack.Navigator>
+      )}
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

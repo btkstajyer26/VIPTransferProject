@@ -82,7 +82,11 @@ export default function LoginScreen({ navigation, route }) {
 
     try {
       setLoading(true);
-      await login(phone, password);
+      const authenticatedSession = await login(phone, password);
+
+      if (authenticatedSession.role?.trim().toUpperCase() === 'ADMIN') {
+        return;
+      }
 
       if (
         route.params?.fromReservationFlow === true &&

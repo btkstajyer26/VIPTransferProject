@@ -53,7 +53,7 @@ function normalizeAuthSession(authResponse) {
     refreshToken:
       typeof refreshToken === 'string' && refreshToken.trim() ? refreshToken.trim() : null,
     tokenType: normalizedTokenType,
-    role: role.trim(),
+    role: role.trim().toUpperCase(),
     userId: Number.isFinite(Number(userId)) ? Number(userId) : null,
   };
 }
