@@ -41,7 +41,7 @@ public class GoogleMapsService {
         } catch (BusinessRuleException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Google Maps Directions API hatası: {}", e.getMessage());
+            log.error("Google Maps Directions API hatası", e);
             throw new BusinessRuleException("Rota hesaplanamadı. Lütfen tekrar deneyin.");
         }
     }
