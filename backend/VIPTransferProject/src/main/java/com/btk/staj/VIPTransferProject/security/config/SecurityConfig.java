@@ -92,7 +92,7 @@ public class SecurityConfig {
 
         // React/Frontend uygulamasÄ±nÄ±n Ã§alÄ±ÅŸtÄ±ÄŸÄ± adresleri buraya ekliyoruz
         // CanlÄ±ya Ã§Ä±karken buraya gerÃ§ek domain adresini de (Ã¶rn: https://viptransfer.com) eklemelisin
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:5173", "http://192.168.*.*:5173"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:8888", "http://localhost:3000", "http://localhost:5173", "http://192.168.*.*:5173"));
 
         // Frontend'in atabileceÄŸi HTTP metotlarÄ±
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

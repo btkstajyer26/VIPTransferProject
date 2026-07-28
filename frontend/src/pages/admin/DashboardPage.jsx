@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import useDashboard from "@/hooks/useDashboard";
+import { useTranslation } from "react-i18next";
 
 const STATUS_LABELS = {
   PENDING: "Bekliyor",
@@ -114,6 +115,7 @@ function getCustomerLabel(reservation) {
 }
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const {
     totalUsers,
     totalReservations,
@@ -129,27 +131,27 @@ function DashboardPage() {
 
   const stats = [
     {
-      title: "Toplam Kullanıcı",
+      title: t('admin.dashboard.stats.totalUsers'),
       value: totalUsers,
-      description: "Sistemdeki aktif kullanıcılar",
+      description: t('admin.dashboard.stats.totalUsersDesc'),
       icon: Users,
     },
     {
-      title: "Toplam Rezervasyon",
+      title: t('admin.dashboard.stats.totalRes'),
       value: totalReservations,
-      description: "Tüm rezervasyon kayıtları",
+      description: t('admin.dashboard.stats.totalResDesc'),
       icon: CalendarDays,
     },
     {
-      title: "Aktif Araç",
+      title: t('admin.dashboard.stats.activeVehicles'),
       value: activeVehicleCount,
-      description: "Kullanıma hazır araçlar",
+      description: t('admin.dashboard.stats.activeVehiclesDesc'),
       icon: Car,
     },
     {
-      title: "Bekleyen Rezervasyon",
+      title: t('admin.dashboard.stats.pendingRes'),
       value: pendingReservationCount,
-      description: "Onay bekleyen rezervasyonlar",
+      description: t('admin.dashboard.stats.pendingResDesc'),
       icon: Clock3,
     },
   ];
@@ -159,12 +161,11 @@ function DashboardPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">
-            Dashboard
+            {t('admin.dashboard.title')}
           </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Sistemin genel durumunu ve son rezervasyonları takip
-            edin.
+            {t('admin.dashboard.subtitle')}
           </p>
         </div>
 
@@ -180,7 +181,7 @@ function DashboardPage() {
             }`}
           />
 
-          Yenile
+          {t('admin.dashboard.refresh')}
         </Button>
       </div>
 
@@ -228,10 +229,10 @@ function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Son Rezervasyonlar</CardTitle>
+          <CardTitle>{t('admin.dashboard.latestRes.title')}</CardTitle>
 
           <CardDescription>
-            En son oluşturulan 5 rezervasyon kaydı.
+            {t('admin.dashboard.latestRes.desc')}
           </CardDescription>
         </CardHeader>
 
@@ -241,13 +242,13 @@ function DashboardPage() {
               <RefreshCw className="mr-2 size-5 animate-spin" />
 
               <span className="text-sm text-muted-foreground">
-                Dashboard verileri yükleniyor...
+                {t('admin.dashboard.latestRes.loading')}
               </span>
             </div>
           ) : latestReservations.length === 0 ? (
             <div className="flex min-h-56 items-center justify-center rounded-lg border border-dashed">
               <p className="text-sm text-muted-foreground">
-                Henüz rezervasyon kaydı bulunmuyor.
+                {t('admin.dashboard.latestRes.empty')}
               </p>
             </div>
           ) : (
@@ -255,13 +256,13 @@ function DashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Referans</TableHead>
-                    <TableHead>Müşteri</TableHead>
-                    <TableHead>Güzergâh</TableHead>
-                    <TableHead>Planlanan Tarih</TableHead>
-                    <TableHead>Araç</TableHead>
-                    <TableHead>Tutar</TableHead>
-                    <TableHead>Durum</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.ref')}</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.customer')}</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.route')}</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.date')}</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.vehicle')}</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.price')}</TableHead>
+                    <TableHead>{t('admin.dashboard.latestRes.cols.status')}</TableHead>
                   </TableRow>
                 </TableHeader>
 

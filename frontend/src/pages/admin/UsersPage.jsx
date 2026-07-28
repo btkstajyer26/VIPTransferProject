@@ -21,8 +21,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import useUsers from "@/hooks/useUsers";
+import { useTranslation } from "react-i18next";
 
 function UsersPage() {
+  const { t } = useTranslation();
   const [selectedUser, setSelectedUser] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -72,11 +74,11 @@ function UsersPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">
-            Kullanıcılar
+            {t('admin.users.title')}
           </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Sisteme kayıtlı aktif kullanıcıları yönetin.
+            {t('admin.users.subtitle')}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ function UsersPage() {
             }`}
           />
 
-          Yenile
+          {t('admin.users.refresh')}
         </Button>
       </div>
 
@@ -110,11 +112,10 @@ function UsersPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CardTitle>Kullanıcı Listesi</CardTitle>
+              <CardTitle>{t('admin.users.listTitle')}</CardTitle>
 
               <CardDescription>
-                Sistemde toplam {totalUsers} aktif kullanıcı
-                bulunmaktadır.
+                {t('admin.users.listDesc', { count: totalUsers })}
               </CardDescription>
             </div>
 
@@ -139,7 +140,7 @@ function UsersPage() {
               <RefreshCw className="mr-2 size-5 animate-spin" />
 
               <span className="text-sm">
-                Kullanıcılar yükleniyor...
+                {t('admin.users.loading')}
               </span>
             </div>
           ) : (

@@ -7,8 +7,11 @@ import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
 import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.CampaignRepository;
 import com.btk.staj.VIPTransferProject.repository.EntityTranslationRepository;
+import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
 import com.btk.staj.VIPTransferProject.repository.TranslationRepository;
 import com.btk.staj.VIPTransferProject.repository.VehicleRepository;
+import com.btk.staj.VIPTransferProject.repository.pricing.PricingRuleRepository;
+import com.btk.staj.VIPTransferProject.repository.pricing.PricingZoneRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +29,9 @@ public class LocalizationService {
     // Diğer servislerin Repositories'leri (Validasyon için)
     private final CampaignRepository campaignRepository;
     private final VehicleRepository vehicleRepository;
+    private final LoyaltyTierConfigRepository loyaltyTierConfigRepository;
+    private final PricingZoneRepository pricingZoneRepository;
+    private final PricingRuleRepository pricingRuleRepository;
 
     // --- STATİK METİN (TRANSLATION) İŞLEMLERİ ---
 
@@ -126,12 +132,16 @@ public class LocalizationService {
                         .orElseThrow(() -> new ResourceNotFoundException("Araç bulunamadı: " + entityId));
                 break;
             case "pricing_zone":
+                pricingZoneRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Fiyat Bölgesi (Pricing Zone) bulunamadı: " + entityId));
+                break;
             case "pricing_rule":
+                pricingRuleRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Fiyat Kuralı (Pricing Rule) bulunamadı: " + entityId));
+                break;
             case "loyalty_tier":
-                // DİKKAT: Diğer servisler (Pricing, Loyalty) henüz tamamlanmadığı için
-                // bu entity'leri doğrulayacak repository'ler yok.
-                // İstendiği üzere ileride eklenecek olan veriler şimdilik null değişkenle mocklandı.
-                Object pendingServiceData = null; 
+                loyaltyTierConfigRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Sadakat Kademesi (Loyalty Tier) bulunamadı: " + entityId));
                 break;
             default:
                 throw new InvalidRequestException("Geçersiz entityType: " + entityType);

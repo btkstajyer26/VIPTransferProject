@@ -1,5 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 function ReservationPage() {
-  return <h1>Rezervasyon</h1>;
+  const { t } = useTranslation();
+  return <h1>{t("reservationSystem.title")}</h1>;
 }
 
 export default ReservationPage;

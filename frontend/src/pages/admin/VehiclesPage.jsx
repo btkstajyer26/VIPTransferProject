@@ -12,8 +12,10 @@ import VehiclePhotoDialog from "@/components/vehicles/VehiclePhotoDialog";
 import VehicleTable from "@/components/vehicles/VehicleTable";
 import VehicleToolbar from "@/components/vehicles/VehicleToolbar";
 import useVehicles from "@/hooks/useVehicles";
+import { useTranslation } from "react-i18next";
 
 function VehiclesPage() {
+  const { t } = useTranslation();
   const {
     vehicles,
     totalVehicleCount,
@@ -49,21 +51,21 @@ function VehiclesPage() {
     <section className="space-y-6">
       <div>
         <h2 className="text-3xl font-semibold tracking-tight">
-          Araçlar
+          {t('admin.vehicles.title')}
         </h2>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Sistemde kayıtlı transfer araçlarını yönetin.
+          {t('admin.vehicles.subtitle')}
         </p>
       </div>
 
       <Card>
         <CardHeader className="gap-5">
           <div>
-            <CardTitle>Araç Listesi</CardTitle>
+            <CardTitle>{t('admin.vehicles.listTitle')}</CardTitle>
 
             <CardDescription>
-              Sistemde toplam {totalVehicleCount} araç bulunmaktadır.
+              {t('admin.vehicles.listDesc', { count: totalVehicleCount })}
             </CardDescription>
           </div>
 

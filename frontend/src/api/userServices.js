@@ -5,6 +5,11 @@ export async function getUsers() {
   return response.data;
 }
 
+export async function getCurrentUser() {
+  const response = await apiClient.get("/users/me");
+  return response.data;
+}
+
 export async function getUserById(userId) {
   const response = await apiClient.get(`/users/${userId}`);
   return response.data;

@@ -4,8 +4,11 @@ import {
   MapPin,
   Phone,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function PublicFooter() {
+  const { t } = useTranslation();
+
   return (
     <footer
       id="contact"
@@ -33,26 +36,25 @@ function PublicFooter() {
           </Link>
 
           <p className="mt-5 max-w-xs text-sm leading-6 text-slate-400">
-            Havalimanı ve şehir içi ulaşımda güvenli,
-            konforlu ve premium transfer hizmeti.
+            {t("footer.subtitle")}
           </p>
         </div>
 
-        <FooterGroup title="Hizmetler">
-          <FooterLink>Havalimanı Transferi</FooterLink>
-          <FooterLink>Şehir İçi Transfer</FooterLink>
-          <FooterLink>Şoförlü Araç Kiralama</FooterLink>
-          <FooterLink>Kurumsal Transfer</FooterLink>
+        <FooterGroup title={t("footer.services")}>
+          <FooterLink>{t("footer.servicesLinks.airport")}</FooterLink>
+          <FooterLink>{t("footer.servicesLinks.city")}</FooterLink>
+          <FooterLink>{t("footer.servicesLinks.rent")}</FooterLink>
+          <FooterLink>{t("footer.servicesLinks.corporate")}</FooterLink>
         </FooterGroup>
 
-        <FooterGroup title="Hızlı Bağlantılar">
-          <FooterLink>Hakkımızda</FooterLink>
-          <FooterLink>Araçlarımız</FooterLink>
-          <FooterLink>Rezervasyon</FooterLink>
-          <FooterLink>Gizlilik Politikası</FooterLink>
+        <FooterGroup title={t("footer.quickLinksTitle")}>
+          <FooterLink>{t("footer.quickLinks.about")}</FooterLink>
+          <FooterLink>{t("footer.quickLinks.vehicles")}</FooterLink>
+          <FooterLink>{t("footer.quickLinks.reservation")}</FooterLink>
+          <FooterLink>{t("footer.quickLinks.privacy")}</FooterLink>
         </FooterGroup>
 
-        <FooterGroup title="İletişim">
+        <FooterGroup title={t("footer.contact")}>
           <ContactItem icon={Phone}>
             +90 555 555 55 55
           </ContactItem>
@@ -70,11 +72,11 @@ function PublicFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1320px] flex-col gap-3 px-4 py-5 text-xs text-slate-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <span>
-            © 2026 VIP Transfer. Tüm hakları saklıdır.
+            {t("footer.rights")}
           </span>
 
           <span>
-            Güvenli ve konforlu yolculuğun adresi.
+            {t("footer.slogan")}
           </span>
         </div>
       </div>

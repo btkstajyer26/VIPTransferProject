@@ -1,15 +1,18 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function AdminSidebar() {
+  const { t } = useTranslation();
+
   const menuItems = [
-    { path: "/admin", label: "Dashboard" },
-    { path: "/admin/users", label: "Kullanıcılar" },
-    { path: "/admin/reservations", label: "Rezervasyonlar" },
-    { path: "/admin/vehicles", label: "Araçlar" },
-    { path: "/admin/campaigns", label: "Kampanyalar" },
-    { path: "/admin/loyalty", label: "Sadakat Sistemi" },
-    { path: "/admin/pricing-zones", label: "Fiyat Bölgeleri" },
-    { path: "/admin/notifications", label: "Bildirimler" },
+    { path: "/admin", label: t("admin.sidebar.dashboard") },
+    { path: "/admin/users", label: t("admin.sidebar.users") },
+    { path: "/admin/reservations", label: t("admin.sidebar.reservations") },
+    { path: "/admin/vehicles", label: t("admin.sidebar.vehicles") },
+    { path: "/admin/campaigns", label: t("admin.sidebar.campaigns") },
+    { path: "/admin/loyalty", label: t("admin.sidebar.loyalty") },
+    { path: "/admin/pricing-zones", label: t("admin.sidebar.pricing") },
+    { path: "/admin/notifications", label: t("admin.sidebar.notifications") },
   ];
 
   return (

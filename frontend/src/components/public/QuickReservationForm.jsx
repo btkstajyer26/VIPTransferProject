@@ -9,6 +9,7 @@ import {
   Search,
   UsersRound,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const initialForm = {
   pickupAddress: "",
@@ -20,6 +21,7 @@ const initialForm = {
 
 function QuickReservationForm() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState(initialForm);
   const [isRoundTrip, setIsRoundTrip] = useState(false);
@@ -66,17 +68,17 @@ function QuickReservationForm() {
           <div>
             <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.17em] text-blue-600">
               <span className="h-px w-6 bg-blue-600" />
-              Hızlı Rezervasyon
+              {t("reservationForm.badge")}
             </div>
 
             <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#0b1f3a]">
-              Transferinizi planlayın
+              {t("reservationForm.title")}
             </h2>
           </div>
 
           <label className="flex cursor-pointer items-center gap-3">
             <span className="text-sm font-medium text-slate-600">
-              Dönüş transferi ekle
+              {t("reservationForm.addReturn")}
             </span>
 
             <button
@@ -107,13 +109,13 @@ function QuickReservationForm() {
 <div className="grid gap-4">
   {/* Adresler */}
   <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-    <FormField label="Nereden" icon={MapPin}>
+    <FormField label={t("reservationForm.from")} icon={MapPin}>
       <input
         type="text"
         name="pickupAddress"
         value={formData.pickupAddress}
         onChange={handleChange}
-        placeholder="Havalimanı, otel veya adres seçin"
+        placeholder={t("reservationForm.fromPlaceholder")}
         className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
         required
       />
@@ -128,13 +130,13 @@ function QuickReservationForm() {
       <ArrowUpDown size={18} />
     </button>
 
-    <FormField label="Nereye" icon={MapPin}>
+    <FormField label={t("reservationForm.to")} icon={MapPin}>
       <input
         type="text"
         name="dropoffAddress"
         value={formData.dropoffAddress}
         onChange={handleChange}
-        placeholder="Havalimanı, otel veya adres seçin"
+        placeholder={t("reservationForm.toPlaceholder")}
         className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
         required
       />
@@ -143,7 +145,7 @@ function QuickReservationForm() {
 
   {/* Tarih, saat, yolcu ve buton */}
   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_0.9fr_auto]">
-    <FormField label="Tarih" icon={CalendarDays}>
+    <FormField label={t("reservationForm.date")} icon={CalendarDays}>
       <input
         type="date"
         name="scheduledDate"
@@ -155,7 +157,7 @@ function QuickReservationForm() {
       />
     </FormField>
 
-    <FormField label="Saat" icon={Clock3}>
+    <FormField label={t("reservationForm.time")} icon={Clock3}>
       <input
         type="time"
         name="scheduledTime"
@@ -166,7 +168,7 @@ function QuickReservationForm() {
       />
     </FormField>
 
-    <FormField label="Yolcu" icon={UsersRound}>
+    <FormField label={t("reservationForm.passengers")} icon={UsersRound}>
       <select
         name="passengerCount"
         value={formData.passengerCount}
@@ -178,7 +180,7 @@ function QuickReservationForm() {
           (_, index) => index + 1,
         ).map((count) => (
           <option key={count} value={count}>
-            {count} Yolcu
+            {count} {t("reservationForm.passengerCount")}
           </option>
         ))}
       </select>
@@ -189,7 +191,7 @@ function QuickReservationForm() {
       className="group flex min-h-[72px] w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#155eef] to-[#2979ff] px-7 text-sm font-semibold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-600/30 xl:w-auto"
     >
       <Search size={18} />
-      Araçları Gör
+      {t("reservationForm.searchButton")}
       <ArrowRight
         size={17}
         className="transition group-hover:translate-x-1"

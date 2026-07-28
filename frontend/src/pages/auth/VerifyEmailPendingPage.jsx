@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { AlertCircle, LoaderCircle, MailCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { verifyEmail } from "@/api/authApi";
 
 export default function VerifyEmailPendingPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const email = location.state?.email ?? "";
 
@@ -55,12 +57,11 @@ export default function VerifyEmailPendingPage() {
         </div>
 
         <h1 className="mt-6 text-center text-2xl font-semibold text-white">
-          E-postanızı doğrulayın
+          {t("authPage.verifyPendingTitle")}
         </h1>
 
         <p className="mt-3 text-center text-sm leading-6 text-slate-400">
-          <span className="font-medium text-blue-300">{email}</span> adresine
-          gönderilen 6 haneli kodu girin.
+          <span className="font-medium text-blue-300">{email}</span> {t("authPage.verifyPendingDesc")}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
@@ -79,7 +80,7 @@ export default function VerifyEmailPendingPage() {
               htmlFor="code"
               className="mb-2 block text-sm font-medium text-slate-200"
             >
-              Doğrulama Kodu
+              {t("authPage.verifyCodeLabel")}
             </label>
             <input
               id="code"
@@ -103,21 +104,21 @@ export default function VerifyEmailPendingPage() {
             {isLoading ? (
               <>
                 <LoaderCircle className="h-5 w-5 animate-spin" />
-                Doğrulanıyor...
+                {t("authPage.verifyingBtn")}
               </>
             ) : (
-              "Doğrula"
+              t("authPage.verifyBtn")
             )}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          Kodu almadınız mı?{" "}
+          {t("authPage.didNotReceive")}{" "}
           <Link
             to="/register"
             className="font-medium text-blue-300 hover:text-blue-200"
           >
-            Tekrar kayıt olun
+            {t("authPage.registerAgain")}
           </Link>
         </p>
       </section>
