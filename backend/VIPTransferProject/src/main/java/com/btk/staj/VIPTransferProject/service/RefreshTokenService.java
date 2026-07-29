@@ -4,6 +4,7 @@ import com.btk.staj.VIPTransferProject.entity.RefreshToken;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.exception.TokenRefreshException;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.repository.RefreshTokenRepository;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -80,17 +82,29 @@ public class RefreshTokenService {
         log.debug("Token bütünlük doğrulaması başarılı. Kullanıcı ID: {}", token.getUser().getId());
         return token;
     }
-    public boolean isRefreshTokenValidById(Long refreshTokenId) {
-        // ID'si eşleşen, iptal edilmemiş (revoked=false) ve süresi henüz dolmamış (expiresAt > now) kayıt var mı?
-        return refreshTokenRepository.existsByIdAndRevokedFalseAndExpiresAtAfter(
-                refreshTokenId,
-                OffsetDateTime.now()
-        );
+    public void validateSessionIntegrity(Long sessionId, String currentDeviceInfo, String currentIp) {
+        // 1. Veritabanından Session ID'ye göre Refresh Token'ı bul
+        RefreshToken token = refreshTokenRepository.findById(sessionId)
+                .orElseThrow(() -> new UnauthorizedException("Geçersiz oturum: Token bulunamadı."));
+        // 2. Oturum iptal edilmiş mi veya süresi dolmuş mu?
+        if (token.isRevoked() || token.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            throw new UnauthorizedException("Bu oturum sonlandırılmış veya süresi dolmuş. Lütfen tekrar giriş yapın.");
+        }
+        // 3. Cihaz (Token Binding) kontrolü - Session Hijacking tespiti
+        String originalDeviceInfo = token.getDeviceInfo();
+        if (originalDeviceInfo != null && !originalDeviceInfo.equals(currentDeviceInfo)) {
+            log.warn("[SECURITY-ALERT] Session Hijacking Şüphesi! Saldırgan IP: {}, Orijinal Cihaz: {}, Yeni Cihaz: {}",
+                    currentIp, originalDeviceInfo, currentDeviceInfo);
+            // Çalınma tespit edildiği için token revoke ediliyor
+            revokeToken(token);
+            throw new UnauthorizedException("Güvenlik ihlali: Bu token başka bir cihazdan kullanılamaz!");
+        }
     }
     @Transactional
     public void revokeToken(RefreshToken token) {
         token.setRevoked(true);
         token.setRevokedAt(OffsetDateTime.now());
         refreshTokenRepository.save(token);
+        log.warn("{} id numarali kullanicinin {} id numarali refresh token'i iptal edildi.",token.getUser().getId(),token.getId());
     }
 }
