@@ -13,6 +13,7 @@ import VehicleTable from "@/components/vehicles/VehicleTable";
 import VehicleToolbar from "@/components/vehicles/VehicleToolbar";
 import useVehicles from "@/hooks/useVehicles";
 
+
 function VehiclesPage() {
   const {
     vehicles,
