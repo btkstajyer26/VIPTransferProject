@@ -1,7 +1,8 @@
 import { useState } from "react";
-import {Link, useNavigate,} from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
+  CheckCircle2,
   Eye,
   EyeOff,
   LoaderCircle,
@@ -20,8 +21,11 @@ const INITIAL_FORM = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const { t } = useTranslation();
+
+  const passwordReset = location.state?.passwordReset ?? false;
 
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [showPassword, setShowPassword] = useState(false);
@@ -223,6 +227,19 @@ export default function LoginPage() {
               noValidate
               className="mt-8 space-y-5"
             >
+              {passwordReset && (
+                <div
+                  role="status"
+                  className="flex items-start gap-3 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-300"
+                >
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                  <span>
+                    Şifreniz başarıyla sıfırlandı. Yeni şifrenizle giriş
+                    yapabilirsiniz.
+                  </span>
+                </div>
+              )}
+
               {serverError && (
                 <div
                   role="alert"
@@ -338,6 +355,15 @@ export default function LoginPage() {
                     {errors.password}
                   </p>
                 )}
+
+                <div className="mt-2 text-right">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-blue-300 hover:text-blue-200"
+                  >
+                    Şifremi unuttum
+                  </Link>
+                </div>
               </div>
 
               <button

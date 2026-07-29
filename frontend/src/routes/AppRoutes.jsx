@@ -18,6 +18,7 @@ import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
 import VerifyEmailPendingPage from "../pages/auth/VerifyEmailPendingPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
 import DashboardPage from "../pages/admin/DashboardPage";
 import UsersPage from "../pages/admin/UsersPage";
@@ -52,6 +53,10 @@ function AppRoutes() {
           <Route
             path="/verify-email-pending"
             element={<VerifyEmailPendingPage />}
+          />
+          <Route
+            path="/forgot-password"
+            element={<ForgotPasswordPage />}
           />
         </Route>
 
