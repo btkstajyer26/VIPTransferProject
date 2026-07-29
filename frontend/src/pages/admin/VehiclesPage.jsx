@@ -14,6 +14,7 @@ import VehicleToolbar from "@/components/vehicles/VehicleToolbar";
 import useVehicles from "@/hooks/useVehicles";
 import { useTranslation } from "react-i18next";
 
+
 function VehiclesPage() {
   const { t } = useTranslation();
   const {

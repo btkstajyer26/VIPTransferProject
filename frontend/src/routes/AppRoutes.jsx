@@ -13,6 +13,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import HomePage from "../pages/public/HomePage";
 import ReservationPage from "../pages/public/ReservationPage";
+import ReservationConfirm from "../components/reservations/ReservationConfirm";
 
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
@@ -35,25 +36,44 @@ function AppRoutes() {
       <Routes>
         {/* Public */}
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={<HomePage />}
+          />
+
           <Route
             path="/reservation"
             element={<ReservationPage />}
+          />
+
+          <Route
+            path="/reservation/confirm"
+            element={<ReservationConfirm />}
           />
         </Route>
 
         {/* Auth */}
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/login"
+            element={<LoginPage />}
+          />
+
+          <Route
+            path="/register"
+            element={<RegisterPage />}
+          />
+
           <Route
             path="/verify-email"
             element={<VerifyEmailPage />}
           />
+
           <Route
             path="/verify-email-pending"
             element={<VerifyEmailPendingPage />}
           />
+
           <Route
             path="/forgot-password"
             element={<ForgotPasswordPage />}
@@ -63,10 +83,15 @@ function AppRoutes() {
         {/* Admin */}
         <Route
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]} />
+            <ProtectedRoute
+              allowedRoles={["ADMIN"]}
+            />
           }
         >
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={<AdminLayout />}
+          >
             <Route
               index
               element={
@@ -122,7 +147,12 @@ function AppRoutes() {
         {/* 404 */}
         <Route
           path="*"
-          element={<Navigate to="/" replace />}
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
         />
       </Routes>
     </BrowserRouter>
