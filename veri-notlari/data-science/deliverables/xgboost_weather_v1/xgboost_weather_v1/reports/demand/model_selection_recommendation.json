@@ -1,0 +1,10 @@
+{
+    "recommended_model_by_test_mae": "XGBOOST_WEATHER",
+    "selection_rule": "Lowest MAE; RMSE used as secondary comparison.",
+    "xgboost_mae": 12.04970984944874,
+    "random_forest_mae": 12.562400694444445,
+    "seasonal_naive_mae": 15.906051587301587,
+    "xgboost_selected": true,
+    "automatic_production_deployment": false,
+    "reason": "Model selection report is decision support. Backend or Pricing Service deployment requires review."
+}
