@@ -54,6 +54,7 @@ export default function TransferSearchScreen({ navigation }) {
   const [passengerCount, setPassengerCount] = useState(1);
   const [errors, setErrors] = useState({});
   const reverseControllerRef = useRef(null);
+  const pickerFallbackValueRef = useRef(new Date());
 
   useEffect(
     () => () => {
@@ -163,6 +164,26 @@ export default function TransferSearchScreen({ navigation }) {
     setPickerMode(null);
   }
 
+  function handleDatePickerChange(event, value) {
+    if (Platform.OS === 'android' && (event.type === 'dismissed' || !value)) {
+      handlePickerDismiss();
+      return;
+    }
+
+    if (!value) return;
+    handleDateValueChange(value);
+  }
+
+  function handleTimePickerChange(event, value) {
+    if (Platform.OS === 'android' && (event.type === 'dismissed' || !value)) {
+      handlePickerDismiss();
+      return;
+    }
+
+    if (!value) return;
+    handleTimeValueChange(value);
+  }
+
   function updatePassengerCount(change) {
     setPassengerCount((count) =>
       Math.min(MAX_PASSENGER_COUNT, Math.max(MIN_PASSENGER_COUNT, count + change)),
@@ -192,7 +213,10 @@ export default function TransferSearchScreen({ navigation }) {
     navigation.navigate('VehicleSelection', { transferDetails });
   }
 
-  const pickerValue = pickerMode === 'date' ? selectedDate || new Date() : selectedTime || new Date();
+  const pickerValue =
+    pickerMode === 'date'
+      ? selectedDate || pickerFallbackValueRef.current
+      : selectedTime || pickerFallbackValueRef.current;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
@@ -347,10 +371,10 @@ export default function TransferSearchScreen({ navigation }) {
           {pickerMode === 'date' ? (
             <View style={styles.pickerArea}>
               <DateTimePicker
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={new Date()}
                 mode="date"
-                onDismiss={handlePickerDismiss}
-                onValueChange={(...args) => handleDateValueChange(args[1])}
+                onChange={handleDatePickerChange}
                 themeVariant={theme.mode}
                 value={pickerValue}
               />
@@ -369,9 +393,9 @@ export default function TransferSearchScreen({ navigation }) {
           {pickerMode === 'time' ? (
             <View style={styles.pickerArea}>
               <DateTimePicker
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 mode="time"
-                onDismiss={handlePickerDismiss}
-                onValueChange={(...args) => handleTimeValueChange(args[1])}
+                onChange={handleTimePickerChange}
                 themeVariant={theme.mode}
                 value={pickerValue}
               />
