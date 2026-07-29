@@ -117,7 +117,7 @@ public class AuthService {
         String refreshTokenString = refreshToken.getToken();
         Long sessionId = refreshToken.getId();
 
-        String accessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(), sessionId,deviceInfo);
+        String accessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(), sessionId);
 
         log.info("Güvenlik - Başarılı Giriş: Kullanıcı ({}) için token üretildi.", identifier);
 
@@ -140,7 +140,7 @@ public class AuthService {
         User user = token.getUser();
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
 
-        String newAccessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(), token.getId(),currentDeviceInfo);
+        String newAccessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(), token.getId());
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
