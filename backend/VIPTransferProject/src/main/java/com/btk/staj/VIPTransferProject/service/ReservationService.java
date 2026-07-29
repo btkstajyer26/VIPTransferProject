@@ -149,14 +149,17 @@ public class ReservationService {
                 .status(ReservationStatus.PENDING)
                 .build();
 
-        // TODO(pricing-team): Rezervasyon kaydedildikten sonra campaigns.used_count +1 artırılmalı.
-        // Şu an used_count hiç güncellenmiyor; max_uses limiti hiçbir zaman dolmuyor.
-        // Öneri: CampaignRepository.incrementUsedCount(campaignId) — @Modifying @Query ile.
-
         try {
             reservation = reservationRepository.save(reservation);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessRuleException("Rezervasyon oluşturulamadı, lütfen tekrar deneyin.");
+        }
+
+        if (campaign != null) {
+            int updated = campaignRepository.incrementUsedCountIfAvailable(campaign.getId());
+            if (updated == 0) {
+                throw new BusinessRuleException("Kampanyanın kullanım limiti dolmuş.");
+            }
         }
 
         log.info("Rezervasyon oluşturuldu. id={}, bookingRef={}, zone={}, finalPrice={}",
