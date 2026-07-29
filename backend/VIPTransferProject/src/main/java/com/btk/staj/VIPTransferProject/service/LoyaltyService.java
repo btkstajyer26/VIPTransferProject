@@ -13,6 +13,7 @@ import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -64,7 +65,7 @@ public class LoyaltyService {
                 .build();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void AccruePoints(AccruePointsRequests requests) {
         LoyaltyAccount account = findAccountOrThrow(requests.getUserId());
         LoyaltyTierConfig currentConfig = findTierConfigOrThrow(account.getTier());

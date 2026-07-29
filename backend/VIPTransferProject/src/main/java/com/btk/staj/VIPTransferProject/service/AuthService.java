@@ -230,7 +230,7 @@ public class AuthService {
                 .build();
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = BusinessRuleException.class)
     public void verifyEmail(VerifyEmailRequest request) {
         log.info("E-posta doğrulama isteği başlatıldı. Email: {}", request.getEmail());
 
@@ -292,7 +292,7 @@ public class AuthService {
         }
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = BusinessRuleException.class)
     public void resetPassword(ResetPasswordRequest request) {
         log.info("Şifre sıfırlama tamamlama isteği alındı. Email: {}", request.getEmail());
 
