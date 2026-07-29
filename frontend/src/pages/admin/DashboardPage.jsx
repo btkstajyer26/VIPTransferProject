@@ -32,17 +32,18 @@ import useDashboard from "@/hooks/useDashboard";
 import { useTranslation } from "react-i18next";
 
 const STATUS_LABELS = {
-  PENDING: "Bekliyor",
-  CONFIRMED: "Onaylandı",
-  DRIVER_ASSIGNED: "Sürücü Atandı",
-  ON_THE_WAY: "Yolda",
-  IN_PROGRESS: "Devam Ediyor",
-  COMPLETED: "Tamamlandı",
-  CANCELLED: "İptal Edildi",
+  PENDING: "admin.reservationList.status.PENDING",
+  CONFIRMED: "admin.reservationList.status.CONFIRMED",
+  DRIVER_ASSIGNED: "admin.reservationList.status.DRIVER_ASSIGNED",
+  ON_THE_WAY: "admin.reservationList.status.ON_THE_WAY",
+  IN_PROGRESS: "admin.reservationList.status.IN_PROGRESS",
+  COMPLETED: "admin.reservationList.status.COMPLETED",
+  CANCELLED: "admin.reservationList.status.CANCELLED",
 };
 
-function getStatusLabel(status) {
-  return STATUS_LABELS[status] ?? status ?? "Bilinmiyor";
+function getStatusLabel(status, t) {
+  const labelKey = STATUS_LABELS[status];
+  return labelKey ? t(labelKey) : (status ?? t('admin.reservationList.status.unknown'));
 }
 
 function getStatusVariant(status) {
@@ -102,16 +103,16 @@ function formatPrice(value, currency = "TRY") {
   }
 }
 
-function getCustomerLabel(reservation) {
+function getCustomerLabel(reservation, t) {
   if (reservation.guestPhone) {
     return reservation.guestPhone;
   }
 
   if (reservation.userId) {
-    return `Kullanıcı #${reservation.userId}`;
+    return `${t('admin.reservationList.table.customer')} #${reservation.userId}`;
   }
 
-  return "Misafir kullanıcı";
+  return t('admin.reservationList.table.guest');
 }
 
 function DashboardPage() {
@@ -274,7 +275,7 @@ function DashboardPage() {
                       </TableCell>
 
                       <TableCell>
-                        {getCustomerLabel(reservation)}
+                        {getCustomerLabel(reservation, t)}
                       </TableCell>
 
                       <TableCell>
@@ -310,7 +311,7 @@ function DashboardPage() {
                             reservation.status,
                           )}
                         >
-                          {getStatusLabel(reservation.status)}
+                          {getStatusLabel(reservation.status, t)}
                         </Badge>
                       </TableCell>
                     </TableRow>

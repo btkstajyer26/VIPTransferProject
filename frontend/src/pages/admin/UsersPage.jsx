@@ -103,7 +103,7 @@ function UsersPage() {
           <AlertCircle className="size-4" />
 
           <AlertDescription>
-            {error}
+            {error === "Network Error" || error === "Ağ Hatası" ? t("admin.errors.network") : error}
           </AlertDescription>
         </Alert>
       )}

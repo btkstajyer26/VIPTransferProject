@@ -63,12 +63,28 @@ const resources = {
         reservations: {
           title: "Rezervasyon Yönetimi", subtitle: "Tüm rezervasyonları görüntüleyin, filtreleyin ve durumlarını yönetin.", retry: "Tekrar dene", loading: "Rezervasyonlar yükleniyor..."
         },
+        reservationList: {
+          notFound: 'Rezervasyon bulunamadı',
+          tryAgain: 'Arama veya filtre kriterlerini değiştirerek tekrar deneyin.',
+          table: {
+            reservation: 'Rezervasyon', customer: 'Müşteri', route: 'Güzergâh', date: 'Tarih', vehicle: 'Araç', passengers: 'Yolcu', price: 'Fiyat', status: 'Durum', action: 'İşlem',
+            registered: 'Kayıtlı kullanıcı', guest: 'Misafir', pickup: 'Alış', dropoff: 'Varış', flight: 'Uçuş:', actions: 'Rezervasyon işlemleri', viewDetails: 'Detayları görüntüle', statusHistory: 'Durum geçmişi', changeStatus: 'Durumu değiştir'
+          },
+          toolbar: { searchPlaceholder: 'Rezervasyon kodu, adres, araç veya telefon ara...', selectStatus: 'Durum seç', allStatuses: 'Tüm Durumlar' },
+          status: { PENDING: 'Bekliyor', ASSIGNED: 'Araç Atandı', COMPLETED: 'Tamamlandı', CANCELLED: 'İptal Edildi', NO_SHOW: 'Gelmedi', CONFIRMED: 'Onaylandı', DRIVER_ASSIGNED: 'Sürücü Atandı', ON_THE_WAY: 'Yolda', IN_PROGRESS: 'Devam Ediyor', unknown: 'Bilinmiyor', customerNoShow: 'Müşteri Gelmedi' },
+          dialog: { title: 'Rezervasyon Durumunu Değiştir', desc: '{{ref}} numaralı rezervasyonun durumunu güncelleyin.', currentStatus: 'Mevcut Durum', cannotChangeTitle: 'Durum değiştirilemez', cannotChangeDesc: 'Bu rezervasyon son durumuna ulaşmıştır. Yeni bir durum seçilemez.', newStatus: 'Yeni Durum', selectNewStatus: 'Yeni durumu seçin', noteLabel: 'Durum Değişikliği Notu', notePlaceholder: 'Örneğin: Şoför ve araç bilgileri müşteriye iletildi.', cancel: 'Vazgeç', update: 'Durumu Güncelle' },
+          errors: { fetchFailed: 'Rezervasyonlar alınırken bir hata oluştu.', updateFailed: 'Rezervasyon durumu güncellenirken bir hata oluştu.' }
+        },
         vehicles: {
           title: "Araçlar", subtitle: "Sistemde kayıtlı transfer araçlarını yönetin.", listTitle: "Araç Listesi", listDesc: "Sistemde toplam {{count}} araç bulunmaktadır."
         },
         loyalty: {
           title: "Sadakat Yönetimi", subtitle: "Kullanıcıların sadakat puanlarını ve seviyelerini görüntüleyin.", searchTitle: "Kullanıcı Ara", searchDesc: "Sadakat hesabını görüntülemek için kullanıcı ID bilgisini girin.", label: "Kullanıcı ID", placeholder: "Örneğin: 6", searching: "Sorgulanıyor...", searchBtn: "Hesabı Görüntüle"
-        }
+        },
+        errors: { network: "Ağ Hatası", default: "Bir hata oluştu" },
+        usersList: { searchPlaceholder: "Ad, e-posta veya telefon ara...", roleFilter: "Rol", allRoles: "Tüm roller", roles: { ADMIN: "Admin", CUSTOMER: "Müşteri" }, typeFilter: "Kullanıcı türü", allTypes: "Tüm kullanıcılar", types: { MEMBER: "Kayıtlı üyeler", GUEST: "Misafir kullanıcılar" }, notFound: "Filtrelere uygun kullanıcı bulunamadı.", table: { user: "Kullanıcı", phone: "Telefon", role: "Rol", type: "Tür", status: "Durum", registeredAt: "Kayıt tarihi", actions: "İşlemler", unnamed: "İsimsiz kullanıcı", noEmail: "E-posta bulunmuyor", guest: "Misafir", member: "Üye" } },
+        vehiclesList: { searchPlaceholder: "Marka, model veya plaka ara...", classFilter: "Sınıf", allClasses: "Tüm sınıflar", statusFilter: "Durum", allStatuses: "Tüm durumlar", statuses: { ACTIVE: "Aktif", MAINTENANCE: "Bakımda", INACTIVE: "Pasif" }, notFound: "Filtrelere uygun araç bulunamadı.", table: { vehicle: "Araç / Plaka", classCapacity: "Sınıf / Kapasite", status: "Durum", year: "Yıl", price: "Baz Fiyat / Km", actions: "İşlemler" } },
+        notifications: { title: "Bildirimler", subtitle: "Sistemdeki tüm bildirimleri görüntüleyin ve yönetin.", refresh: "Yenile", stats: { pending: "Bekleyen", sent: "Gönderilen", failed: "Başarısız", total: "Toplam" }, listTitle: "Bildirim Listesi", listDesc: "Tüm kanallardaki bildirimler listelenmektedir.", pendingActions: "işlem bekliyor", searchPlaceholder: "Başlık, mesaj veya kullanıcı ID ara...", statusFilter: "Durum", allStatuses: "Tüm Durumlar", statuses: { PENDING: "Bekliyor", SENT: "Gönderildi", DELIVERED: "İletildi", FAILED: "Başarısız", READ: "Okundu" }, channelFilter: "Kanal", allChannels: "Tüm Kanallar", channels: { EMAIL: "E-posta", SMS: "SMS", PUSH: "Push", WHATSAPP: "WhatsApp" }, notFound: "Bildirim bulunamadı.", table: { id: "ID", title: "Başlık", user: "Kullanıcı", channel: "Kanal", status: "Durum", createdAt: "Oluşturulma", sentAt: "Gönderilme", actions: "İşlem", error: "Hata:", send: "Gönder", markAsRead: "Okundu işaretle", read: "Okundu" } }
       }
     }
   },
@@ -130,12 +146,28 @@ const resources = {
         reservations: {
           title: "Reservation Management", subtitle: "View, filter, and manage statuses of all reservations.", retry: "Try again", loading: "Loading reservations..."
         },
+        reservationList: {
+          notFound: 'Reservation not found',
+          tryAgain: 'Try again by changing search or filter criteria.',
+          table: {
+            reservation: 'Reservation', customer: 'Customer', route: 'Route', date: 'Date', vehicle: 'Vehicle', passengers: 'Passenger(s)', price: 'Price', status: 'Status', action: 'Action',
+            registered: 'Registered user', guest: 'Guest', pickup: 'Pickup', dropoff: 'Drop-off', flight: 'Flight:', actions: 'Reservation actions', viewDetails: 'View details', statusHistory: 'Status history', changeStatus: 'Change status'
+          },
+          toolbar: { searchPlaceholder: 'Search reservation code, address, vehicle or phone...', selectStatus: 'Select status', allStatuses: 'All Statuses' },
+          status: { PENDING: 'Pending', ASSIGNED: 'Driver Assigned', COMPLETED: 'Completed', CANCELLED: 'Cancelled', NO_SHOW: 'No Show', CONFIRMED: 'Confirmed', DRIVER_ASSIGNED: 'Driver Assigned', ON_THE_WAY: 'On The Way', IN_PROGRESS: 'In Progress', unknown: 'Unknown', customerNoShow: 'Customer No Show' },
+          dialog: { title: 'Change Reservation Status', desc: 'Update status of reservation {{ref}}.', currentStatus: 'Current Status', cannotChangeTitle: 'Status cannot be changed', cannotChangeDesc: 'This reservation has reached its final status. A new status cannot be selected.', newStatus: 'New Status', selectNewStatus: 'Select new status', noteLabel: 'Status Change Note', notePlaceholder: 'Example: Driver and vehicle info sent to customer.', cancel: 'Cancel', update: 'Update Status' },
+          errors: { fetchFailed: 'An error occurred while fetching reservations.', updateFailed: 'An error occurred while updating the reservation status.' }
+        },
         vehicles: {
           title: "Vehicles", subtitle: "Manage transfer vehicles registered in the system.", listTitle: "Vehicle List", listDesc: "There are a total of {{count}} vehicles in the system."
         },
         loyalty: {
           title: "Loyalty Management", subtitle: "View users' loyalty points and tiers.", searchTitle: "Search User", searchDesc: "Enter the user ID to view the loyalty account.", label: "User ID", placeholder: "Example: 6", searching: "Searching...", searchBtn: "View Account"
-        }
+        },
+        errors: { network: "Network Error", default: "An error occurred" },
+        usersList: { searchPlaceholder: "Search name, email or phone...", roleFilter: "Role", allRoles: "All roles", roles: { ADMIN: "Admin", CUSTOMER: "Customer" }, typeFilter: "User type", allTypes: "All users", types: { MEMBER: "Registered members", GUEST: "Guest users" }, notFound: "No user found matching the filters.", table: { user: "User", phone: "Phone", role: "Role", type: "Type", status: "Status", registeredAt: "Registered At", actions: "Actions", unnamed: "Unnamed user", noEmail: "No email", guest: "Guest", member: "Member" } },
+        vehiclesList: { searchPlaceholder: "Search brand, model or plate...", classFilter: "Class", allClasses: "All classes", statusFilter: "Status", allStatuses: "All statuses", statuses: { ACTIVE: "Active", MAINTENANCE: "Maintenance", INACTIVE: "Inactive" }, notFound: "No vehicle found matching the filters.", table: { vehicle: "Vehicle / Plate", classCapacity: "Class / Capacity", status: "Status", year: "Year", price: "Base Price / Km", actions: "Actions" } },
+        notifications: { title: "Notifications", subtitle: "View and manage all notifications in the system.", refresh: "Refresh", stats: { pending: "Pending", sent: "Sent", failed: "Failed", total: "Total" }, listTitle: "Notification List", listDesc: "Notifications across all channels are listed.", pendingActions: "pending actions", searchPlaceholder: "Search title, message or user ID...", statusFilter: "Status", allStatuses: "All Statuses", statuses: { PENDING: "Pending", SENT: "Sent", DELIVERED: "Delivered", FAILED: "Failed", READ: "Read" }, channelFilter: "Channel", allChannels: "All Channels", channels: { EMAIL: "Email", SMS: "SMS", PUSH: "Push", WHATSAPP: "WhatsApp" }, notFound: "No notifications found.", table: { id: "ID", title: "Title", user: "User", channel: "Channel", status: "Status", createdAt: "Created At", sentAt: "Sent At", actions: "Action", error: "Error:", send: "Send", markAsRead: "Mark as read", read: "Read" } }
       }
     }
   },
@@ -197,12 +229,28 @@ const resources = {
         reservations: {
           title: "Управление бронированиями", subtitle: "Просмотр и фильтрация всех бронирований.", retry: "Повторить", loading: "Загрузка бронирований..."
         },
+        reservationList: {
+          notFound: 'Бронирование не найдено',
+          tryAgain: 'Попробуйте снова, изменив критерии поиска или фильтра.',
+          table: {
+            reservation: 'Бронирование', customer: 'Клиент', route: 'Маршрут', date: 'Дата', vehicle: 'Автомобиль', passengers: 'Пассажир(ы)', price: 'Цена', status: 'Статус', action: 'Действие',
+            registered: 'Зарегистрированный пользователь', guest: 'Гость', pickup: 'Посадка', dropoff: 'Высадка', flight: 'Рейс:', actions: 'Действия', viewDetails: 'Смотреть детали', statusHistory: 'История статусов', changeStatus: 'Изменить статус'
+          },
+          toolbar: { searchPlaceholder: 'Поиск кода бронирования, адреса, автомобиля или телефона...', selectStatus: 'Выберите статус', allStatuses: 'Все статусы' },
+          status: { PENDING: 'В ожидании', ASSIGNED: 'Автомобиль назначен', COMPLETED: 'Завершено', CANCELLED: 'Отменено', NO_SHOW: 'Не явился', CONFIRMED: 'Подтверждено', DRIVER_ASSIGNED: 'Водитель назначен', ON_THE_WAY: 'В пути', IN_PROGRESS: 'В процессе', unknown: 'Неизвестно', customerNoShow: 'Клиент не явился' },
+          dialog: { title: 'Изменить статус бронирования', desc: 'Обновите статус бронирования {{ref}}.', currentStatus: 'Текущий статус', cannotChangeTitle: 'Статус не может быть изменен', cannotChangeDesc: 'Это бронирование достигло своего конечного статуса.', newStatus: 'Новый статус', selectNewStatus: 'Выберите новый статус', noteLabel: 'Заметка об изменении статуса', notePlaceholder: 'Например: Данные отправлены клиенту.', cancel: 'Отмена', update: 'Обновить статус' },
+          errors: { fetchFailed: 'Произошла ошибка при получении бронирований.', updateFailed: 'Произошла ошибка при обновлении статуса бронирования.' }
+        },
         vehicles: {
           title: "Автомобили", subtitle: "Управление автомобилями.", listTitle: "Список автомобилей", listDesc: "Всего {{count}} автомобилей."
         },
         loyalty: {
           title: "Управление лояльностью", subtitle: "Просмотр баллов и уровней лояльности.", searchTitle: "Поиск пользователя", searchDesc: "Введите ID пользователя.", label: "ID пользователя", placeholder: "Пример: 6", searching: "Поиск...", searchBtn: "Посмотреть аккаунт"
-        }
+        },
+        errors: { network: "Ошибка сети", default: "Произошла ошибка" },
+        usersList: { searchPlaceholder: "Поиск по имени, email или телефону...", roleFilter: "Роль", allRoles: "Все роли", roles: { ADMIN: "Админ", CUSTOMER: "Клиент" }, typeFilter: "Тип пользователя", allTypes: "Все пользователи", types: { MEMBER: "Зарегистрированные", GUEST: "Гости" }, notFound: "Пользователи не найдены.", table: { user: "Пользователь", phone: "Телефон", role: "Роль", type: "Тип", status: "Статус", registeredAt: "Дата регистрации", actions: "Действия", unnamed: "Неизвестный", noEmail: "Нет email", guest: "Гость", member: "Участник" } },
+        vehiclesList: { searchPlaceholder: "Поиск марки, модели или номера...", classFilter: "Класс", allClasses: "Все классы", statusFilter: "Статус", allStatuses: "Все статусы", statuses: { ACTIVE: "Активен", MAINTENANCE: "На ремонте", INACTIVE: "Неактивен" }, notFound: "Транспортные средства не найдены.", table: { vehicle: "ТС / Номер", classCapacity: "Класс / Места", status: "Статус", year: "Год", price: "Базовая цена / км", actions: "Действия" } },
+        notifications: { title: "Уведомления", subtitle: "Просмотр и управление всеми уведомлениями в системе.", refresh: "Обновить", stats: { pending: "В ожидании", sent: "Отправлено", failed: "Ошибка", total: "Всего" }, listTitle: "Список уведомлений", listDesc: "Список уведомлений по всем каналам.", pendingActions: "ожидает действий", searchPlaceholder: "Поиск заголовка, сообщения или ID...", statusFilter: "Статус", allStatuses: "Все статусы", statuses: { PENDING: "В ожидании", SENT: "Отправлено", DELIVERED: "Доставлено", FAILED: "Ошибка", READ: "Прочитано" }, channelFilter: "Канал", allChannels: "Все каналы", channels: { EMAIL: "Email", SMS: "SMS", PUSH: "Push", WHATSAPP: "WhatsApp" }, notFound: "Уведомления не найдены.", table: { id: "ID", title: "Заголовок", user: "Пользователь", channel: "Канал", status: "Статус", createdAt: "Создано", sentAt: "Отправлено", actions: "Действие", error: "Ошибка:", send: "Отправить", markAsRead: "Отметить как прочитанное", read: "Прочитано" } }
       }
     }
   },
@@ -264,12 +312,28 @@ const resources = {
         reservations: {
           title: "Menaxhimi i Rezervimeve", subtitle: "Shikoni, filtroni dhe menaxhoni statuset.", retry: "Provo përsëri", loading: "Duke ngarkuar..."
         },
+        reservationList: {
+          notFound: 'Rezervimi nuk u gjet',
+          tryAgain: 'Provoni përsëri duke ndryshuar kriteret e kërkimit ose filtrit.',
+          table: {
+            reservation: 'Rezervimi', customer: 'Klienti', route: 'Destinacioni', date: 'Data', vehicle: 'Automjeti', passengers: 'Pasagjerët', price: 'Çmimi', status: 'Statusi', action: 'Veprimi',
+            registered: 'Përdorues i regjistruar', guest: 'Mysafir', pickup: 'Marrja', dropoff: 'Zbritja', flight: 'Fluturimi:', actions: 'Veprimet e rezervimit', viewDetails: 'Shiko detajet', statusHistory: 'Historiku i statusit', changeStatus: 'Ndrysho statusin'
+          },
+          toolbar: { searchPlaceholder: 'Kërko kodin e rezervimit, adresën, mjetin ose telefonin...', selectStatus: 'Zgjidh statusin', allStatuses: 'Të gjitha statuset' },
+          status: { PENDING: 'Në pritje', ASSIGNED: 'Automjeti i caktuar', COMPLETED: 'E përfunduar', CANCELLED: 'E anuluar', NO_SHOW: 'Nuk u paraqit', CONFIRMED: 'E konfirmuar', DRIVER_ASSIGNED: 'Shoferi i caktuar', ON_THE_WAY: 'Në rrugë', IN_PROGRESS: 'Në vazhdim', unknown: 'E panjohur', customerNoShow: 'Klienti nuk u paraqit' },
+          dialog: { title: 'Ndrysho statusin e rezervimit', desc: 'Përditëso statusin e rezervimit me numër {{ref}}.', currentStatus: 'Statusi aktual', cannotChangeTitle: 'Statusi nuk mund të ndryshohet', cannotChangeDesc: 'Ky rezervim ka arritur statusin përfundimtar. Nuk mund të zgjidhet një status i ri.', newStatus: 'Statusi i ri', selectNewStatus: 'Zgjidh statusin e ri', noteLabel: 'Shënim për ndryshimin e statusit', notePlaceholder: 'Për shembull: Të dhënat e shoferit dhe mjetit u janë dërguar klientit.', cancel: 'Anulo', update: 'Përditëso statusin' },
+          errors: { fetchFailed: 'Ndodhi një gabim gjatë marrjes së rezervimeve.', updateFailed: 'Ndodhi një gabim gjatë përditësimit të statusit të rezervimit.' }
+        },
         vehicles: {
           title: "Automjetet", subtitle: "Menaxhoni automjetet.", listTitle: "Lista e Automjeteve", listDesc: "Ka një total prej {{count}} automjetesh."
         },
         loyalty: {
           title: "Menaxhimi i Besnikërisë", subtitle: "Shikoni pikët e besnikërisë.", searchTitle: "Kërko Përdorues", searchDesc: "Shkruani ID-në e përdoruesit.", label: "ID e përdoruesit", placeholder: "Shembull: 6", searching: "Duke kërkuar...", searchBtn: "Shiko Llogarinë"
-        }
+        },
+        errors: { network: "Gabim Rrjeti", default: "Ndodhi një gabim" },
+        usersList: { searchPlaceholder: "Kërko emër, email ose telefon...", roleFilter: "Roli", allRoles: "Të gjitha rolet", roles: { ADMIN: "Admin", CUSTOMER: "Klient" }, typeFilter: "Lloji i përdoruesit", allTypes: "Të gjithë përdoruesit", types: { MEMBER: "Anëtarë të regjistruar", GUEST: "Përdorues mysafirë" }, notFound: "Asnjë përdorues nuk u gjet sipas filtrave.", table: { user: "Përdoruesi", phone: "Telefoni", role: "Roli", type: "Lloji", status: "Statusi", registeredAt: "Regjistruar më", actions: "Veprimet", unnamed: "Përdorues i paemërtuar", noEmail: "Nuk ka email", guest: "Mysafir", member: "Anëtar" } },
+        vehiclesList: { searchPlaceholder: "Kërko markën, modelin ose targën...", classFilter: "Klasa", allClasses: "Të gjitha klasat", statusFilter: "Statusi", allStatuses: "Të gjitha statuset", statuses: { ACTIVE: "Aktiv", MAINTENANCE: "Në mirëmbajtje", INACTIVE: "Joaktiv" }, notFound: "Asnjë mjet nuk u gjet sipas filtrave.", table: { vehicle: "Mjeti / Targa", classCapacity: "Klasa / Kapaciteti", status: "Statusi", year: "Viti", price: "Çmimi Bazë / Km", actions: "Veprimet" } },
+        notifications: { title: "Njoftimet", subtitle: "Shiko dhe menaxho të gjitha njoftimet në sistem.", refresh: "Rifresko", stats: { pending: "Në pritje", sent: "Dërguar", failed: "Dështoi", total: "Totali" }, listTitle: "Lista e Njoftimeve", listDesc: "Lista e njoftimeve në të gjitha kanalet.", pendingActions: "veprime në pritje", searchPlaceholder: "Kërko titullin, mesazhin ose ID e përdoruesit...", statusFilter: "Statusi", allStatuses: "Të gjitha Statuset", statuses: { PENDING: "Në pritje", SENT: "Dërguar", DELIVERED: "Dorëzuar", FAILED: "Dështoi", READ: "Lexuar" }, channelFilter: "Kanali", allChannels: "Të gjitha Kanalet", channels: { EMAIL: "Email", SMS: "SMS", PUSH: "Push", WHATSAPP: "WhatsApp" }, notFound: "Asnjë njoftim nuk u gjet.", table: { id: "ID", title: "Titulli", user: "Përdoruesi", channel: "Kanali", status: "Statusi", createdAt: "Krijuar më", sentAt: "Dërguar më", actions: "Veprimi", error: "Gabim:", send: "Dërgo", markAsRead: "Shëno të lexuar", read: "Lexuar" } }
       }
     }
   }

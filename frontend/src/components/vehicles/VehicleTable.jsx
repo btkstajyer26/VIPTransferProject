@@ -17,10 +17,7 @@ import {
 } from "@/components/ui/table";
 
 import VehicleStatusBadge from "./VehicleStatusBadge";
-
-
-
-
+import { useTranslation } from "react-i18next";
 function VehicleTable({
   vehicles,
   onEdit,
@@ -28,14 +25,13 @@ function VehicleTable({
   onToggleStatus,
   onViewPhoto,
 }) {
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
+
   if (vehicles.length === 0) {
     return (
       <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed text-center">
-        <p className="font-medium">Araç bulunamadı</p>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Arama veya filtre kriterlerini değiştirmeyi deneyin.
-        </p>
+        <p className="font-medium">{t("admin.vehiclesList.notFound")}</p>
       </div>
     );
   }
@@ -47,7 +43,7 @@ function VehicleTable({
       return "-";
     }
 
-    return new Intl.NumberFormat("tr-TR", {
+    return new Intl.NumberFormat(currentLang === "TR" ? "tr-TR" : "en-US", {
       style: "currency",
       currency: "TRY",
     }).format(numericPrice);
@@ -69,15 +65,15 @@ function VehicleTable({
         <TableHeader>
           <TableRow>
             <TableHead>Plaka</TableHead>
-            <TableHead>Araç</TableHead>
-            <TableHead>Yıl / Renk</TableHead>
+            <TableHead>{t("admin.vehiclesList.table.vehicle").split(" / ")[0]}</TableHead>
+            <TableHead>{t("admin.vehiclesList.table.year")} / Renk</TableHead>
             <TableHead>Kapasite</TableHead>
-            <TableHead>Sınıf</TableHead>
-            <TableHead>Açılış fiyatı</TableHead>
+            <TableHead>{t("admin.vehiclesList.table.classCapacity").split(" / ")[0]}</TableHead>
+            <TableHead>{t("admin.vehiclesList.table.price")}</TableHead>
             <TableHead>Katsayı</TableHead>
             <TableHead>Fotoğraf</TableHead>
-            <TableHead>Durum</TableHead>
-            <TableHead className="text-right">İşlemler</TableHead>
+            <TableHead>{t("admin.vehiclesList.table.status")}</TableHead>
+            <TableHead className="text-right">{t("admin.vehiclesList.table.actions")}</TableHead>
           </TableRow>
         </TableHeader>
 

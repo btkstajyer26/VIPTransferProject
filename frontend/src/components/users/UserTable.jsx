@@ -2,6 +2,7 @@ import {
   Eye,
   Trash2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import UserRoleBadge from "@/components/users/UserRoleBadge";
 import UserStatusBadge from "@/components/users/UserStatusBadge";
@@ -15,20 +16,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-function formatDate(value) {
+function formatDate(value, lng) {
   if (!value) {
     return "-";
   }
 
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(lng === "TR" ? "tr-TR" : "en-US", {
     dateStyle: "medium",
   }).format(new Date(value));
 }
 
-function getFullName(user) {
+function getFullName(user, t) {
   const fullName = `${user.firstName} ${user.lastName}`.trim();
 
-  return fullName || "İsimsiz kullanıcı";
+  return fullName || t("admin.usersList.table.unnamed");
 }
 
 function UserTable({
@@ -37,11 +38,14 @@ function UserTable({
   onView,
   onDelete,
 }) {
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
+
   if (!users.length) {
     return (
       <div className="flex min-h-56 items-center justify-center rounded-lg border border-dashed">
         <p className="text-sm text-muted-foreground">
-          Filtrelere uygun kullanıcı bulunamadı.
+          {t("admin.usersList.notFound")}
         </p>
       </div>
     );
@@ -52,14 +56,14 @@ function UserTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Kullanıcı</TableHead>
-            <TableHead>Telefon</TableHead>
-            <TableHead>Rol</TableHead>
-            <TableHead>Tür</TableHead>
-            <TableHead>Durum</TableHead>
-            <TableHead>Kayıt tarihi</TableHead>
+            <TableHead>{t("admin.usersList.table.user")}</TableHead>
+            <TableHead>{t("admin.usersList.table.phone")}</TableHead>
+            <TableHead>{t("admin.usersList.table.role")}</TableHead>
+            <TableHead>{t("admin.usersList.table.type")}</TableHead>
+            <TableHead>{t("admin.usersList.table.status")}</TableHead>
+            <TableHead>{t("admin.usersList.table.registeredAt")}</TableHead>
             <TableHead className="text-right">
-              İşlemler
+              {t("admin.usersList.table.actions")}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -70,11 +74,11 @@ function UserTable({
               <TableCell>
                 <div>
                   <p className="font-medium">
-                    {getFullName(user)}
+                    {getFullName(user, t)}
                   </p>
 
                   <p className="text-sm text-muted-foreground">
-                    {user.email || "E-posta bulunmuyor"}
+                    {user.email || t("admin.usersList.table.noEmail")}
                   </p>
                 </div>
               </TableCell>
@@ -88,7 +92,7 @@ function UserTable({
               </TableCell>
 
               <TableCell>
-                {user.guest ? "Misafir" : "Üye"}
+                {user.guest ? t("admin.usersList.table.guest") : t("admin.usersList.table.member")}
               </TableCell>
 
               <TableCell>
@@ -96,7 +100,7 @@ function UserTable({
               </TableCell>
 
               <TableCell>
-                {formatDate(user.createdAt)}
+                {formatDate(user.createdAt, currentLang)}
               </TableCell>
 
               <TableCell>
@@ -105,7 +109,7 @@ function UserTable({
                     type="button"
                     size="icon"
                     variant="outline"
-                    title="Detayları görüntüle"
+                    title={t("admin.reservationList.table.viewDetails")}
                     onClick={() => onView(user)}
                   >
                     <Eye className="size-4" />
@@ -115,7 +119,6 @@ function UserTable({
                     type="button"
                     size="icon"
                     variant="destructive"
-                    title="Kullanıcıyı pasife al"
                     disabled={
                       deletingUserId === user.id ||
                       user.role === "ADMIN"
