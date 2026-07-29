@@ -52,7 +52,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String role;
         final Long userId;
         final Long sessionId;
-        final String tokenDeviceInfo;
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -68,17 +67,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 phoneNumber = jwtUtil.extractUsername(jwt);
                 userId= jwtUtil.extractUserId(jwt);
                 sessionId= jwtUtil.extractSessionId(jwt);
-                tokenDeviceInfo = jwtUtil.extractDeviceInfo(jwt);
                 log.info("[SOC-MONITOR] İstek onaylanıyor -> IP: {}, User-Agent: {}, User: {}", currentIp, currentDeviceInfo, phoneNumber);
 
-                // YENİ: Harici metoda taşınmış Token Binding kontrolü
-                validateTokenBinding(tokenDeviceInfo, currentDeviceInfo, currentIp);
-                if (sessionId != null) {
-                    boolean isSessionValid = refreshTokenService.isRefreshTokenValidById(sessionId);
-                    if (!isSessionValid) {
-                        // Eğer oturum geçerli değilse, kod aşağıya (5. adıma) geçemez.
-                        throw new UnauthorizedException("Bu oturum sonlandırılmış veya başka bir cihazdan çıkış yapılmış!");
-                    }
+                if(sessionId!=null){
+                    refreshTokenService.validateSessionIntegrity(sessionId,currentDeviceInfo,currentIp);
                 }
 
                 if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -98,7 +90,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-
         catch (Exception e) {
             log.error("[AUTH-401] [JwtFilter] Kimlik doğrulama başarısız (Geçersiz Token): {}", e.getMessage());
             // Eğer fırlatılan hata zaten bizim UnauthorizedException ise (örn. Hijacking) olduğu gibi al,
@@ -112,11 +103,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         filterChain.doFilter(request, response);
-    }
-    private void validateTokenBinding(String tokenDeviceInfo, String currentDeviceInfo, String currentIp) {
-        if (tokenDeviceInfo != null && !tokenDeviceInfo.equals(currentDeviceInfo)) {
-            log.warn("[SECURITY-ALERT] Session Hijacking Şüphesi! Token çalınmış olabilir. Saldırgan IP: {}, Orijinal Cihaz: {}, Yeni Cihaz: {}", currentIp, tokenDeviceInfo, currentDeviceInfo);
-            throw new UnauthorizedException("Güvenlik ihlali: Bu token başka bir cihazdan kullanılamaz!");
-        }
     }
 }
