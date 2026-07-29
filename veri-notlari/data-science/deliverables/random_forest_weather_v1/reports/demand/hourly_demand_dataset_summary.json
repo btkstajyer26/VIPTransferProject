@@ -1,0 +1,20 @@
+{
+    "reservations_weather_input": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\reservations_weather_features.parquet",
+    "weather_history_input": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\reference\\weather_hourly_istanbul_2025.parquet",
+    "zone_catalog_input": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\reference\\istanbul_zone_catalog.csv",
+    "hourly_dataset_output": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\demand_hourly_zone_weather.parquet",
+    "source_reservation_count": 3154257,
+    "active_zone_count": 60,
+    "historical_hour_count": 744,
+    "complete_zone_hour_row_count": 44640,
+    "zero_demand_zone_hour_count": 3172,
+    "zero_demand_zone_hours_included": true,
+    "model_ready_row_count": 34560,
+    "training_row_count": 24480,
+    "test_row_count": 10080,
+    "minimum_historical_lag_hours": 168,
+    "target_includes_cancelled_and_no_show_requests": true,
+    "reason": "Cancelled and no-show reservations still represent a customer demand request made to the system.",
+    "synthetic_historical_weather_used": true,
+    "weather_effect_interpretation_warning": "Sentetik hava kullanıldıysa model performansı gerçek hava-talep ilişkisini kanıtlamaz."
+}
