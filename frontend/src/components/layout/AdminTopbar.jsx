@@ -12,6 +12,7 @@ import {
 import apiClient from "../../api/apiClient";
 
 import NotificationBell from "@/components/notifications/NotificationBell";
+import CurrencySelector from "@/components/layout/CurrencySelector";
 import useAuth from "@/hooks/useAuth";
 
 function AdminTopbar() {
@@ -50,6 +51,8 @@ function AdminTopbar() {
       </div>
 
       <div className="admin-profile flex items-center gap-4">
+        <CurrencySelector />
+        
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 text-[#071a32]/80 hover:text-[#071a32] transition outline-none focus:outline-none font-semibold">
             {i18n.language?.toUpperCase() || 'TR'}

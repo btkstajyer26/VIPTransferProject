@@ -17,6 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../api/apiClient";
+import CurrencySelector from "@/components/layout/CurrencySelector";
 
 function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -109,6 +110,8 @@ function PublicNavbar() {
 
           {/* Right */}
           <div className="hidden xl:flex items-center gap-4">
+          
+            <CurrencySelector variant="public" />
 
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 text-white/80 hover:text-white transition outline-none focus:outline-none">

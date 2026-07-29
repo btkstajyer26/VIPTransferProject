@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import useDashboard from "@/hooks/useDashboard";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const STATUS_LABELS = {
   PENDING: "admin.reservationList.status.PENDING",
@@ -84,24 +85,7 @@ function formatDate(value) {
   }).format(date);
 }
 
-function formatPrice(value, currency = "TRY") {
-  const numericValue = Number(value);
 
-  if (!Number.isFinite(numericValue)) {
-    return "-";
-  }
-
-  try {
-    return new Intl.NumberFormat("tr-TR", {
-      style: "currency",
-      currency: currency || "TRY",
-    }).format(numericValue);
-  } catch {
-    return `${numericValue.toLocaleString("tr-TR")} ${
-      currency || ""
-    }`;
-  }
-}
 
 function getCustomerLabel(reservation, t) {
   if (reservation.guestPhone) {
@@ -117,6 +101,7 @@ function getCustomerLabel(reservation, t) {
 
 function DashboardPage() {
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
   const {
     totalUsers,
     totalReservations,

@@ -18,6 +18,8 @@ import {
 
 import VehicleStatusBadge from "./VehicleStatusBadge";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/context/CurrencyContext";
+
 function VehicleTable({
   vehicles,
   onEdit,
@@ -26,6 +28,7 @@ function VehicleTable({
   onViewPhoto,
 }) {
   const { t, i18n } = useTranslation();
+  const { formatPrice } = useCurrency();
   const currentLang = i18n.language;
 
   if (vehicles.length === 0) {
@@ -35,19 +38,6 @@ function VehicleTable({
       </div>
     );
   }
-
-  const formatPrice = (price) => {
-    const numericPrice = Number(price);
-
-    if (Number.isNaN(numericPrice)) {
-      return "-";
-    }
-
-    return new Intl.NumberFormat(currentLang === "TR" ? "tr-TR" : "en-US", {
-      style: "currency",
-      currency: "TRY",
-    }).format(numericPrice);
-  };
 
   const formatMultiplier = (multiplier) => {
     const numericMultiplier = Number(multiplier);

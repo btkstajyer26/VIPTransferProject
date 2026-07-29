@@ -1,5 +1,6 @@
 import { Eye, History, MoreHorizontal, RefreshCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/context/CurrencyContext";
 
 import ReservationStatusBadge from "@/components/reservations/ReservationStatusBadge";
 
@@ -39,20 +40,6 @@ function formatDateTime(dateValue) {
   }).format(date);
 }
 
-function formatPrice(price, currency = "TRY") {
-  const numericPrice = Number(price);
-
-  if (Number.isNaN(numericPrice)) {
-    return "-";
-  }
-
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(numericPrice);
-}
-
 function getCustomerLabel(reservation, t) {
   if (reservation.userId) {
     return `${t('admin.reservationList.table.customer')} #${reservation.userId}`;
@@ -72,6 +59,8 @@ function ReservationTable({
   onViewHistory,
 }) {
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
+  
   if (!reservations.length) {
     return (
       <div className="flex min-h-56 items-center justify-center rounded-xl border bg-white p-6 text-center">
