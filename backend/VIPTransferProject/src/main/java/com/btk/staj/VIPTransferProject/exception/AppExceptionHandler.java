@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.exception;
 
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -16,14 +17,21 @@ import java.time.OffsetDateTime;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class AppExceptionHandler {
 
+    private final MeterRegistry meterRegistry;
+
+    // Constructor Injection ile MeterRegistry alınıyor
+    public AppExceptionHandler(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
     // ── 404 Not Found ────────────────────────────────────────────────────────
     @ExceptionHandler({
-        ResourceNotFoundException.class,
-        VehicleNotFoundException.class,
-        UserNotFoundException.class,
-        NotificationNotFoundException.class,
-        NotificationTemplateNotFoundException.class,
-        TierConfigNotFoundException.class
+            ResourceNotFoundException.class,
+            VehicleNotFoundException.class,
+            UserNotFoundException.class,
+            NotificationNotFoundException.class,
+            NotificationTemplateNotFoundException.class,
+            TierConfigNotFoundException.class
     })
     public ResponseEntity<ApiResponse<String>> handleNotFound(RuntimeException ex) {
         log.warn("404 Not Found: {}", ex.getMessage());
@@ -33,10 +41,16 @@ public class AppExceptionHandler {
     // ── 403 Forbidden ────────────────────────────────────────────────────────
     @ExceptionHandler({
             ForbiddenOperationException.class,
-            TokenRefreshException.class // Önceki adımda tasarladığımız exception
+            TokenRefreshException.class
     })
-    public ResponseEntity<ApiResponse<String>> handleForbidden(ForbiddenOperationException ex) {
+    public ResponseEntity<ApiResponse<String>> handleForbidden(RuntimeException ex) {
         log.warn("403 Forbidden: {}", ex.getMessage());
+
+        // SOC SENSÖRÜ: 403 Yetki Aşımı Metriği
+        meterRegistry.counter("soc_security_alerts_total",
+                "alert_type", "forbidden_access",
+                "reason", ex.getClass().getSimpleName()).increment();
+
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
@@ -44,14 +58,20 @@ public class AppExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponse<String>> handleUnauthorized(UnauthorizedException ex) {
         log.warn("401 Unauthorized: {}", ex.getMessage());
+
+        // SOC SENSÖRÜ: 401 Yetkisiz Giriş / Hatalı Şifre Metriği
+        meterRegistry.counter("soc_security_alerts_total",
+                "alert_type", "unauthorized_access",
+                "reason", "BAD_CREDENTIALS").increment();
+
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     // ── 409 Conflict ─────────────────────────────────────────────────────────
     @ExceptionHandler({
-        BusinessRuleException.class,
-        DuplicatePlateException.class,
-        IllegalStateException.class
+            BusinessRuleException.class,
+            DuplicatePlateException.class,
+            IllegalStateException.class
     })
     public ResponseEntity<ApiResponse<String>> handleConflict(RuntimeException ex) {
         log.warn("409 Conflict: {}", ex.getMessage());
@@ -60,18 +80,14 @@ public class AppExceptionHandler {
 
     // ── 400 Bad Request ──────────────────────────────────────────────────────
     @ExceptionHandler({
-        InvalidRequestException.class,
-        IllegalArgumentException.class,
-        UnsupportedNotificationChannelException.class,
-        InvalidTierConfigException.class
+            InvalidRequestException.class,
+            IllegalArgumentException.class,
+            UnsupportedNotificationChannelException.class,
+            InvalidTierConfigException.class
     })
     public ResponseEntity<ApiResponse<String>> handleBadRequest(RuntimeException ex) {
         log.warn("400 Bad Request: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-    public ResponseEntity<ApiResponse<String>> handleInvalidTierConfig(RuntimeException ex) {
-        log.warn("400 Bad Request: {}", ex.getMessage());
-        return build(HttpStatus.BAD_REQUEST, "Tier config is invalid.");
     }
 
     // ── 502 Bad Gateway ──────────────────────────────────────────────────────
