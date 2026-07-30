@@ -9,7 +9,7 @@ const AUTH_USER_KEY = "authUser";
 
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     Accept: "application/json",
   },

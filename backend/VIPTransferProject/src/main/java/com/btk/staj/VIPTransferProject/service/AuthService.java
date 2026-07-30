@@ -15,6 +15,7 @@ import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
 import com.btk.staj.VIPTransferProject.exception.TokenRefreshException;
 import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
+import com.btk.staj.VIPTransferProject.exception.UserUnverifiedException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import com.btk.staj.VIPTransferProject.repository.VerificationCodeRepository;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
@@ -108,7 +109,7 @@ public class AuthService {
 
         if (!user.isEmailVerified()) {
             log.warn("Güvenlik - Onaysız Giriş Denemesi: E-posta henüz doğrulanmamış ({})", user.getEmail());
-            throw new UnauthorizedException("Lütfen önce e-posta adresinizi doğrulayın!");
+            throw new UserUnverifiedException("Lütfen önce e-posta adresinizi doğrulayın!", user.getEmail());
         }
 
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
@@ -269,6 +270,27 @@ public class AuthService {
 
         verificationCodeRepository.delete(verificationCode);
         log.info("E-posta ve telefon başarıyla doğrulandı: {}", user.getEmail());
+    }
+    @Transactional
+    public void resendVerificationCode(String email) {
+        log.info("Yeni doğrulama kodu talebi alındı. Email: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessRuleException("Kullanıcı bulunamadı."));
+
+        if (user.isEmailVerified()) {
+            throw new BusinessRuleException("Bu hesap zaten doğrulanmış. Lütfen giriş yapmayı deneyin.");
+        }
+
+        // Eski kod varsa veritabanında çakışma olmaması için siliyoruz
+        verificationCodeRepository.findByUserAndPurpose(user, CodePurpose.EMAIL_VERIFICATION)
+                .ifPresent(verificationCodeRepository::delete);
+
+        // Register metodunda kullandığın aynı fonksiyonu çağırıyoruz!
+        // Bu metodun içinde zaten yeni kod oluşturulup e-postaya gönderiliyor.
+        saveVerificationCode(user, CodePurpose.EMAIL_VERIFICATION, 15);
+
+        log.info("Kullanıcının isteği üzerine yeni doğrulama kodu gönderildi: {}", email);
     }
 
     // ==========================================
