@@ -71,12 +71,50 @@ export function PricingZoneDialog({ isOpen, onClose, onSave, initialData }) {
     setIsSubmitting(true);
 
     try {
-      // Parse coordinates to ensure it's valid JSON
+      // JSON yapı doğrulaması
       let parsedCoordinates;
       try {
         parsedCoordinates = JSON.parse(formData.polygonCoordinates);
-      } catch (err) {
-        throw new Error("Polygon koordinatları geçerli bir JSON array formatında olmalıdır. (Örn: [[[lng,lat],...]]])");
+      } catch {
+        throw new Error(
+          "Polygon koordinatları geçerli bir JSON array formatında olmalıdır. (Örn: [[[boylam,enlem],...]]])",
+        );
+      }
+
+      // GeoJSON Polygon yapı kontrolü
+      if (!Array.isArray(parsedCoordinates) || !Array.isArray(parsedCoordinates[0])) {
+        throw new Error(
+          "Koordinatlar [[[boylam, enlem], ...]]] formatında olmalıdır (iç içe üç dizi).",
+        );
+      }
+
+      const ring = parsedCoordinates[0];
+
+      if (ring.length < 4) {
+        throw new Error(
+          "Polygon en az 3 farklı köşe içermelidir (4 pozisyon — ilk ve son aynı olacak şekilde).",
+        );
+      }
+
+      const allNumericPairs = ring.every(
+        (pos) =>
+          Array.isArray(pos) &&
+          pos.length >= 2 &&
+          typeof pos[0] === "number" &&
+          typeof pos[1] === "number",
+      );
+      if (!allNumericPairs) {
+        throw new Error(
+          "Her koordinat [boylam, enlem] formatında iki sayı içermelidir.",
+        );
+      }
+
+      const first = ring[0];
+      const last = ring[ring.length - 1];
+      if (first[0] !== last[0] || first[1] !== last[1]) {
+        throw new Error(
+          "GeoJSON kuralı: Polygon'un ilk ve son noktası aynı olmalıdır (kapalı ring).",
+        );
       }
 
       const payload = {

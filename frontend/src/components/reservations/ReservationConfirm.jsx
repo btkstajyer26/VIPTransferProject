@@ -27,6 +27,8 @@ import {
   createReservation,
   previewReservationPrice,
 } from "@/api/reservationApi";
+import { getCurrentUser } from "@/api/userServices";
+import { useAuth } from "@/context/AuthContext";
 
 function ReservationConfirm() {
   const navigate = useNavigate();
@@ -51,28 +53,22 @@ function ReservationConfirm() {
     }
   }, []);
 
-  const authenticatedUser = useMemo(
-    () => getAuthenticatedUser(),
-    [],
-  );
+  const { isAuthenticated } = useAuth();
 
-  const isAuthenticated =
-    authenticatedUser !== null;
-
-  const lockedFullName =
-    getUserFullName(authenticatedUser);
-
-  const lockedPhone =
-    getUserPhone(authenticatedUser);
+  const [isProfileLoading, setIsProfileLoading] =
+    useState(false);
 
   const [formData, setFormData] = useState({
-    guestName: lockedFullName,
-    guestPhone: lockedPhone,
+    guestName: "",
+    guestPhone: "",
     flightNumber: "",
     campaignCode:
       reservationDraft?.campaignCode || "",
     notes: "",
   });
+
+  const [appliedCampaignCode, setAppliedCampaignCode] =
+    useState(reservationDraft?.campaignCode || "");
 
   const [isSubmitting, setIsSubmitting] =
     useState(false);
@@ -184,7 +180,7 @@ function ReservationConfirm() {
           vehicleId: Number(vehicleId),
           scheduledTime,
           campaignCode:
-            formData.campaignCode.trim() || null,
+            appliedCampaignCode.trim() || null,
         });
 
         if (!cancelled) {
@@ -225,10 +221,53 @@ function ReservationConfirm() {
     dropoffLon,
     vehicleId,
     scheduledTime,
-    formData.campaignCode,
-    pricePreview,
-    selectedVehicle,
+    appliedCampaignCode,
   ]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadProfile() {
+      try {
+        setIsProfileLoading(true);
+
+        const raw = await getCurrentUser();
+
+        if (!cancelled) {
+          const profile = raw?.data ?? raw;
+
+          setFormData((prev) => ({
+            ...prev,
+            guestName:
+              getUserFullName(profile) ||
+              prev.guestName,
+            guestPhone:
+              getUserPhone(profile) ||
+              prev.guestPhone,
+          }));
+        }
+      } catch (profileError) {
+        console.error(
+          "Kullanıcı profili alınamadı:",
+          profileError,
+        );
+      } finally {
+        if (!cancelled) {
+          setIsProfileLoading(false);
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -237,6 +276,24 @@ function ReservationConfirm() {
       ...currentData,
       [name]: value,
     }));
+  };
+
+  const handleApplyCampaign = () => {
+    setAppliedCampaignCode(
+      formData.campaignCode.trim(),
+    );
+    setPricePreview({});
+    setError("");
+  };
+
+  const handleRemoveCampaign = () => {
+    setFormData((prev) => ({
+      ...prev,
+      campaignCode: "",
+    }));
+    setAppliedCampaignCode("");
+    setPricePreview({});
+    setError("");
   };
 
   const handlePhoneChange = (event) => {
@@ -352,7 +409,7 @@ function ReservationConfirm() {
         guestName: formData.guestName.trim(),
 
         campaignCode:
-          formData.campaignCode.trim() || null,
+          appliedCampaignCode.trim() || null,
 
         flightNumber:
           formData.flightNumber.trim() || null,
@@ -360,11 +417,6 @@ function ReservationConfirm() {
         notes:
           formData.notes.trim() || null,
       };
-
-      console.log(
-        "Rezervasyon payload:",
-        payload,
-      );
 
       const response = await createReservation(
         payload,
@@ -535,23 +587,56 @@ function ReservationConfirm() {
                   />
                 </FormField>
 
-                <FormField label="Kampanya Kodu">
-                  <input
-                    type="text"
-                    name="campaignCode"
-                    value={
-                      formData.campaignCode
-                    }
-                    onChange={(event) => {
-                      handleChange(event);
-                      setPricePreview({});
-                      setError("");
-                    }}
-                    placeholder="Varsa kampanya kodu"
-                    maxLength={50}
-                    className={inputClassName}
-                  />
-                </FormField>
+                <div>
+                  <span className="mb-2 block text-sm font-bold text-slate-700">
+                    Kampanya Kodu
+                  </span>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="campaignCode"
+                      value={formData.campaignCode}
+                      onChange={handleChange}
+                      placeholder="Varsa kampanya kodu"
+                      maxLength={50}
+                      className={`${inputClassName} flex-1`}
+                    />
+
+                    {formData.campaignCode.trim() &&
+                      formData.campaignCode.trim() !==
+                        appliedCampaignCode && (
+                        <button
+                          type="button"
+                          onClick={handleApplyCampaign}
+                          disabled={isPriceLoading}
+                          className="shrink-0 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          Uygula
+                        </button>
+                      )}
+
+                    {appliedCampaignCode &&
+                      formData.campaignCode.trim() ===
+                        appliedCampaignCode && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveCampaign}
+                          className="shrink-0 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                        >
+                          Kaldır
+                        </button>
+                      )}
+                  </div>
+
+                  {appliedCampaignCode &&
+                    formData.campaignCode.trim() ===
+                      appliedCampaignCode && (
+                      <p className="mt-1.5 text-xs font-semibold text-emerald-600">
+                        ✓ Kampanya kodu uygulandı
+                      </p>
+                    )}
+                </div>
 
                 <FormField
                   label="Ek Not"
@@ -600,7 +685,8 @@ function ReservationConfirm() {
                 type="submit"
                 disabled={
                   isSubmitting ||
-                  isPriceLoading
+                  isPriceLoading ||
+                  isProfileLoading
                 }
                 className="mt-7 inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#155eef] to-[#2979ff] px-7 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
               >
@@ -627,6 +713,7 @@ function ReservationConfirm() {
             <ReservationSummary
               draft={reservationDraft}
               vehicle={selectedVehicle}
+              pricePreview={pricePreview}
               finalPrice={finalPrice}
               distanceKm={distanceKm}
               isPriceLoading={isPriceLoading}
@@ -641,10 +728,18 @@ function ReservationConfirm() {
 function ReservationSummary({
   draft,
   vehicle,
+  pricePreview,
   finalPrice,
   distanceKm,
   isPriceLoading,
 }) {
+  const p = pricePreview?.data ?? pricePreview ?? {};
+  const campaignDiscount = toNumber(p.campaignDiscount);
+  const loyaltyDiscount = toNumber(p.loyaltyDiscount);
+  const priceAfterSurge = toNumber(p.priceAfterSurge);
+  const hasDiscount =
+    campaignDiscount > 0 || loyaltyDiscount > 0;
+
   return (
     <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.1)]">
       <div className="bg-gradient-to-br from-[#0b1f3a] to-[#155eef] p-6 text-white">
@@ -750,17 +845,65 @@ function ReservationSummary({
         </div>
 
         <div className="mt-6 rounded-2xl bg-slate-50 p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.13em] text-slate-400">
-            Yaklaşık transfer ücreti
-          </p>
+          {isPriceLoading ? (
+            <p className="text-sm font-medium text-slate-400">
+              Fiyat hesaplanıyor...
+            </p>
+          ) : finalPrice === null ? (
+            <p className="text-sm font-medium text-slate-400">
+              Fiyat hesaplanamadı
+            </p>
+          ) : (
+            <>
+              {hasDiscount && (
+                <div className="mb-4 space-y-2.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-500">
+                      Transfer ücreti
+                    </span>
 
-          <p className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#0b1f3a]">
-            {isPriceLoading
-              ? "Hesaplanıyor..."
-              : finalPrice !== null
-                ? formatCurrency(finalPrice)
-                : "Hesaplanamadı"}
-          </p>
+                    <span className="font-semibold text-slate-700">
+                      {formatCurrency(priceAfterSurge)}
+                    </span>
+                  </div>
+
+                  {campaignDiscount > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-600">
+                        🏷 Kampanya indirimi
+                      </span>
+
+                      <span className="font-semibold text-emerald-600">
+                        −{formatCurrency(campaignDiscount)}
+                      </span>
+                    </div>
+                  )}
+
+                  {loyaltyDiscount > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-600">
+                        ⭐ Sadakat indirimi
+                      </span>
+
+                      <span className="font-semibold text-emerald-600">
+                        −{formatCurrency(loyaltyDiscount)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="h-px bg-slate-200" />
+                </div>
+              )}
+
+              <p className="text-xs font-bold uppercase tracking-[0.13em] text-slate-400">
+                Toplam tutar
+              </p>
+
+              <p className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#0b1f3a]">
+                {formatCurrency(finalPrice)}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -844,6 +987,8 @@ function ReservationSuccess({
   onHome,
 }) {
   const reservationNumber =
+    reservation.bookingReference ??
+    reservation.data?.bookingReference ??
     reservation.reservationNumber ??
     reservation.referenceNumber ??
     reservation.code ??
@@ -894,87 +1039,6 @@ const inputClassName =
 const readOnlyInputClassName =
   "min-h-13 w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-600 outline-none";
 
-function getAuthenticatedUser() {
-  const token =
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("token");
-
-  if (!token) {
-    return null;
-  }
-
-  const storageKeys = [
-    "user",
-    "currentUser",
-    "authUser",
-    "userInfo",
-  ];
-
-  for (const key of storageKeys) {
-    const rawValue = localStorage.getItem(key);
-
-    if (!rawValue) {
-      continue;
-    }
-
-    try {
-      const parsedValue = JSON.parse(rawValue);
-
-      const candidate =
-        parsedValue?.user ??
-        parsedValue?.data?.user ??
-        parsedValue?.data ??
-        parsedValue;
-
-      if (
-        candidate &&
-        typeof candidate === "object"
-      ) {
-        return candidate;
-      }
-    } catch (error) {
-      console.warn(
-        `${key} bilgisi okunamadı:`,
-        error,
-      );
-    }
-  }
-
-  try {
-    const payloadPart = token.split(".")[1];
-
-    if (!payloadPart) {
-      return null;
-    }
-
-    const normalizedPayload = payloadPart
-      .replace(/-/g, "+")
-      .replace(/_/g, "/");
-
-    const decodedPayload = decodeURIComponent(
-      window
-        .atob(normalizedPayload)
-        .split("")
-        .map(
-          (character) =>
-            `%${character
-              .charCodeAt(0)
-              .toString(16)
-              .padStart(2, "0")}`,
-        )
-        .join(""),
-    );
-
-    return JSON.parse(decodedPayload);
-  } catch (error) {
-    console.warn(
-      "Token içindeki kullanıcı bilgisi okunamadı:",
-      error,
-    );
-
-    return null;
-  }
-}
 
 function getUserFullName(user) {
   if (!user) {
@@ -1147,7 +1211,32 @@ function createScheduledTime(
     return null;
   }
 
-  return `${date}T${time}:00+03:00`;
+  const dt = new Date(`${date}T${time}:00`);
+  const offsetMinutes = -dt.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absMinutes = Math.abs(offsetMinutes);
+  const hh = String(
+    Math.floor(absMinutes / 60),
+  ).padStart(2, "0");
+  const mm = String(
+    absMinutes % 60,
+  ).padStart(2, "0");
+
+  return `${date}T${time}:00${sign}${hh}:${mm}`;
+}
+
+function toNumber(value) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return 0;
+  }
+
+  const n = Number(value);
+
+  return Number.isFinite(n) ? n : 0;
 }
 
 function getPreviewPrice(

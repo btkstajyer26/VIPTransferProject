@@ -1,12 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-<<<<<<< HEAD
   import.meta.env.VITE_API_URL || "/api";
-=======
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:8080/api";
->>>>>>> feature/web-frontend-setup
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -46,14 +41,8 @@ let refreshPromise = null;
  */
 apiClient.interceptors.request.use(
   (config) => {
-<<<<<<< HEAD
     const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
     const lang = localStorage.getItem('i18nextLng') || 'TR';
-=======
-    const accessToken = localStorage.getItem(
-      ACCESS_TOKEN_KEY,
-    );
->>>>>>> feature/web-frontend-setup
 
     if (accessToken) {
       config.headers.Authorization =
@@ -61,8 +50,7 @@ apiClient.interceptors.request.use(
     } else {
       delete config.headers.Authorization;
     }
-    
-    // Backend'in dinamik verileri (araç, bölge vb.) kullanıcının dilinde dönmesi için
+
     config.headers['Accept-Language'] = lang;
 
     return config;

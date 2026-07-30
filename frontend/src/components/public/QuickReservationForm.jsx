@@ -155,12 +155,8 @@ function QuickReservationForm() {
           <div>
             <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.17em] text-blue-600">
               <span className="h-px w-6 bg-blue-600" />
-<<<<<<< HEAD
-              {t("reservationForm.badge")}
-=======
 
               Hızlı Rezervasyon
->>>>>>> feature/web-frontend-setup
             </div>
 
             <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#0b1f3a]">
@@ -200,106 +196,17 @@ function QuickReservationForm() {
           </div>
         </div>
 
-<<<<<<< HEAD
- 
-<div className="grid gap-4">
-  {/* Adresler */}
-  <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-    <FormField label={t("reservationForm.from")} icon={MapPin}>
-      <input
-        type="text"
-        name="pickupAddress"
-        value={formData.pickupAddress}
-        onChange={handleChange}
-        placeholder={t("reservationForm.fromPlaceholder")}
-        className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
-        required
-      />
-    </FormField>
-=======
         {formError && (
           <div className="mb-4 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <AlertCircle
               size={18}
               className="mt-0.5 shrink-0"
             />
->>>>>>> feature/web-frontend-setup
 
             <span>{formError}</span>
           </div>
         )}
 
-<<<<<<< HEAD
-    <FormField label={t("reservationForm.to")} icon={MapPin}>
-      <input
-        type="text"
-        name="dropoffAddress"
-        value={formData.dropoffAddress}
-        onChange={handleChange}
-        placeholder={t("reservationForm.toPlaceholder")}
-        className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400"
-        required
-      />
-    </FormField>
-  </div>
-
-  {/* Tarih, saat, yolcu ve buton */}
-  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_0.9fr_auto]">
-    <FormField label={t("reservationForm.date")} icon={CalendarDays}>
-      <input
-        type="date"
-        name="scheduledDate"
-        value={formData.scheduledDate}
-        onChange={handleChange}
-        min={new Date().toISOString().split("T")[0]}
-        className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-900 outline-none"
-        required
-      />
-    </FormField>
-
-    <FormField label={t("reservationForm.time")} icon={Clock3}>
-      <input
-        type="time"
-        name="scheduledTime"
-        value={formData.scheduledTime}
-        onChange={handleChange}
-        className="min-w-0 w-full bg-transparent text-sm font-medium text-slate-900 outline-none"
-        required
-      />
-    </FormField>
-
-    <FormField label={t("reservationForm.passengers")} icon={UsersRound}>
-      <select
-        name="passengerCount"
-        value={formData.passengerCount}
-        onChange={handleChange}
-        className="min-w-0 w-full cursor-pointer bg-transparent text-sm font-medium text-slate-900 outline-none"
-      >
-        {Array.from(
-          { length: 16 },
-          (_, index) => index + 1,
-        ).map((count) => (
-          <option key={count} value={count}>
-            {count} {t("reservationForm.passengerCount")}
-          </option>
-        ))}
-      </select>
-    </FormField>
-
-    <button
-      type="submit"
-      className="group flex min-h-[72px] w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#155eef] to-[#2979ff] px-7 text-sm font-semibold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-600/30 xl:w-auto"
-    >
-      <Search size={18} />
-      {t("reservationForm.searchButton")}
-      <ArrowRight
-        size={17}
-        className="transition group-hover:translate-x-1"
-      />
-    </button>
-  </div>
-</div>
-=======
         <div className="grid gap-4">
           <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
             <FormField
@@ -429,7 +336,6 @@ function QuickReservationForm() {
             </button>
           </div>
         </div>
->>>>>>> feature/web-frontend-setup
       </form>
     </div>
   );

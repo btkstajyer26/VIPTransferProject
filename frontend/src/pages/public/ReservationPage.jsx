@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-import { useTranslation } from "react-i18next";
-
-function ReservationPage() {
-  const { t } = useTranslation();
-  return <h1>{t("reservationSystem.title")}</h1>;
-=======
 import {
   useEffect,
   useMemo,
@@ -180,10 +173,6 @@ function ReservationPage() {
       JSON.stringify(reservationDraft),
     );
 
-    /*
-     * Bir sonraki rezervasyon formu hazır olduğunda
-     * bu adresi değiştirebiliriz.
-     */
     navigate("/reservation/confirm");
   };
 
@@ -560,7 +549,9 @@ function VehicleCard({
         <div className="mt-5 flex items-end justify-between border-t border-slate-100 pt-5">
           <div>
             <p className="text-xs font-medium text-slate-400">
-              Transfer ücreti
+              {price !== null
+                ? "Başlangıç fiyatı"
+                : "Transfer ücreti"}
             </p>
 
             <p className="mt-1 text-xl font-extrabold text-[#0b1f3a]">
@@ -771,6 +762,7 @@ function getVehicleDescription(vehicle) {
 
 function getVehiclePrice(vehicle) {
   const price =
+    vehicle.openingPrice ??
     vehicle.price ??
     vehicle.basePrice ??
     vehicle.transferPrice ??
@@ -818,7 +810,6 @@ function formatDate(dateValue) {
     month: "long",
     year: "numeric",
   }).format(date);
->>>>>>> feature/web-frontend-setup
 }
 
 export default ReservationPage;
