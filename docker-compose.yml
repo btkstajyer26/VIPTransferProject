@@ -9,7 +9,7 @@ services:
       - "5432:5432" # IntelliJ'den (localhost üzerinden) bağlanabilmen için şart
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: vip_password
+      POSTGRES_PASSWORD: 121361.
       POSTGRES_DB: vip_transfer_db # application.properties ile birebir aynı
     volumes:
       - ./sql-scripts:/docker-entrypoint-initdb.d
@@ -148,6 +148,7 @@ services:
     container_name: vip-promtail
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./promtail/config.yml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     depends_on:

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -55,6 +57,7 @@ public class SecurityConfig {
                 // --- YENİ EKLENEN KISIM: SPRING SECURITY HATALARINI JSON'A ÇEVİR ---
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
                 )
 
                 .authorizeHttpRequests(auth -> auth
@@ -117,6 +120,18 @@ public class SecurityConfig {
             // Yukarıda tanımladığımız handlerExceptionResolver'ı doğrudan kullanıyoruz
             handlerExceptionResolver.resolveException(request, response, null,
                     new UnauthorizedException("Bu işlemi gerçekleştirmek için giriş yapmalısınız."));
+        };
+    }
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            // İŞTE BURASI SOC PANELİN İÇİN ALTIN DEĞERİNDE LOG!
+            log.warn("[AUTH-403] [AccessDenied] Yetkisiz erişim denemesi! Kullanıcı yetkisi yetersiz. Hedef URL -> {}", request.getRequestURI());
+
+            // 401'de yaptığımız gibi hatayı GlobalExceptionHandler'ına fırlatıyoruz.
+            // Bu sayede kendi standart ApiResponse / JSON formatında cevap dönebilirsin.
+            handlerExceptionResolver.resolveException(request, response, null,
+                    new AccessDeniedException("Bu sayfayı görüntülemek veya bu işlemi yapmak için yetkiniz bulunmamaktadır."));
         };
     }
     @Bean

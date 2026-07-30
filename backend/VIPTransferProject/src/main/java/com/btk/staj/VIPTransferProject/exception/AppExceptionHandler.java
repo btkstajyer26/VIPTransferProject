@@ -2,11 +2,13 @@ package com.btk.staj.VIPTransferProject.exception;
 
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -41,10 +43,12 @@ public class AppExceptionHandler {
     // ── 403 Forbidden ────────────────────────────────────────────────────────
     @ExceptionHandler({
             ForbiddenOperationException.class,
-            TokenRefreshException.class
+            TokenRefreshException.class,
+            AccessDeniedException.class
     })
-    public ResponseEntity<ApiResponse<String>> handleForbidden(RuntimeException ex) {
-        log.warn("403 Forbidden: {}", ex.getMessage());
+    public ResponseEntity<ApiResponse<String>> handleForbidden(RuntimeException ex, HttpServletRequest request) {
+        log.warn("[AUTH-403] [AccessDenied] Yetkisiz erişim denemesi! Hedef URL -> {} | Sebep: {}",
+                request.getRequestURI(), ex.getClass().getSimpleName());
 
         // SOC SENSÖRÜ: 403 Yetki Aşımı Metriği
         meterRegistry.counter("soc_security_alerts_total",
