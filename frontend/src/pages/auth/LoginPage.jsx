@@ -131,14 +131,30 @@ export default function LoginPage() {
       );
 
       const status = error.response?.status;
+      const apiResponse = error.response?.data;
 
       if (status === 400) {
         setServerError(
           "Gönderilen giriş bilgileri geçersiz. Lütfen alanları kontrol edin."
         );
       } else if (status === 401) {
-        setServerError("Telefon numarası veya şifre hatalı.");
-      } else if (status === 403) {
+                if (apiResponse?.errorCode === "USER_UNVERIFIED") {
+
+                  // Backend'den gelen e-posta adresi
+                  const userEmail = apiResponse?.data;
+
+                  // BURAYI GÜNCELLEDİK: Router dosyasındaki yolla birebir aynı olmalı
+                  navigate("/verify-email-pending", {
+                    state: { email: userEmail },
+                    replace: true
+                  });
+
+                }
+            else {
+                setServerError("Telefon numarası veya şifre hatalı.");
+                 }
+             }
+         else if (status === 403) {
         setServerError("Bu hesabın sisteme giriş yetkisi bulunmuyor.");
       } else if (status === 429) {
         setServerError(
