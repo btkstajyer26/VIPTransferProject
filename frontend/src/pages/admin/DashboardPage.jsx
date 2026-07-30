@@ -3,9 +3,14 @@ import {
   CalendarDays,
   Car,
   Clock3,
+  CircleCheckBig,
+  CircleX,
+  ArrowRight,
+  Banknote,
   RefreshCw,
   Users,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import {
   Alert,
@@ -107,6 +112,11 @@ function DashboardPage() {
     totalReservations,
     activeVehicleCount,
     pendingReservationCount,
+    activeReservationCount,
+    completedReservationCount,
+    cancelledReservationCount,
+    reservationStatusCounts,
+    totalRevenue,
     latestReservations,
 
     isLoading,
@@ -213,6 +223,54 @@ function DashboardPage() {
         })}
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white">
+          <CardContent className="grid gap-6 p-6 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
+                Operasyon özeti
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold">
+                {activeReservationCount} aktif yolculuk süreci
+              </h3>
+              <p className="mt-2 max-w-xl text-sm text-slate-300">
+                {pendingReservationCount} rezervasyon onay bekliyor. Tamamlanan işlemlerin toplam değeri {formatPrice(totalRevenue)}.
+              </p>
+            </div>
+            <Link
+              to="/admin/reservations"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-medium text-white transition hover:bg-white hover:text-slate-950"
+            >
+              Rezervasyonları görüntüle <ArrowRight className="ml-2 size-4" />
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Hızlı işlemler</CardTitle>
+            <CardDescription>Sık kullanılan yönetim ekranları</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-2">
+            {[
+              ["/admin/vehicles", "Araç ekle", Car],
+              ["/admin/campaigns", "Kampanya", CalendarDays],
+              ["/admin/pricing-zones", "Fiyat bölgesi", Banknote],
+              ["/admin/notifications", "Bildirim", AlertCircle],
+            ].map(([to, label, Icon]) => (
+              <Link
+                key={to}
+                to={to}
+                className="inline-flex min-h-11 items-center rounded-lg border bg-white px-3 py-3 text-sm font-medium transition hover:bg-slate-50"
+              >
+                <Icon className="mr-2 size-4" />{label}
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{t('admin.dashboard.latestRes.title')}</CardTitle>
@@ -307,6 +365,48 @@ function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Rezervasyon dağılımı</CardTitle>
+          <CardDescription>Anlık operasyon durumu</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[
+            ["PENDING", "Onay bekleyen", Clock3, "bg-amber-500"],
+            ["CONFIRMED", "Onaylanan", CircleCheckBig, "bg-blue-500"],
+            ["COMPLETED", "Tamamlanan", CircleCheckBig, "bg-emerald-500"],
+            ["CANCELLED", "İptal edilen", CircleX, "bg-rose-500"],
+          ].map(([status, label, Icon, color]) => {
+            const count = reservationStatusCounts[status] || 0;
+            const percent = totalReservations
+              ? Math.round((count / totalReservations) * 100)
+              : 0;
+            return (
+              <div key={status}>
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2"><Icon className="size-4 text-muted-foreground" />{label}</span>
+                  <strong>{count} <span className="font-normal text-muted-foreground">· %{percent}</span></strong>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div className={`h-full rounded-full ${color}`} style={{ width: `${percent}%` }} />
+                </div>
+              </div>
+            );
+          })}
+          <div className="grid grid-cols-2 gap-3 border-t pt-4 text-center">
+            <div className="rounded-lg bg-emerald-50 p-3">
+              <strong className="block text-xl text-emerald-700">{completedReservationCount}</strong>
+              <span className="text-xs text-emerald-700">Tamamlanan</span>
+            </div>
+            <div className="rounded-lg bg-rose-50 p-3">
+              <strong className="block text-xl text-rose-700">{cancelledReservationCount}</strong>
+              <span className="text-xs text-rose-700">İptal</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      </div>
     </section>
   );
 }

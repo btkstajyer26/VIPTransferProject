@@ -35,7 +35,7 @@ function BenefitsSection() {
   return (
     <section
       id="services"
-      className="bg-[#f7faff] pb-24 pt-52 sm:pt-56"
+      className="scroll-mt-28 bg-[#f7faff] py-24 sm:py-28"
     >
       <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">

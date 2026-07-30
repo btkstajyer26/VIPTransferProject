@@ -1,18 +1,19 @@
 package com.btk.staj.VIPTransferProject.controller;
 
 import com.btk.staj.VIPTransferProject.dto.loyalty.*;
-import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
 import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
 import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import com.btk.staj.VIPTransferProject.service.LoyaltyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -41,10 +42,23 @@ public class LoyaltyController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/tier-config")
+    public ResponseEntity<List<LoyaltyTierConfigResponse>> getTierConfigs() {
+        return ResponseEntity.ok(loyaltyService.getTierConfigs());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/tier-config/{tier}")
+    public ResponseEntity<LoyaltyTierConfigResponse> getTierConfig(
+            @PathVariable LoyaltyTier tier) {
+        return ResponseEntity.ok(loyaltyService.getTierConfig(tier));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/tier-config/{tier}")
-    public ResponseEntity<LoyaltyTierConfig> updateTierConfig(
+    public ResponseEntity<LoyaltyTierConfigResponse> updateTierConfig(
         @PathVariable LoyaltyTier tier,
-        @RequestBody UpdateTierConfigRequest request) {
+        @Valid @RequestBody UpdateTierConfigRequest request) {
             log.info("HTTP PUT /api/loyalty/tier-config/{} isteği alındı. (ADMİN)", tier);
             return ResponseEntity.ok(loyaltyService.updateTierConfig(tier, request));
     }

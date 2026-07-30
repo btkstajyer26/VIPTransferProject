@@ -91,7 +91,7 @@ function QuickReservationForm() {
 
     if (!pickup.address.trim() || !dropoff.address.trim()) {
       setFormError(
-        "Lütfen başlangıç ve varış adreslerini girin.",
+        t("reservationForm.errors.addressRequired"),
       );
       return;
     }
@@ -109,7 +109,7 @@ function QuickReservationForm() {
       !dropoffHasCoordinates
     ) {
       setFormError(
-        "Lütfen başlangıç ve varış adreslerini öneriler arasından seçin.",
+        t("reservationForm.errors.selectSuggestion"),
       );
       return;
     }
@@ -156,7 +156,7 @@ function QuickReservationForm() {
             <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.17em] text-blue-600">
               <span className="h-px w-6 bg-blue-600" />
 
-              Hızlı Rezervasyon
+              {t("reservationForm.badge")}
             </div>
 
             <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#0b1f3a]">
@@ -173,7 +173,7 @@ function QuickReservationForm() {
               type="button"
               role="switch"
               aria-checked={isRoundTrip}
-              aria-label="Dönüş transferi ekle"
+              aria-label={t("reservationForm.addReturn")}
               onClick={() =>
                 setIsRoundTrip(
                   (current) => !current,
@@ -210,12 +210,12 @@ function QuickReservationForm() {
         <div className="grid gap-4">
           <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
             <FormField
-              label="Nereden"
+              label={t("reservationForm.from")}
               icon={MapPin}
             >
               <AddressAutocomplete
                 value={formData.pickup.address}
-                placeholder="Havalimanı, otel veya adres seçin"
+                placeholder={t("reservationForm.fromPlaceholder")}
                 onChange={(value) =>
                   handleAddressTextChange(
                     "pickup",
@@ -235,18 +235,18 @@ function QuickReservationForm() {
               type="button"
               onClick={swapLocations}
               className="mx-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 transition hover:border-blue-200 hover:bg-blue-100"
-              aria-label="Adreslerin yerini değiştir"
+              aria-label={t("reservationForm.swap")}
             >
               <ArrowUpDown size={18} />
             </button>
 
             <FormField
-              label="Nereye"
+              label={t("reservationForm.to")}
               icon={MapPin}
             >
               <AddressAutocomplete
                 value={formData.dropoff.address}
-                placeholder="Havalimanı, otel veya adres seçin"
+                placeholder={t("reservationForm.toPlaceholder")}
                 onChange={(value) =>
                   handleAddressTextChange(
                     "dropoff",
@@ -265,7 +265,7 @@ function QuickReservationForm() {
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_0.9fr_auto]">
             <FormField
-              label="Tarih"
+              label={t("reservationForm.date")}
               icon={CalendarDays}
             >
               <input
@@ -284,7 +284,7 @@ function QuickReservationForm() {
             </FormField>
 
             <FormField
-              label="Saat"
+              label={t("reservationForm.time")}
               icon={Clock3}
             >
               <input
@@ -298,7 +298,7 @@ function QuickReservationForm() {
             </FormField>
 
             <FormField
-              label="Yolcu"
+              label={t("reservationForm.passengers")}
               icon={UsersRound}
             >
               <select
@@ -315,7 +315,7 @@ function QuickReservationForm() {
                     key={count}
                     value={count}
                   >
-                    {count} Yolcu
+                    {count} {t("reservationForm.passengerCount")}
                   </option>
                 ))}
               </select>
@@ -327,7 +327,7 @@ function QuickReservationForm() {
             >
               <Search size={18} />
 
-              Araçları Gör
+              {t("reservationForm.searchButton")}
 
               <ArrowRight
                 size={17}

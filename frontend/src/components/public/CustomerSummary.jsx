@@ -118,7 +118,7 @@ function AuthenticatedSummary({ user }) {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            to="/reservation"
+            to="/#reservation-form"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
             {t("customerSummary.auth.newResBtn")}

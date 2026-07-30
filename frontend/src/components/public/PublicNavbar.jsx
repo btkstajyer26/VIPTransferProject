@@ -18,6 +18,10 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../api/apiClient";
 import CurrencySelector from "@/components/layout/CurrencySelector";
+import trFlag from "@/assets/flags/tr.svg";
+import enFlag from "@/assets/flags/en.svg";
+import ruFlag from "@/assets/flags/ru.svg";
+import alFlag from "@/assets/flags/al.svg";
 
 function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,22 +47,34 @@ function PublicNavbar() {
     }
   };
 
+  const languageOptions = [
+    { code: "TR", flag: trFlag, label: "Türkçe" },
+    { code: "EN", flag: enFlag, label: "English" },
+    { code: "RU", flag: ruFlag, label: "Русский" },
+    { code: "AL", flag: alFlag, label: "Shqip" },
+  ];
+
+  const currentLanguage =
+    languageOptions.find(
+      (item) => item.code === i18n.language?.toUpperCase(),
+    ) || languageOptions[0];
+
   const links = [
     {
       title: t("nav.services"),
-      href: "#services",
+      href: "/#services",
     },
     {
       title: t("nav.vehicles"),
-      href: "#vehicles",
+      href: "/fleet",
     },
     {
       title: t("nav.howItWorks"),
-      href: "#how-it-works",
+      href: "/#how-it-works",
     },
     {
       title: t("nav.contact"),
-      href: "#contact",
+      href: "/#contact",
     },
   ];
 
@@ -98,13 +114,13 @@ function PublicNavbar() {
             </Link>
 
             {links.map((item) => (
-              <a
+              <Link
                 key={item.title}
-                href={item.href}
+                to={item.href}
                 className="text-white/75 font-medium hover:text-white transition"
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -114,35 +130,31 @@ function PublicNavbar() {
             <CurrencySelector variant="public" />
 
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 text-white/80 hover:text-white transition outline-none focus:outline-none">
-                {i18n.language?.toUpperCase() || 'TR'}
+              <DropdownMenuTrigger className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-white/90 transition outline-none hover:bg-white/10 hover:text-white focus:outline-none">
+                <FlagImage
+                  src={currentLanguage.flag}
+                  alt={currentLanguage.label}
+                />
+                {currentLanguage.code}
                 <ChevronDown size={16} />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#071a32]/95 backdrop-blur-xl text-white border-white/10 rounded-xl mt-2 p-2 shadow-2xl">
-                <DropdownMenuItem 
-                  className="hover:bg-white/10 focus:bg-white/10 cursor-pointer rounded-lg py-2 px-4 transition-colors"
-                  onClick={() => handleLanguageChange('TR')}
-                >
-                  TR - Türkçe
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="hover:bg-white/10 focus:bg-white/10 cursor-pointer rounded-lg py-2 px-4 transition-colors"
-                  onClick={() => handleLanguageChange('EN')}
-                >
-                  EN - English
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="hover:bg-white/10 focus:bg-white/10 cursor-pointer rounded-lg py-2 px-4 transition-colors"
-                  onClick={() => handleLanguageChange('RU')}
-                >
-                  RU - Русский
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="hover:bg-white/10 focus:bg-white/10 cursor-pointer rounded-lg py-2 px-4 transition-colors"
-                  onClick={() => handleLanguageChange('AL')}
-                >
-                  AL - Shqip
-                </DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-52 rounded-2xl border-slate-100 bg-white p-2 text-slate-900 shadow-2xl">
+                {languageOptions.map((language) => (
+                  <DropdownMenuItem
+                    key={language.code}
+                    className="flex cursor-pointer gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-slate-50 focus:bg-slate-50"
+                    onClick={() => handleLanguageChange(language.code)}
+                  >
+                    <FlagImage
+                      src={language.flag}
+                      alt={language.label}
+                    />
+                    <span className="font-semibold">{language.code}</span>
+                    <span className="ml-auto text-xs text-slate-400">
+                      {language.label}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -212,12 +224,13 @@ function PublicNavbar() {
               <Link to="/">{t("nav.home")}</Link>
 
               {links.map((item) => (
-                <a
+                <Link
                   key={item.title}
-                  href={item.href}
+                  to={item.href}
+                  onClick={() => setMobileOpen(false)}
                 >
                   {item.title}
-                </a>
+                </Link>
               ))}
 
               <hr />
@@ -255,6 +268,18 @@ function PublicNavbar() {
         )}
       </div>
     </header>
+  );
+}
+
+function FlagImage({ src, alt }) {
+  return (
+    <span className="block h-6 w-8 shrink-0 overflow-hidden rounded-md border border-slate-200/60 bg-white shadow-sm">
+      <img
+        src={src}
+        alt={alt}
+        className="h-full w-full object-cover"
+      />
+    </span>
   );
 }
 

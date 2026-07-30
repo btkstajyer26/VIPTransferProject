@@ -94,7 +94,10 @@ function HeroSection() {
       </div>
 
       {/* Form artık overflow-hidden dışında */}
-      <div className="relative z-30 mx-auto -mt-[94px] max-w-[1320px] px-4 sm:px-6 lg:px-8">
+      <div
+        id="reservation-form"
+        className="relative z-30 mx-auto -mt-[94px] max-w-[1320px] scroll-mt-32 px-4 sm:px-6 lg:px-8"
+      >
         <QuickReservationForm />
       </div>
     </section>

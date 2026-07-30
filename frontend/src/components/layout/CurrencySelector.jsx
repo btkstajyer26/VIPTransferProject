@@ -13,41 +13,53 @@ function CurrencySelector({ variant = "admin" }) {
   const isPublic = variant === "public";
 
   const triggerClasses = isPublic
-    ? "flex items-center gap-2 text-white/80 hover:text-white transition outline-none focus:outline-none"
+    ? "flex items-center gap-2 rounded-xl px-2.5 py-2 text-white/90 hover:bg-white/10 hover:text-white transition outline-none focus:outline-none"
     : "flex items-center gap-2 text-[#071a32]/80 hover:text-[#071a32] transition outline-none focus:outline-none font-semibold";
 
   const contentClasses = isPublic
-    ? "bg-[#071a32]/95 backdrop-blur-xl text-white border-white/10 rounded-xl mt-2 p-2 shadow-2xl z-50"
+    ? "min-w-28 bg-white text-slate-900 border-slate-100 rounded-2xl mt-2 p-2 shadow-2xl z-50"
     : "bg-white border-gray-200 rounded-xl mt-2 p-2 shadow-xl z-50";
 
   const itemClasses = isPublic
-    ? "hover:bg-white/10 focus:bg-white/10 cursor-pointer rounded-lg py-2 px-4 transition-colors"
+    ? "flex gap-3 hover:bg-slate-50 focus:bg-slate-50 cursor-pointer rounded-xl py-2.5 px-3 transition-colors"
     : "hover:bg-slate-100 focus:bg-slate-100 cursor-pointer rounded-lg py-2 px-4 transition-colors text-sm font-medium text-slate-700";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={triggerClasses}>
-        {currency}
+        <CurrencyIcon currency={currency} />
+        <span>{currency === "TRY" ? "TL" : currency}</span>
         <ChevronDown size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className={contentClasses}>
-        <DropdownMenuItem className={itemClasses} onClick={() => changeCurrency("TRY")}>
-          TRY - Türk Lirası
-        </DropdownMenuItem>
-        <DropdownMenuItem className={itemClasses} onClick={() => changeCurrency("USD")}>
-          USD - US Dollar
-        </DropdownMenuItem>
-        <DropdownMenuItem className={itemClasses} onClick={() => changeCurrency("EUR")}>
-          EUR - Euro
-        </DropdownMenuItem>
-        <DropdownMenuItem className={itemClasses} onClick={() => changeCurrency("ALL")}>
-          ALL - Albanian Lek
-        </DropdownMenuItem>
-        <DropdownMenuItem className={itemClasses} onClick={() => changeCurrency("RUB")}>
-          RUB - Russian Ruble
-        </DropdownMenuItem>
+        {["TRY", "EUR", "USD", "ALL", "RUB"].map((code) => (
+          <DropdownMenuItem
+            key={code}
+            className={itemClasses}
+            onClick={() => changeCurrency(code)}
+          >
+            <CurrencyIcon currency={code} />
+            <span>{code === "TRY" ? "TL" : code}</span>
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function CurrencyIcon({ currency }) {
+  const symbol = {
+    TRY: "₺",
+    EUR: "€",
+    USD: "$",
+    ALL: "L",
+    RUB: "₽",
+  }[currency] || currency.slice(0, 1);
+
+  return (
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-current text-sm font-black leading-none">
+      {symbol}
+    </span>
   );
 }
 

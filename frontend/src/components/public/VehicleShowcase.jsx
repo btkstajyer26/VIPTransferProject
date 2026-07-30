@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -6,8 +7,10 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { getVehicles } from "@/api/vehicleServices";
+import { getVehicleImage } from "@/constants/vehicleImages";
 
-const vehicles = [
+const fallbackVehicles = [
   {
     id: 1,
     name: "Mercedes-Benz Vito",
@@ -57,11 +60,42 @@ const vehicles = [
 
 function VehicleShowcase() {
   const { t } = useTranslation();
+  const [vehicles, setVehicles] = useState(fallbackVehicles);
+
+  useEffect(() => {
+    let active = true;
+
+    getVehicles()
+      .then((response) => {
+        const list = Array.isArray(response)
+          ? response
+          : response?.content || response?.data || response?.vehicles || [];
+
+        if (active && Array.isArray(list) && list.length > 0) {
+          setVehicles(
+            list
+              .filter((vehicle) => vehicle.active !== false)
+              .slice(0, 3)
+              .map(normalizeVehicle),
+          );
+        }
+      })
+      .catch((error) => {
+        console.warn(
+          "Ana sayfa araçları backend'den alınamadı, örnek filo gösteriliyor.",
+          error?.response?.data || error,
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <section
       id="vehicles"
-      className="bg-white py-24 sm:py-28"
+      className="scroll-mt-28 bg-white py-24 sm:py-28"
     >
       <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
@@ -81,7 +115,7 @@ function VehicleShowcase() {
           </div>
 
           <Link
-            to="/reservation"
+            to="/fleet"
             className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:gap-3 hover:text-blue-700"
           >
             {t("vehicles.viewAll")}
@@ -148,7 +182,7 @@ function VehicleShowcase() {
                 </div>
 
                 <Link
-                  to="/reservation"
+                  to="/#reservation-form"
                   className="mt-7 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#0b1f3a] px-5 text-sm font-semibold text-white transition hover:bg-blue-600"
                 >
                   {t("vehicles.bookThis")}
@@ -164,3 +198,36 @@ function VehicleShowcase() {
 }
 
 export default VehicleShowcase;
+
+function normalizeVehicle(vehicle) {
+  const name = [vehicle.brand, vehicle.model].filter(Boolean).join(" ");
+
+  return {
+    id: vehicle.id,
+    name: name || "VIP Transfer Aracı",
+    category: formatVehicleClass(vehicle.vehicleClass),
+    passengerCapacity: Number(vehicle.capacity || 1),
+    luggageCapacity: Math.max(Number(vehicle.capacity || 1) - 1, 1),
+    image: getVehicleImage(vehicle),
+    features: [
+      vehicle.year ? `${vehicle.year} model` : "Güncel model",
+      vehicle.color || "Premium tasarım",
+      "Klima",
+      "Profesyonel sürücü",
+    ],
+  };
+}
+
+function formatVehicleClass(value) {
+  return (
+    {
+      ECONOMY: "Ekonomik",
+      STANDARD: "Standart",
+      PREMIUM: "Premium",
+      VIP: "VIP",
+      BUSINESS: "Business",
+    }[value] ||
+    value ||
+    "VIP Transfer"
+  );
+}
