@@ -5,6 +5,11 @@ export async function getAllReservations() {
   return response.data;
 }
 
+export async function getMyReservations() {
+  const response = await apiClient.get("/reservations/my");
+  return response.data;
+}
+
 export async function getReservationById(id) {
   const response = await apiClient.get(
     `/reservations/${id}`,

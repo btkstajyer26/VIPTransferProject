@@ -1,11 +1,14 @@
-import { LogOut, ChevronDown } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
@@ -17,7 +20,7 @@ import useAuth from "@/hooks/useAuth";
 
 function AdminTopbar() {
   const navigate = useNavigate();
-  const { logout, isAuthenticated } = useAuth();
+  const { logout, isAuthenticated, user } = useAuth();
   const { t, i18n } = useTranslation();
 
   const handleLanguageChange = async (lang) => {
@@ -87,12 +90,42 @@ function AdminTopbar() {
         </DropdownMenu>
 
         <NotificationBell scope="admin" />
-        <div className="admin-avatar">A</div>
-
-        <div className="admin-profile-info">
-          <strong>{t('admin.topbar.admin')}</strong>
-          <span>{t('admin.topbar.manager')}</span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="admin-account-trigger">
+            <div className="admin-avatar">
+              {(user?.firstName?.[0] || "A").toUpperCase()}
+            </div>
+            <div className="admin-profile-info">
+              <strong>
+                {[user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+                  t("admin.topbar.admin")}
+              </strong>
+              <span>{t("admin.topbar.manager")}</span>
+            </div>
+            <ChevronDown size={16} className="text-slate-400" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64 rounded-xl bg-white p-2 shadow-xl">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <span className="block text-sm">Yönetici hesabı</span>
+                <span className="block truncate text-xs font-normal text-slate-500">
+                  {user?.email || "Profil ve güvenlik ayarları"}
+                </span>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer rounded-lg" onClick={() => navigate("/admin/account")}>
+              <UserRound className="mr-2 size-4" /> Profil bilgilerini düzenle
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer rounded-lg" onClick={() => navigate("/admin/password")}>
+              <KeyRound className="mr-2 size-4" /> Şifreyi değiştir
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer rounded-lg text-red-600 focus:text-red-600" onClick={handleLogout}>
+              <LogOut className="mr-2 size-4" /> Güvenli çıkış
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <button
           type="button"

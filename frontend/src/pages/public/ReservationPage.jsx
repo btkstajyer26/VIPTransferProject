@@ -62,7 +62,7 @@ function ReservationPage() {
     loadVehicles();
   }, [reservationSearch]);
 
-  const loadVehicles = async () => {
+  async function loadVehicles() {
     try {
       setIsLoading(true);
       setError("");

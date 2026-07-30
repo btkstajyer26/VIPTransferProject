@@ -26,3 +26,16 @@ export async function getLoyaltyAccountByUserId(userId) {
 
   return response.data;
 }
+
+export async function updateLoyaltyTierConfig(tier, payload) {
+  const response = await apiClient.put(
+    `/loyalty/tier-config/${tier}`,
+    payload,
+  );
+  return response.data?.data ?? response.data;
+}
+
+export async function getLoyaltyTierConfigs() {
+  const response = await apiClient.get("/loyalty/tier-config");
+  return response.data?.data ?? response.data;
+}
