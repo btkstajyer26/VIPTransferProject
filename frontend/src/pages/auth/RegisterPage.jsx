@@ -11,6 +11,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { register } from "@/api/authApi";
 
@@ -39,6 +40,7 @@ function getBackendError(error) {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
@@ -191,12 +193,11 @@ export default function RegisterPage() {
             </p>
 
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
-              Yeni hesap oluşturun
+              {t("authPage.registerTitle")}
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              Rezervasyonlarınızı takip etmek ve sadakat
-              avantajlarından yararlanmak için kayıt olun.
+              {t("authPage.registerSubtitle")}
             </p>
           </div>
 
@@ -218,8 +219,8 @@ export default function RegisterPage() {
             <div className="grid gap-5 sm:grid-cols-2">
               <FormInput
                 name="firstName"
-                label="Ad"
-                placeholder="Adınız"
+                label={t("authPage.firstName")}
+                placeholder={t("authPage.firstNamePlaceholder")}
                 value={formData.firstName}
                 error={errors.firstName}
                 icon={User}
@@ -230,8 +231,8 @@ export default function RegisterPage() {
 
               <FormInput
                 name="lastName"
-                label="Soyad"
-                placeholder="Soyadınız"
+                label={t("authPage.lastName")}
+                placeholder={t("authPage.lastNamePlaceholder")}
                 value={formData.lastName}
                 error={errors.lastName}
                 icon={User}
@@ -244,8 +245,8 @@ export default function RegisterPage() {
             <FormInput
               name="email"
               type="email"
-              label="E-posta"
-              placeholder="ornek@mail.com"
+              label={t("authPage.email")}
+              placeholder={t("authPage.emailPlaceholder")}
               value={formData.email}
               error={errors.email}
               icon={Mail}
@@ -257,8 +258,8 @@ export default function RegisterPage() {
             <FormInput
               name="phoneNumber"
               type="tel"
-              label="Telefon numarası"
-              placeholder="05XX XXX XX XX"
+              label={t("authPage.phoneLabel")}
+              placeholder={t("authPage.phonePlaceholder")}
               value={formData.phoneNumber}
               error={errors.phoneNumber}
               icon={Phone}
@@ -271,8 +272,8 @@ export default function RegisterPage() {
 
             <PasswordInput
               name="password"
-              label="Şifre"
-              placeholder="En az 6 karakter"
+              label={t("authPage.passwordLabel")}
+              placeholder={t("authPage.passwordPlaceholder")}
               value={formData.password}
               error={errors.password}
               disabled={isLoading}
@@ -286,8 +287,8 @@ export default function RegisterPage() {
 
             <PasswordInput
               name="passwordConfirmation"
-              label="Şifre tekrarı"
-              placeholder="Şifrenizi tekrar girin"
+              label={t("authPage.passwordConfirm")}
+              placeholder={t("authPage.passwordConfirmPlaceholder")}
               value={formData.passwordConfirmation}
               error={errors.passwordConfirmation}
               disabled={isLoading}
@@ -307,21 +308,21 @@ export default function RegisterPage() {
               {isLoading ? (
                 <>
                   <LoaderCircle className="h-5 w-5 animate-spin" />
-                  Hesap oluşturuluyor
+                  {t("authPage.registering")}
                 </>
               ) : (
-                "Kayıt Ol"
+                t("authPage.registerBtn")
               )}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-400">
-            Zaten hesabınız var mı?{" "}
+            {t("authPage.hasAccount")}{" "}
             <Link
               to="/login"
               className="font-medium text-blue-300 hover:text-blue-200"
             >
-              Giriş yapın
+              {t("authPage.loginLink")}
             </Link>
           </p>
         </div>

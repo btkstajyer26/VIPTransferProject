@@ -4,35 +4,34 @@ import {
   Headphones,
   WalletCards,
 } from "lucide-react";
-
-const benefits = [
-  {
-    icon: BadgeCheck,
-    title: "Profesyonel Sürücüler",
-    description:
-      "Deneyimli ve özenle seçilmiş sürücülerle güvenli yolculuk.",
-  },
-  {
-    icon: Clock4,
-    title: "Zamanında Karşılama",
-    description:
-      "Uçuş ve rezervasyon bilgilerinize göre zamanında karşılama.",
-  },
-  {
-    icon: WalletCards,
-    title: "Şeffaf Fiyatlandırma",
-    description:
-      "Sürpriz ücretler olmadan önceden belirlenmiş sabit fiyatlar.",
-  },
-  {
-    icon: Headphones,
-    title: "7/24 Destek",
-    description:
-      "Rezervasyon öncesinde ve sonrasında kesintisiz destek.",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 function BenefitsSection() {
+  const { t } = useTranslation();
+
+  const benefits = [
+    {
+      icon: BadgeCheck,
+      title: t("benefits.items.profDrivers"),
+      description: t("benefits.items.profDriversDesc"),
+    },
+    {
+      icon: Clock4,
+      title: t("benefits.items.onTime"),
+      description: t("benefits.items.onTimeDesc"),
+    },
+    {
+      icon: WalletCards,
+      title: t("benefits.items.pricing"),
+      description: t("benefits.items.pricingDesc"),
+    },
+    {
+      icon: Headphones,
+      title: t("benefits.items.support"),
+      description: t("benefits.items.supportDesc"),
+    },
+  ];
+
   return (
     <section
       id="services"
@@ -41,16 +40,15 @@ function BenefitsSection() {
       <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
-            Neden bizi tercih etmelisiniz?
+            {t("benefits.badge")}
           </div>
 
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-[#0b1f3a] sm:text-4xl">
-            Yolculuğunuz için ihtiyacınız olan her şey
+            {t("benefits.title")}
           </h2>
 
           <p className="mt-4 leading-7 text-slate-600">
-            Konfor, güvenlik ve dakiklik odaklı premium
-            transfer hizmeti.
+            {t("benefits.subtitle")}
           </p>
         </div>
 

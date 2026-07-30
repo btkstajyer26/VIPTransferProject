@@ -10,6 +10,7 @@ import {
   Phone,
   ShieldCheck,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import useAuth from "@/hooks/useAuth";
 
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const passwordReset = location.state?.passwordReset ?? false;
 
@@ -198,19 +200,18 @@ export default function LoginPage() {
               </p>
 
               <h1 className="mt-4 max-w-md text-4xl font-semibold leading-tight text-white">
-                Yolculuk deneyiminizi kolayca yönetin.
+                {t("authPage.heroTitle")}
               </h1>
 
               <p className="mt-5 max-w-md text-base leading-7 text-slate-300">
-                Rezervasyonlarınıza erişin, transfer süreçlerinizi takip edin
-                ve hesabınıza özel hizmetleri tek platform üzerinden kullanın.
+                {t("authPage.heroSubtitle")}
               </p>
             </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/10 p-5">
             <p className="text-sm leading-6 text-slate-300">
-              Hesabınıza güvenli şekilde giriş yaparak devam edin.
+              {t("authPage.heroNotice")}
             </p>
           </div>
         </div>
@@ -229,11 +230,11 @@ export default function LoginPage() {
               </p>
 
               <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">
-                Hoş geldiniz
+                {t("authPage.loginTitle")}
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                Devam etmek için telefon numaranız ve şifrenizle giriş yapın.
+                {t("authPage.loginSubtitle")}
               </p>
             </div>
 
@@ -271,7 +272,7 @@ export default function LoginPage() {
                   htmlFor="phoneNumber"
                   className="mb-2 block text-sm font-medium text-slate-200"
                 >
-                  Telefon numarası
+                  {t("authPage.phoneLabel")}
                 </label>
 
                 <div className="relative">
@@ -283,7 +284,7 @@ export default function LoginPage() {
                     type="tel"
                     inputMode="numeric"
                     autoComplete="tel"
-                    placeholder="05XX XXX XX XX"
+                    placeholder={t("authPage.phonePlaceholder")}
                     maxLength={11}
                     value={formData.phoneNumber}
                     onChange={handlePhoneChange}
@@ -315,7 +316,7 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="mb-2 block text-sm font-medium text-slate-200"
                 >
-                  Şifre
+                  {t("authPage.passwordLabel")}
                 </label>
 
                 <div className="relative">
@@ -326,7 +327,7 @@ export default function LoginPage() {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
-                    placeholder="Şifrenizi girin"
+                    placeholder={t("authPage.passwordPlaceholder")}
                     minLength={6}
                     maxLength={100}
                     value={formData.password}
@@ -389,26 +390,25 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <LoaderCircle className="h-5 w-5 animate-spin" />
-                    Giriş yapılıyor
+                    {t("authPage.loggingIn")}
                   </>
                 ) : (
-                  "Giriş Yap"
+                  t("authPage.loginBtn")
                 )}
               </button>
                 <p className="mt-6 text-center text-sm text-slate-400">
-                Henüz hesabınız yok mu?{" "}
+                {t("authPage.noAccount")}{" "}
                 <Link
                   to="/register"
                   className="font-medium text-blue-300 transition hover:text-blue-200"
                 >
-                  Kayıt olun
+                  {t("authPage.registerLink")}
                 </Link>
               </p>
             </form>
 
             <p className="mt-8 text-center text-xs leading-5 text-slate-500">
-              Giriş işlemleriniz güvenli bağlantı üzerinden
-              gerçekleştirilmektedir.
+              {t("authPage.secureText")}
             </p>
           </div>
         </div>

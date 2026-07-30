@@ -1,4 +1,6 @@
 import { Eye, History, MoreHorizontal, RefreshCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/context/CurrencyContext";
 
 import ReservationStatusBadge from "@/components/reservations/ReservationStatusBadge";
 
@@ -38,30 +40,16 @@ function formatDateTime(dateValue) {
   }).format(date);
 }
 
-function formatPrice(price, currency = "TRY") {
-  const numericPrice = Number(price);
-
-  if (Number.isNaN(numericPrice)) {
-    return "-";
-  }
-
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(numericPrice);
-}
-
-function getCustomerLabel(reservation) {
+function getCustomerLabel(reservation, t) {
   if (reservation.userId) {
-    return `Kullanıcı #${reservation.userId}`;
+    return `${t('admin.reservationList.table.customer')} #${reservation.userId}`;
   }
 
   if (reservation.guestPhone) {
     return reservation.guestPhone;
   }
 
-  return "Bilinmiyor";
+  return t('admin.reservationList.status.unknown');
 }
 
 function ReservationTable({
@@ -70,16 +58,19 @@ function ReservationTable({
   onChangeStatus,
   onViewHistory,
 }) {
+  const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
+  
   if (!reservations.length) {
     return (
       <div className="flex min-h-56 items-center justify-center rounded-xl border bg-white p-6 text-center">
         <div>
           <p className="font-medium text-foreground">
-            Rezervasyon bulunamadı
+            {t('admin.reservationList.notFound')}
           </p>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Arama veya filtre kriterlerini değiştirerek tekrar deneyin.
+            {t('admin.reservationList.tryAgain')}
           </p>
         </div>
       </div>
@@ -92,15 +83,15 @@ function ReservationTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Rezervasyon</TableHead>
-              <TableHead>Müşteri</TableHead>
-              <TableHead>Güzergâh</TableHead>
-              <TableHead>Tarih</TableHead>
-              <TableHead>Araç</TableHead>
-              <TableHead>Yolcu</TableHead>
-              <TableHead>Fiyat</TableHead>
-              <TableHead>Durum</TableHead>
-              <TableHead className="w-16 text-right">İşlem</TableHead>
+              <TableHead>{t('admin.reservationList.table.reservation')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.customer')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.route')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.date')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.vehicle')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.passengers')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.price')}</TableHead>
+              <TableHead>{t('admin.reservationList.table.status')}</TableHead>
+              <TableHead className="w-16 text-right">{t('admin.reservationList.table.action')}</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -122,11 +113,11 @@ function ReservationTable({
                 <TableCell>
                   <div className="space-y-1">
                     <p className="font-medium">
-                      {getCustomerLabel(reservation)}
+                      {getCustomerLabel(reservation, t)}
                     </p>
 
                     <p className="text-xs text-muted-foreground">
-                      {reservation.userId ? "Kayıtlı kullanıcı" : "Misafir"}
+                      {reservation.userId ? t('admin.reservationList.table.registered') : t('admin.reservationList.table.guest')}
                     </p>
                   </div>
                 </TableCell>
@@ -135,7 +126,7 @@ function ReservationTable({
                   <div className="space-y-2">
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">
-                        Alış
+                        {t('admin.reservationList.table.pickup')}
                       </p>
 
                       <p
@@ -148,7 +139,7 @@ function ReservationTable({
 
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">
-                        Varış
+                        {t('admin.reservationList.table.dropoff')}
                       </p>
 
                       <p
@@ -173,7 +164,7 @@ function ReservationTable({
 
                     {reservation.flightNumber && (
                       <p className="text-xs text-muted-foreground">
-                        Uçuş: {reservation.flightNumber}
+                        {t('admin.reservationList.table.flight')} {reservation.flightNumber}
                       </p>
                     )}
                   </div>
@@ -202,7 +193,7 @@ function ReservationTable({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label="Rezervasyon işlemleri"
+                      aria-label={t('admin.reservationList.table.actions')}
                     />
                   }
                 >
@@ -214,14 +205,14 @@ function ReservationTable({
                         onClick={() => onViewDetails(reservation)}
                       >
                         <Eye className="mr-2 h-4 w-4" />
-                        Detayları görüntüle
+                        {t('admin.reservationList.table.viewDetails')}
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
                         onClick={() => onViewHistory(reservation)}
                       >
                         <History className="mr-2 h-4 w-4" />
-                        Durum geçmişi
+                        {t('admin.reservationList.table.statusHistory')}
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
@@ -233,7 +224,7 @@ function ReservationTable({
                         onClick={() => onChangeStatus(reservation)}
                       >
                         <RefreshCcw className="mr-2 h-4 w-4" />
-                        Durumu değiştir
+                        {t('admin.reservationList.table.changeStatus')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

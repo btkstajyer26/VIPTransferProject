@@ -1,0 +1,38 @@
+name: VIP Transfer Frontend CI/CD
+
+on:
+  push:
+    branches: [ "main", "test" ]
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches: [ "main", "test" ]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 2. Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+
+    - name: 3. Install Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: 4. Run Linter
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: 5. Build Project
+      working-directory: ./frontend
+      run: npm run build

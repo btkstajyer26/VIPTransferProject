@@ -5,8 +5,10 @@ import ReservationTable from "@/components/reservations/ReservationTable";
 import ReservationToolbar from "@/components/reservations/ReservationToolbar";
 
 import useReservations from "@/hooks/useReservations";
+import { useTranslation } from "react-i18next";
 
 function ReservationsPage() {
+  const { t } = useTranslation();
   const {
     filteredReservations,
     reservationHistory,
@@ -45,12 +47,11 @@ function ReservationsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
-          Rezervasyon Yönetimi
+          {t('admin.reservations.title')}
         </h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Tüm rezervasyonları görüntüleyin, filtreleyin ve durumlarını
-          yönetin.
+          {t('admin.reservations.subtitle')}
         </p>
       </div>
 
@@ -63,7 +64,7 @@ function ReservationsPage() {
             onClick={fetchReservations}
             className="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
           >
-            Tekrar dene
+            {t('admin.reservations.retry')}
           </button>
         </div>
       )}
@@ -78,7 +79,7 @@ function ReservationsPage() {
       {isLoading ? (
         <div className="flex min-h-72 items-center justify-center rounded-xl border bg-white">
           <p className="text-sm text-muted-foreground">
-            Rezervasyonlar yükleniyor...
+            {t('admin.reservations.loading')}
           </p>
         </div>
       ) : (

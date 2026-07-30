@@ -7,6 +7,7 @@ import {
   LogIn,
   Sparkles,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -35,6 +36,8 @@ function CustomerSummary() {
 }
 
 function GuestSummary() {
+  const { t } = useTranslation();
+
   return (
     <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#155eef] to-[#0b3d91] px-7 py-10 text-white shadow-[0_30px_80px_rgba(21,94,239,0.25)] sm:px-10 lg:px-14 lg:py-14">
       <div className="absolute -right-24 -top-24 size-80 rounded-full bg-white/10 blur-3xl" />
@@ -44,34 +47,31 @@ function GuestSummary() {
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium">
             <Sparkles size={16} />
-            Üyelere özel ayrıcalıklar
+            {t("customerSummary.guest.badge")}
           </div>
 
           <h2 className="mt-6 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-            Her yolculukta puan kazanın
+            {t("customerSummary.guest.title")}
           </h2>
 
           <p className="mt-5 max-w-xl leading-7 text-blue-100">
-            Üye olarak rezervasyon geçmişinizi
-            görüntüleyebilir, bilgilerinizi tekrar girmeden
-            hızlı rezervasyon yapabilir ve sadakat puanı
-            kazanabilirsiniz.
+            {t("customerSummary.guest.subtitle")}
           </p>
 
           <div className="mt-7 flex flex-wrap gap-5 text-sm text-blue-50">
             <div className="flex items-center gap-2">
               <Gift size={18} />
-              Sadakat puanı
+              {t("customerSummary.guest.features.loyalty")}
             </div>
 
             <div className="flex items-center gap-2">
               <History size={18} />
-              Rezervasyon geçmişi
+              {t("customerSummary.guest.features.history")}
             </div>
 
             <div className="flex items-center gap-2">
               <CalendarDays size={18} />
-              Hızlı rezervasyon
+              {t("customerSummary.guest.features.quickRes")}
             </div>
           </div>
         </div>
@@ -81,7 +81,7 @@ function GuestSummary() {
             to="/register"
             className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-white px-7 text-sm font-semibold text-[#0b1f3a] transition hover:-translate-y-0.5 hover:bg-blue-50"
           >
-            Ücretsiz kayıt ol
+            {t("customerSummary.guest.registerBtn")}
             <ArrowRight size={17} />
           </Link>
 
@@ -90,7 +90,7 @@ function GuestSummary() {
             className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-7 text-sm font-semibold text-white transition hover:bg-white/15"
           >
             <LogIn size={17} />
-            Giriş yap
+            {t("customerSummary.guest.loginBtn")}
           </Link>
         </div>
       </div>
@@ -99,20 +99,21 @@ function GuestSummary() {
 }
 
 function AuthenticatedSummary({ user }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
       <div className="rounded-[30px] border border-blue-100 bg-white p-8 shadow-[0_20px_60px_rgba(30,64,110,0.08)]">
         <div className="text-sm font-medium text-blue-600">
-          Tekrar hoş geldiniz
+          {t("customerSummary.auth.welcomeBack")}
         </div>
 
         <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#0b1f3a]">
-          Yolculuğunuzu planlamaya hazır mısınız?
+          {t("customerSummary.auth.title")}
         </h2>
 
         <p className="mt-4 max-w-xl leading-7 text-slate-600">
-          Yaklaşan rezervasyonlarınızı kontrol edin veya
-          yeni bir transfer oluşturun.
+          {t("customerSummary.auth.subtitle")}
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -120,7 +121,7 @@ function AuthenticatedSummary({ user }) {
             to="/reservation"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            Yeni rezervasyon
+            {t("customerSummary.auth.newResBtn")}
             <ArrowRight size={16} />
           </Link>
 
@@ -128,7 +129,7 @@ function AuthenticatedSummary({ user }) {
             to="/account/reservations"
             className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 px-6 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
           >
-            Rezervasyonlarım
+            {t("customerSummary.auth.myResBtn")}
           </Link>
         </div>
       </div>
@@ -140,36 +141,35 @@ function AuthenticatedSummary({ user }) {
           </div>
 
           <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-blue-100">
-            Sadakat programı
+            {t("customerSummary.auth.loyaltyProgram")}
           </span>
         </div>
 
         <div className="mt-8 text-sm text-slate-300">
-          Mevcut puanınız
+          {t("customerSummary.auth.currentPoints")}
         </div>
 
         <div className="mt-2 text-4xl font-semibold">
           0
           <span className="ml-2 text-base font-medium text-blue-300">
-            puan
+            {t("customerSummary.auth.pointsSuffix")}
           </span>
         </div>
 
         <p className="mt-4 text-sm leading-6 text-slate-300">
-          Tamamlanan transferlerinizden puan kazanarak
-          avantajlardan yararlanın.
+          {t("customerSummary.auth.loyaltyDesc")}
         </p>
 
         <Link
           to="/account/loyalty"
           className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-blue-300 transition hover:gap-3 hover:text-white"
         >
-          Puan detaylarını gör
+          {t("customerSummary.auth.viewDetails")}
           <ArrowRight size={16} />
         </Link>
 
         <div className="mt-5 text-xs text-slate-500">
-          Kullanıcı ID: {user?.userId ?? "-"}
+          {t("customerSummary.auth.userId")} {user?.userId ?? "-"}
         </div>
       </div>
     </div>
