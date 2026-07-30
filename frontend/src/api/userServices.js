@@ -10,6 +10,15 @@ export async function getCurrentUser() {
   return response.data;
 }
 
+export async function updateCurrentUser(payload) {
+  const response = await apiClient.patch("/users/me", payload);
+  return response.data;
+}
+
+export async function deleteCurrentUser() {
+  await apiClient.delete("/users/me");
+}
+
 export async function getUserById(userId) {
   const response = await apiClient.get(`/users/${userId}`);
   return response.data;

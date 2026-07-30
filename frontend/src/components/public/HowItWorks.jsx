@@ -33,7 +33,7 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="overflow-hidden bg-[#071a32] py-24 text-white sm:py-28"
+      className="scroll-mt-28 overflow-hidden bg-[#071a32] py-24 text-white sm:py-28"
     >
       <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">

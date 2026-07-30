@@ -41,32 +41,54 @@ function PublicFooter() {
         </div>
 
         <FooterGroup title={t("footer.services")}>
-          <FooterLink>{t("footer.servicesLinks.airport")}</FooterLink>
-          <FooterLink>{t("footer.servicesLinks.city")}</FooterLink>
-          <FooterLink>{t("footer.servicesLinks.rent")}</FooterLink>
-          <FooterLink>{t("footer.servicesLinks.corporate")}</FooterLink>
+          <FooterLink to="/#services">{t("footer.servicesLinks.airport")}</FooterLink>
+          <FooterLink to="/#services">{t("footer.servicesLinks.city")}</FooterLink>
+          <FooterLink to="/#services">{t("footer.servicesLinks.rent")}</FooterLink>
+          <FooterLink to="/#services">{t("footer.servicesLinks.corporate")}</FooterLink>
         </FooterGroup>
 
         <FooterGroup title={t("footer.quickLinksTitle")}>
-          <FooterLink>{t("footer.quickLinks.about")}</FooterLink>
-          <FooterLink>{t("footer.quickLinks.vehicles")}</FooterLink>
-          <FooterLink>{t("footer.quickLinks.reservation")}</FooterLink>
-          <FooterLink>{t("footer.quickLinks.privacy")}</FooterLink>
+          <FooterLink to="/about">{t("footer.quickLinks.about")}</FooterLink>
+          <FooterLink to="/fleet">{t("footer.quickLinks.vehicles")}</FooterLink>
+          <FooterLink to="/#reservation-form">{t("footer.quickLinks.reservation")}</FooterLink>
+          <FooterLink to="/faq">Sıkça Sorulan Sorular</FooterLink>
+          <FooterLink to="/privacy">{t("footer.quickLinks.privacy")}</FooterLink>
+          <FooterLink to="/terms">Kullanım Koşulları</FooterLink>
+          <FooterLink to="/cookies">Çerez Politikası</FooterLink>
         </FooterGroup>
 
         <FooterGroup title={t("footer.contact")}>
-          <ContactItem icon={Phone}>
+          <ContactItem icon={Phone} href="tel:+905555555555">
             +90 555 555 55 55
           </ContactItem>
 
-          <ContactItem icon={Mail}>
+          <ContactItem icon={Mail} href="mailto:support@viptransfer.com">
             support@viptransfer.com
           </ContactItem>
 
-          <ContactItem icon={MapPin}>
+          <ContactItem icon={MapPin} href="https://www.google.com/maps/search/?api=1&query=Istanbul%2C%20Turkey">
             İstanbul, Türkiye
           </ContactItem>
         </FooterGroup>
+      </div>
+
+      <div className="border-t border-white/10">
+        <div className="mx-auto max-w-[1320px] px-4 py-10 sm:px-6 lg:px-8">
+          <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-white">
+            Öne Çıkan Havalimanı Transferleri
+          </h3>
+          <div className="mt-6 grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredTransfers.map((route) => (
+              <Link
+                key={route}
+                to="/#reservation-form"
+                className="text-sm text-slate-400 transition hover:text-blue-300"
+              >
+                {route}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="border-t border-white/10">
@@ -98,31 +120,48 @@ function FooterGroup({ title, children }) {
   );
 }
 
-function FooterLink({ children }) {
+function FooterLink({ children, to }) {
   return (
-    <a
-      href="#"
+    <Link
+      to={to}
       className="text-sm text-slate-400 transition hover:text-blue-300"
     >
       {children}
-    </a>
+    </Link>
   );
 }
 
 function ContactItem({
   icon: Icon,
   children,
+  href,
 }) {
   return (
-    <div className="flex items-start gap-3 text-sm text-slate-400">
+    <a
+      href={href}
+      target={href?.startsWith("http") ? "_blank" : undefined}
+      rel={href?.startsWith("http") ? "noreferrer" : undefined}
+      className="flex items-start gap-3 text-sm text-slate-400 transition hover:text-blue-300"
+    >
       <Icon
         size={17}
         className="mt-0.5 shrink-0 text-blue-400"
       />
 
       <span>{children}</span>
-    </div>
+    </a>
   );
 }
 
 export default PublicFooter;
+
+const featuredTransfers = [
+  "İstanbul Havalimanı - Taksim",
+  "İstanbul Havalimanı - Kadıköy",
+  "İstanbul Havalimanı - Sultanahmet",
+  "Sabiha Gökçen - Taksim",
+  "Sabiha Gökçen - Kadıköy",
+  "Antalya Havalimanı - Kemer",
+  "Dalaman Havalimanı - Fethiye",
+  "Adnan Menderes - Alaçatı",
+];

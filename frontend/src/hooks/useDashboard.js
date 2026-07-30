@@ -75,6 +75,29 @@ function useDashboard() {
       .slice(0, 5);
   }, [reservations]);
 
+  const reservationStatusCounts = useMemo(
+    () =>
+      reservations.reduce((counts, reservation) => {
+        const status = reservation.status || "UNKNOWN";
+        counts[status] = (counts[status] || 0) + 1;
+        return counts;
+      }, {}),
+    [reservations],
+  );
+
+  const activeReservationCount = reservations.filter(
+    (reservation) =>
+      !["COMPLETED", "CANCELLED"].includes(reservation.status),
+  ).length;
+
+  const totalRevenue = reservations
+    .filter((reservation) => reservation.status === "COMPLETED")
+    .reduce(
+      (total, reservation) =>
+        total + Number(reservation.calculatedPrice || 0),
+      0,
+    );
+
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
@@ -84,6 +107,13 @@ function useDashboard() {
     totalReservations: reservations.length,
     activeVehicleCount,
     pendingReservationCount,
+    activeReservationCount,
+    completedReservationCount:
+      reservationStatusCounts.COMPLETED || 0,
+    cancelledReservationCount:
+      reservationStatusCounts.CANCELLED || 0,
+    reservationStatusCounts,
+    totalRevenue,
     latestReservations,
 
     isLoading,
