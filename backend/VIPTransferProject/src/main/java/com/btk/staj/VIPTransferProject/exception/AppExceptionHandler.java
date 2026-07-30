@@ -1,11 +1,15 @@
 package com.btk.staj.VIPTransferProject.exception;
 
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,8 +17,10 @@ import java.time.OffsetDateTime;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class AppExceptionHandler {
+    private final MeterRegistry meterRegistry;
 
     // ── 404 Not Found (Data yok -> Void) ─────────────────────────────────────
     @ExceptionHandler({
@@ -33,10 +39,16 @@ public class AppExceptionHandler {
     // ── 403 Forbidden (Data yok -> Void) ─────────────────────────────────────
     @ExceptionHandler({
             ForbiddenOperationException.class,
-            TokenRefreshException.class
+            TokenRefreshException.class,
+            AccessDeniedException.class
     })
-    public ResponseEntity<ApiResponse<Void>> handleForbidden(RuntimeException ex) {
-        log.warn("403 Forbidden: {}", ex.getMessage());
+    public ResponseEntity<ApiResponse<Void>> handleForbidden(RuntimeException ex, HttpServletRequest request) {
+        log.warn("[AUTH-403] [AccessDenied] Yetkisiz erişim denemesi! Hedef URL -> {} | Sebep: {}",
+                request.getRequestURI(), ex.getClass().getSimpleName());
+        // SOC SENSÖRÜ: 403 Yetki Aşımı Metriği
+        meterRegistry.counter("soc_security_alerts_total",
+                "alert_type", "forbidden_access",
+                "reason", ex.getClass().getSimpleName()).increment();
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
@@ -60,6 +72,10 @@ public class AppExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
         log.warn("401 Unauthorized: {}", ex.getMessage());
+        // SOC SENSÖRÜ: 401 Yetkisiz Giriş / Hatalı Şifre Metriği
+        meterRegistry.counter("soc_security_alerts_total",
+                "alert_type", "unauthorized_access",
+                "reason", "BAD_CREDENTIALS").increment();
         // Normal yetkisizliklerde BAD_CREDENTIALS dönüyoruz
         return build(HttpStatus.UNAUTHORIZED, "BAD_CREDENTIALS", ex.getMessage());
     }
