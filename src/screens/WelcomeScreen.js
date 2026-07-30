@@ -137,38 +137,7 @@ export default function WelcomeScreen({ navigation }) {
           </View>
         </View>
 
-        <Animated.View style={[styles.transferCard, getAnimatedStyle(heroAnim, 16)]}>
-          <View style={styles.cardAccent} />
-          <View style={styles.routeArea}>
-            <Text style={styles.cardEyebrow}>ÖRNEK TRANSFER</Text>
-            <View style={styles.routeRow}>
-              <View style={styles.routeMarkerColumn}>
-                <View style={styles.startMarker} />
-                <View style={styles.routeLine} />
-                <View style={styles.endMarker} />
-              </View>
-              <View style={styles.routeNames}>
-                <View>
-                  <Text style={styles.routeLabel}>BAŞLANGIÇ</Text>
-                  <Text style={styles.routeValue}>Havalimanı</Text>
-                </View>
-                <View>
-                  <Text style={styles.routeLabel}>VARIŞ</Text>
-                  <Text style={styles.routeValue}>Şehir Merkezi</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-          <View style={styles.serviceInfo}>
-            <Text style={styles.serviceBadge}>7/24</Text>
-            <Text style={styles.serviceLabel}>Transfer</Text>
-          </View>
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardFooterText}>
-              Profesyonel sürücü · Planlı karşılama · Konforlu ulaşım
-            </Text>
-          </View>
-        </Animated.View>
+
         <Animated.View style={[styles.footer, getAnimatedStyle(actionsAnim, 14)]}>
           <View style={styles.actions}>
             <Pressable
@@ -196,6 +165,18 @@ export default function WelcomeScreen({ navigation }) {
               ]}
             >
               <Text style={styles.secondaryButtonText}>Giriş Yap</Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityLabel="Rezervasyonumu görüntüle"
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('ReservationLookup')}
+              style={({ pressed }) => [
+                styles.lookupButton,
+                pressed && styles.secondaryButtonPressed,
+              ]}
+            >
+              <Text style={styles.lookupButtonText}>Rezervasyonumu Görüntüle</Text>
             </Pressable>
           </View>
 

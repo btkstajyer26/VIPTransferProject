@@ -1,0 +1,15 @@
+export const ADMIN_ROUTES = {
+  HOME: 'AdminHome',
+  USERS: 'AdminUsers',
+  VEHICLES: 'AdminVehicles',
+  VEHICLE_FORM: 'AdminVehicleForm',
+  RESERVATIONS: 'AdminReservations',
+  RESERVATION_DETAIL: 'AdminReservationDetail',
+  PRICING_ZONES: 'AdminPricingZones',
+  PRICING_ZONE_FORM: 'AdminPricingZoneForm',
+  PRICING_RULES: 'AdminPricingRules',
+  PRICING_RULE_FORM: 'AdminPricingRuleForm',
+  CAMPAIGNS: 'AdminCampaigns',
+  CAMPAIGN_FORM: 'AdminCampaignForm',
+  CAMPAIGN_DETAIL: 'AdminCampaignDetail',
+};

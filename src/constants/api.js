@@ -7,7 +7,7 @@ if (__DEV__ && !API_BASE_URL) {
   );
 }
 
-export const AUTH_LOGIN_PATH = '/api/v1/auth/login';
+export const AUTH_LOGIN_PATH = '/api/auth/login';
 
 export const API_ENDPOINTS = {
   LOGIN: AUTH_LOGIN_PATH,

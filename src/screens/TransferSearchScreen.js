@@ -1,5 +1,5 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,7 +9,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getLocationDetails } from '../api/locationApi';
+import { reverseGeocode } from '../api/locationApi';
+import { MapPreview } from '../components/transfer/MapPreview';
 import { RouteField } from '../components/transfer/RouteField';
 import { StepIndicator } from '../components/transfer/StepIndicator';
 import { TripInfoCard } from '../components/transfer/TripInfoCard';
@@ -44,47 +45,81 @@ export default function TransferSearchScreen({ navigation }) {
   const styles = useMemo(() => createTransferSearchStyles(theme), [theme]);
   const [pickupLocation, setPickupLocation] = useState({ ...EMPTY_LOCATION });
   const [dropoffLocation, setDropoffLocation] = useState({ ...EMPTY_LOCATION });
-  const pickupSearch = useLocationSearch(pickupLocation);
-  const dropoffSearch = useLocationSearch(dropoffLocation);
+  const pickupSearch = useLocationSearch();
+  const dropoffSearch = useLocationSearch();
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [pickerMode, setPickerMode] = useState(null);
   const [activeLocationField, setActiveLocationField] = useState(null);
   const [passengerCount, setPassengerCount] = useState(1);
   const [errors, setErrors] = useState({});
+  const reverseControllerRef = useRef(null);
+  const pickerFallbackValueRef = useRef(new Date());
+
+  useEffect(
+    () => () => {
+      reverseControllerRef.current?.abort();
+    },
+    [],
+  );
 
   function clearFieldError(fieldName) {
     setErrors((currentErrors) => ({ ...currentErrors, [fieldName]: undefined }));
   }
 
-  function handleLocationTextChange(value, setLocation, setSearchError, fieldName) {
+  function handleLocationTextChange(value, setLocation, search, fieldName) {
     setLocation({ ...EMPTY_LOCATION, displayName: value, address: value });
-    setSearchError('');
+    search.clearSearch();
     clearFieldError(fieldName);
   }
 
-  async function handleLocationSelect(item, setLocation, setSuggestions, setSearchError, fieldName) {
-    setSearchError('');
+  function handleLocationSelect(item, setLocation, search, fieldName) {
+    setLocation({ ...item });
+    search.clearSearch();
+    clearFieldError(fieldName);
+  }
+
+  async function handleMapPress(latitude, longitude) {
+    const target = activeLocationField;
+    if (target !== 'pickupLocation' && target !== 'dropoffLocation') return;
+
+    const setLocation = target === 'pickupLocation' ? setPickupLocation : setDropoffLocation;
+    const search = target === 'pickupLocation' ? pickupSearch : dropoffSearch;
+    const coordinateLabel = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+
+    reverseControllerRef.current?.abort();
+    const controller = new AbortController();
+    reverseControllerRef.current = controller;
+    search.clearSearch();
+    setLocation({
+      ...EMPTY_LOCATION,
+      displayName: coordinateLabel,
+      address: 'Adres belirleniyor...',
+      latitude,
+      longitude,
+      source: 'nominatim',
+    });
+    clearFieldError(target);
+
     try {
-      const location = await getLocationDetails(item.placeId);
-      setLocation(location);
-      setSuggestions([]);
-      clearFieldError(fieldName);
+      const location = await reverseGeocode(latitude, longitude, { signal: controller.signal });
+      if (reverseControllerRef.current === controller) setLocation(location);
     } catch (error) {
-      setSearchError(error?.message || 'Konum detayları alınamadı.');
+      if (error?.name !== 'AbortError' && reverseControllerRef.current === controller) {
+        search.setSearchError(error?.message || 'Seçilen konumun adresi bulunamadı.');
+      }
     }
   }
 
   function handleSwapLocations() {
+    reverseControllerRef.current?.abort();
     const nextPickupLocation = { ...dropoffLocation };
     const nextDropoffLocation = { ...pickupLocation };
 
     setPickupLocation(nextPickupLocation);
     setDropoffLocation(nextDropoffLocation);
-    pickupSearch.setSuggestions([]);
-    dropoffSearch.setSuggestions([]);
-    pickupSearch.setSearchError('');
-    dropoffSearch.setSearchError('');
+    pickupSearch.clearSearch();
+    dropoffSearch.clearSearch();
     setErrors((currentErrors) => ({
       ...currentErrors,
       pickupLocation: undefined,
@@ -129,6 +164,26 @@ export default function TransferSearchScreen({ navigation }) {
     setPickerMode(null);
   }
 
+  function handleDatePickerChange(event, value) {
+    if (Platform.OS === 'android' && (event.type === 'dismissed' || !value)) {
+      handlePickerDismiss();
+      return;
+    }
+
+    if (!value) return;
+    handleDateValueChange(value);
+  }
+
+  function handleTimePickerChange(event, value) {
+    if (Platform.OS === 'android' && (event.type === 'dismissed' || !value)) {
+      handlePickerDismiss();
+      return;
+    }
+
+    if (!value) return;
+    handleTimeValueChange(value);
+  }
+
   function updatePassengerCount(change) {
     setPassengerCount((count) =>
       Math.min(MAX_PASSENGER_COUNT, Math.max(MIN_PASSENGER_COUNT, count + change)),
@@ -158,7 +213,10 @@ export default function TransferSearchScreen({ navigation }) {
     navigation.navigate('VehicleSelection', { transferDetails });
   }
 
-  const pickerValue = pickerMode === 'date' ? selectedDate || new Date() : selectedTime || new Date();
+  const pickerValue =
+    pickerMode === 'date'
+      ? selectedDate || pickerFallbackValueRef.current
+      : selectedTime || pickerFallbackValueRef.current;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
@@ -215,25 +273,25 @@ export default function TransferSearchScreen({ navigation }) {
                 error={errors.pickupLocation}
                 fieldName="pickupLocation"
                 label="Nereden"
+                hasSearched={pickupSearch.hasSearched}
                 loading={pickupSearch.loading}
                 location={pickupLocation}
                 markerStyle={styles.pickupMarker}
-                onBlur={() => setActiveLocationField(null)}
                 onChangeText={(value) =>
                   handleLocationTextChange(
                     value,
                     setPickupLocation,
-                    pickupSearch.setSearchError,
+                    pickupSearch,
                     'pickupLocation',
                   )
                 }
                 onFocus={() => setActiveLocationField('pickupLocation')}
+                onSearch={() => pickupSearch.search(pickupLocation.displayName)}
                 onSelect={(item) =>
                   handleLocationSelect(
                     item,
                     setPickupLocation,
-                    pickupSearch.setSuggestions,
-                    pickupSearch.setSearchError,
+                    pickupSearch,
                     'pickupLocation',
                   )
                 }
@@ -249,25 +307,25 @@ export default function TransferSearchScreen({ navigation }) {
                 error={errors.dropoffLocation}
                 fieldName="dropoffLocation"
                 label="Nereye"
+                hasSearched={dropoffSearch.hasSearched}
                 loading={dropoffSearch.loading}
                 location={dropoffLocation}
                 markerStyle={styles.dropoffMarker}
-                onBlur={() => setActiveLocationField(null)}
                 onChangeText={(value) =>
                   handleLocationTextChange(
                     value,
                     setDropoffLocation,
-                    dropoffSearch.setSearchError,
+                    dropoffSearch,
                     'dropoffLocation',
                   )
                 }
                 onFocus={() => setActiveLocationField('dropoffLocation')}
+                onSearch={() => dropoffSearch.search(dropoffLocation.displayName)}
                 onSelect={(item) =>
                   handleLocationSelect(
                     item,
                     setDropoffLocation,
-                    dropoffSearch.setSuggestions,
-                    dropoffSearch.setSearchError,
+                    dropoffSearch,
                     'dropoffLocation',
                   )
                 }
@@ -279,6 +337,15 @@ export default function TransferSearchScreen({ navigation }) {
               />
             </View>
           </View>
+
+          <MapPreview
+            activeField={activeLocationField}
+            dropoff={dropoffLocation}
+            onMapPress={handleMapPress}
+            pickup={pickupLocation}
+            styles={styles}
+            theme={theme}
+          />
 
           <View style={styles.infoGrid}>
             <TripInfoCard
@@ -304,10 +371,10 @@ export default function TransferSearchScreen({ navigation }) {
           {pickerMode === 'date' ? (
             <View style={styles.pickerArea}>
               <DateTimePicker
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={new Date()}
                 mode="date"
-                onDismiss={handlePickerDismiss}
-                onValueChange={(...args) => handleDateValueChange(args[1])}
+                onChange={handleDatePickerChange}
                 themeVariant={theme.mode}
                 value={pickerValue}
               />
@@ -326,9 +393,9 @@ export default function TransferSearchScreen({ navigation }) {
           {pickerMode === 'time' ? (
             <View style={styles.pickerArea}>
               <DateTimePicker
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 mode="time"
-                onDismiss={handlePickerDismiss}
-                onValueChange={(...args) => handleTimeValueChange(args[1])}
+                onChange={handleTimePickerChange}
                 themeVariant={theme.mode}
                 value={pickerValue}
               />

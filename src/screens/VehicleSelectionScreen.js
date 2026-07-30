@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import useAuth from '../hooks/useAuth';
 import { useTheme } from '../theme/ThemeContext';
 import { createVehicleSelectionStyles } from '../styles/vehicleSelectionStyles';
 import { getActiveVehicles } from '../api/vehicleApi';
@@ -82,6 +83,7 @@ function VehicleCard({ vehicle, isSelected, onSelect, styles }) {
 
 export default function VehicleSelectionScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
   const styles = useMemo(() => createVehicleSelectionStyles(theme), [theme]);
   const transferDetails = route.params?.transferDetails ?? null;
 
@@ -125,9 +127,10 @@ export default function VehicleSelectionScreen({ navigation, route }) {
       return;
     }
 
-    navigation.navigate('GuestInfo', {
+    navigation.navigate(isAuthenticated ? 'Reservation' : 'GuestInfo', {
       transferDetails,
       selectedVehicle,
+      isGuest: !isAuthenticated,
     });
   }
 

@@ -74,6 +74,7 @@ export function AuthProvider({ children }) {
 
   const accessToken = session?.accessToken ?? null;
   const role = session?.role ?? null;
+  const userId = session?.userId ?? null;
   const isAuthenticated = Boolean(accessToken);
 
   const contextValue = useMemo(
@@ -81,6 +82,7 @@ export function AuthProvider({ children }) {
       session,
       accessToken,
       role,
+      userId,
       isAuthenticated,
       isInitializing,
       isLoading,
@@ -93,6 +95,7 @@ export function AuthProvider({ children }) {
       session,
       accessToken,
       role,
+      userId,
       isAuthenticated,
       isInitializing,
       isLoading,

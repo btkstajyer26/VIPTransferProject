@@ -92,7 +92,13 @@ async function request(
       }
     }
 
-    const response = await fetch(buildUrl(path, params), {
+    const requestUrl = buildUrl(path, params);
+
+    if (__DEV__) {
+      console.info(`[API] ${method} ${requestUrl.split('?')[0]}`);
+    }
+
+    const response = await fetch(requestUrl, {
       method,
       headers: requestHeaders,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -118,7 +124,10 @@ async function request(
       throw createApiError(0, 'İstek zaman aşımına uğradı.');
     }
 
-    throw createApiError(0, 'Sunucuya bağlanılamadı. Lütfen bağlantınızı kontrol edin.');
+    throw createApiError(
+      0,
+      'Sunucuya bağlanılamadı. API adresini ve ağ bağlantısını kontrol edin.',
+    );
   } finally {
     clearTimeout(timeoutId);
   }
