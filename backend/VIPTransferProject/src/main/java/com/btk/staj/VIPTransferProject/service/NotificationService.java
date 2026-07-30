@@ -5,6 +5,7 @@ import com.btk.staj.VIPTransferProject.dto.notification.NotificationResponse;
 import com.btk.staj.VIPTransferProject.dto.notification.UpdateNotificationStatusRequest;
 import com.btk.staj.VIPTransferProject.entity.Notification;
 import com.btk.staj.VIPTransferProject.entity.NotificationTemplate;
+import com.btk.staj.VIPTransferProject.entity.Reservation;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.enums.NotificationStatus;
 import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
@@ -13,9 +14,11 @@ import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
 import com.btk.staj.VIPTransferProject.exception.NotificationSendException;
 import com.btk.staj.VIPTransferProject.mapper.NotificationMapper;
 import com.btk.staj.VIPTransferProject.repository.NotificationRepository;
+import com.btk.staj.VIPTransferProject.repository.ReservationRepository;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
@@ -27,11 +30,15 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final ReservationRepository reservationRepository;
     private final NotificationTemplateService templateService;
     private final NotificationDeliveryService deliveryService;
     private final NotificationMapper notificationMapper;
 
-    @Transactional(noRollbackFor = NotificationSendException.class)
+    @Transactional(
+            propagation = Propagation.REQUIRES_NEW,
+            noRollbackFor = NotificationSendException.class
+    )
     public NotificationResponse create(CreateNotificationRequest request) {
 
         User user = userRepository.findById(request.getUserId())
@@ -56,8 +63,25 @@ public class NotificationService {
                 request.getVariables()
         );
 
+        Reservation reservation = null;
+        if (request.getReservationId() != null) {
+            reservation = reservationRepository.findById(request.getReservationId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Bildirime bağlanacak rezervasyon bulunamadı: "
+                                    + request.getReservationId()
+                    ));
+
+            if (reservation.getUser() == null
+                    || !reservation.getUser().getId().equals(user.getId())) {
+                throw new IllegalArgumentException(
+                        "Rezervasyon ile bildirim kullanıcısı eşleşmiyor."
+                );
+            }
+        }
+
         Notification notification = Notification.builder()
                 .user(user)
+                .reservation(reservation)
                 .channel(request.getChannel())
                 .title(title)
                 .message(message)
@@ -76,13 +100,24 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public NotificationResponse getById(Long id) {
-        Notification notification = findById(id);
+    public NotificationResponse getByIdForUser(Long id, Long userId) {
+        Notification notification = notificationRepository
+                .findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
         return notificationMapper.toResponse(notification);
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationResponse> getAll() {
+    public List<NotificationResponse> getAllForUser(Long userId) {
+        return notificationRepository
+                .findAllByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(notificationMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getAllForAdmin() {
         return notificationRepository.findAll()
                 .stream()
                 .map(notificationMapper::toResponse)

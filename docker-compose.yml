@@ -33,6 +33,25 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://vip-postgres:5432/vip_transfer_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=vip_password
+      - MAIL_ENABLED=${MAIL_ENABLED:-false}
+      - MAIL_HOST=${MAIL_HOST:-}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME:-}
+      - MAIL_PASSWORD=${MAIL_PASSWORD:-}
+      - FIREBASE_ENABLED=${FIREBASE_ENABLED:-false}
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/firebase-service-account.json
+      - SMS_ENABLED=${SMS_ENABLED:-false}
+      - ILETIMERKEZI_API_URL=${ILETIMERKEZI_API_URL:-}
+      - ILETIMERKEZI_API_KEY=${ILETIMERKEZI_API_KEY:-}
+      - ILETIMERKEZI_API_HASH=${ILETIMERKEZI_API_HASH:-}
+      - ILETIMERKEZI_SENDER=${ILETIMERKEZI_SENDER:-}
+      - WHATSAPP_ENABLED=${WHATSAPP_ENABLED:-false}
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL:-https://graph.facebook.com}
+      - WHATSAPP_API_VERSION=${WHATSAPP_API_VERSION:-}
+      - WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN:-}
+      - WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID:-}
+    volumes:
+      - ./secrets:/run/secrets:ro
     networks:
       - vip-network
     restart: on-failure

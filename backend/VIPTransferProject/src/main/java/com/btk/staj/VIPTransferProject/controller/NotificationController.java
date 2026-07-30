@@ -3,11 +3,14 @@ package com.btk.staj.VIPTransferProject.controller;
 import com.btk.staj.VIPTransferProject.dto.notification.CreateNotificationRequest;
 import com.btk.staj.VIPTransferProject.dto.notification.NotificationResponse;
 import com.btk.staj.VIPTransferProject.dto.notification.UpdateNotificationStatusRequest;
+import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import com.btk.staj.VIPTransferProject.service.NotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +22,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<NotificationResponse> create(
             @Valid @RequestBody CreateNotificationRequest request
@@ -29,19 +33,31 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getAll() {
-        return ResponseEntity.ok(notificationService.getAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<NotificationResponse> getById(
-            @PathVariable Long id
+    public ResponseEntity<List<NotificationResponse>> getAllForCurrentUser(
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(
-                notificationService.getById(id)
+                notificationService.getAllForUser(principal.id())
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public ResponseEntity<List<NotificationResponse>> getAllForAdmin() {
+        return ResponseEntity.ok(notificationService.getAllForAdmin());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<NotificationResponse> getByIdForCurrentUser(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                notificationService.getByIdForUser(id, principal.id())
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/send")
     public ResponseEntity<NotificationResponse> send(
             @PathVariable Long id
@@ -51,6 +67,7 @@ public class NotificationController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<NotificationResponse> updateStatus(
             @PathVariable Long id,

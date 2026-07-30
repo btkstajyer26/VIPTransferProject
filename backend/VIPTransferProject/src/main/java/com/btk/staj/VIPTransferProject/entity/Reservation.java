@@ -4,7 +4,9 @@ import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
 
 import java.math.BigDecimal;
@@ -102,6 +104,7 @@ public class Reservation {
     private String currency = "TRY";
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Builder.Default
     @Column(nullable = false, columnDefinition = "reservation_status")
     private ReservationStatus status = ReservationStatus.PENDING;
