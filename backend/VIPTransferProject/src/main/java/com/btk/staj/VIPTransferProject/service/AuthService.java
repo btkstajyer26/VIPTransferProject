@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -40,6 +41,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final MeterRegistry meterRegistry;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -89,12 +91,14 @@ public class AuthService {
             user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> {
                         log.warn("Güvenlik - Başarısız Giriş: Bulunamayan e-posta ({})", request.getEmail());
+                        meterRegistry.counter("soc_security_alerts_total", "reason", "BAD_CREDENTIALS").increment();
                         return new UnauthorizedException("Kullanıcı adı veya şifre hatalı!");
                     });
         } else if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
             user = userRepository.findByPhoneNumber(request.getPhoneNumber())
                     .orElseThrow(() -> {
                         log.warn("Güvenlik - Başarısız Giriş: Bulunamayan telefon numarası ({})", request.getPhoneNumber());
+                        meterRegistry.counter("soc_security_alerts_total", "reason", "BAD_CREDENTIALS").increment();
                         return new UnauthorizedException("Kullanıcı adı veya şifre hatalı!");
                     });
         } else {
@@ -103,6 +107,7 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Güvenlik - Başarısız Giriş: Hatalı şifre denemesi ({})", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
+            meterRegistry.counter("soc_security_alerts_total", "reason", "BAD_CREDENTIALS").increment();
             throw new UnauthorizedException("Kullanıcı adı veya şifre hatalı!");
         }
 
