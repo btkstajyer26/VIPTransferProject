@@ -14,7 +14,10 @@ export async function verifyEmail(email, code) {
   const response = await apiClient.post("/auth/verify-email", { email, code });
   return response.data;
 }
-
+export async function resendVerificationCode(email) {
+  const response = await apiClient.post("/auth/resend-code", { email });
+  return response.data;
+}
 export async function refreshToken(refreshTokenValue) {
   const response = await apiClient.post("/auth/refresh", {
     refreshToken: refreshTokenValue,

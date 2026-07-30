@@ -35,20 +35,41 @@ const sortPointsClockwise = (pts) => {
 export default function ZoneMapSelector({ initialCoordinates, onChange }) {
   const [points, setPoints] = useState([]);
 
-  // Dışarıdan initialCoordinates (GeoJSON) gelirse haritayı doldur
+  // Dışarıdan initialCoordinates (GeoJSON) gelirse haritayı doldur.
+  // Serileştirilmiş anahtar kullanılır çünkü initialCoordinates prop'u her render'da
+  // yeniden parse edildiğinden referans değişkenlik gösterir; naif [initialCoordinates]
+  // dependency'si harita çizerken feedback loop yaratır.
+  const incomingKey = initialCoordinates
+    ? JSON.stringify(initialCoordinates)
+    : "";
+
   useEffect(() => {
-    if (initialCoordinates && Array.isArray(initialCoordinates) && initialCoordinates.length > 0) {
-      // GeoJSON formatı [[[lng,lat], [lng,lat]...]] şeklindedir
-      const firstRing = initialCoordinates[0];
-      if (Array.isArray(firstRing)) {
-        // GeoJSON'da ilk ve son nokta aynıdır, görsellikte son noktayı çıkartıyoruz ki çizime devam edilebilsin
-        // Fakat şimdilik sadece var olanları göstereceğiz.
-        // Eğer kullanıcı sıfırdan çiziyorsa points state'ini kullanacağız.
-        const rawPoints = firstRing.slice(0, firstRing.length - 1); // son nokta tekrarı
-        setPoints(rawPoints);
-      }
+    if (!incomingKey) {
+      setPoints([]);
+      return;
     }
-  }, []);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(incomingKey);
+    } catch {
+      return;
+    }
+
+    const firstRing = Array.isArray(parsed) ? parsed[0] : null;
+    if (!Array.isArray(firstRing) || firstRing.length === 0) {
+      setPoints([]);
+      return;
+    }
+
+    // GeoJSON'da ilk ve son nokta aynıdır; çizim haritasında son tekrarı atıyoruz.
+    const rawPoints = firstRing.slice(0, firstRing.length - 1);
+
+    // Kullanıcının haritada çizdiği noktalarla aynıysa state'i ezme (feedback loop guard).
+    setPoints((prev) =>
+      JSON.stringify(prev) === JSON.stringify(rawPoints) ? prev : rawPoints,
+    );
+  }, [incomingKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMapClick = (lngLat) => {
     const newPoints = sortPointsClockwise([...points, lngLat]);
