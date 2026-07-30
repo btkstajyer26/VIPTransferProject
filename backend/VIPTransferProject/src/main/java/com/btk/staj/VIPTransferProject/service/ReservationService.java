@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.service;
 
 import com.btk.staj.VIPTransferProject.dto.loyalty.AccruePointsRequests;
+import com.btk.staj.VIPTransferProject.dto.notification.CreateNotificationRequest;
 import com.btk.staj.VIPTransferProject.dto.pricing.PriceBreakdownResponseDto;
 import com.btk.staj.VIPTransferProject.dto.reservation.CreateReservationRequest;
 import com.btk.staj.VIPTransferProject.dto.reservation.GuestReservationResponse;

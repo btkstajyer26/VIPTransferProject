@@ -41,6 +41,25 @@ public class NotificationController {
         );
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<List<NotificationResponse>> getMyNotifications(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(
+                notificationService.getAllForUser(principal.id())
+        );
+    }
+
+    @PostMapping("/my/{id}/read")
+    public ResponseEntity<NotificationResponse> markMyNotificationRead(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                notificationService.markReadByOwner(id, principal.id())
+        );
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<List<NotificationResponse>> getAllForAdmin() {

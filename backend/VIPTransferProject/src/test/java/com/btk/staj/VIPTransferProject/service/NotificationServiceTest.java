@@ -15,6 +15,7 @@ import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.List;
 
@@ -144,6 +145,43 @@ class NotificationServiceTest {
 
         verify(notificationRepository).findByIdAndUserId(12L, 7L);
         verify(notificationRepository, never()).findById(12L);
+    }
+
+    @Test
+    void markReadByOwner_marksOnlyOwnedNotificationAsRead() {
+        User user = User.builder().id(7L).build();
+        Notification notification = Notification.builder()
+                .id(12L)
+                .user(user)
+                .channel(NotificationChannel.PUSH)
+                .title("Baslik")
+                .message("Mesaj")
+                .status(NotificationStatus.SENT)
+                .build();
+
+        when(notificationRepository.findByIdAndUserId(12L, 7L))
+                .thenReturn(Optional.of(notification));
+        when(notificationRepository.save(notification))
+                .thenReturn(notification);
+
+        NotificationResponse response =
+                service.markReadByOwner(12L, 7L);
+
+        assertThat(response.getStatus()).isEqualTo(NotificationStatus.READ);
+        assertThat(notification.getReadAt()).isBeforeOrEqualTo(OffsetDateTime.now());
+        verify(notificationRepository).findByIdAndUserId(12L, 7L);
+        verify(notificationRepository, never()).findById(12L);
+    }
+
+    @Test
+    void markReadByOwner_rejectsAnotherUsersNotification() {
+        when(notificationRepository.findByIdAndUserId(12L, 7L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.markReadByOwner(12L, 7L))
+                .isInstanceOf(NotificationNotFoundException.class);
+
+        verify(notificationRepository, never()).save(any(Notification.class));
     }
 
     @Test

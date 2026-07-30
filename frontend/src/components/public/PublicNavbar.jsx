@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../api/apiClient";
 import CurrencySelector from "@/components/layout/CurrencySelector";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -149,6 +150,8 @@ function PublicNavbar() {
             {!isAuthLoading &&
             isAuthenticated ? (
               <>
+                <NotificationBell />
+
                 <Link
                   to={
                     user?.role === "ADMIN"

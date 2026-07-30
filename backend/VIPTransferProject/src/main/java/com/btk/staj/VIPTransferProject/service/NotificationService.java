@@ -116,6 +116,25 @@ public class NotificationService {
                 .toList();
     }
 
+    @Transactional
+    public NotificationResponse markReadByOwner(
+            Long notificationId,
+            Long userId
+    ) {
+        Notification notification = notificationRepository
+                .findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() ->
+                        new NotificationNotFoundException(notificationId)
+                );
+
+        notification.setStatus(NotificationStatus.READ);
+        notification.setReadAt(OffsetDateTime.now());
+
+        return notificationMapper.toResponse(
+                notificationRepository.save(notification)
+        );
+    }
+
     @Transactional(readOnly = true)
     public List<NotificationResponse> getAllForAdmin() {
         return notificationRepository.findAll()

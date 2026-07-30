@@ -86,7 +86,7 @@ function AdminTopbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <NotificationBell />
+        <NotificationBell scope="admin" />
         <div className="admin-avatar">A</div>
 
         <div className="admin-profile-info">
