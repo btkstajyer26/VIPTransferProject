@@ -24,10 +24,10 @@ public class CampaignService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CampaignResponseDto create(CampaignRequestDto request) {
+    public CampaignResponseDto create(CampaignRequestDto request, Long adminId) {
         validate(request);
 
-        User createdBy = resolveCreatedBy(request.getCreatedById());
+        User createdBy = resolveCreatedBy(adminId);
 
         Campaign campaign = Campaign.builder()
                 .code(request.getCode())
@@ -55,8 +55,6 @@ public class CampaignService {
         Campaign campaign = campaignRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Campaign bulunamadı: id=" + id));
 
-        User createdBy = resolveCreatedBy(request.getCreatedById());
-
         campaign.setCode(request.getCode());
         campaign.setName(request.getName());
         campaign.setDescription(request.getDescription());
@@ -68,9 +66,8 @@ public class CampaignService {
         campaign.setMaxUsesPerUser(resolveMaxUsesPerUser(request.getMaxUsesPerUser()));
         campaign.setValidFrom(request.getValidFrom());
         campaign.setValidTo(request.getValidTo());
-        campaign.setCreatedBy(createdBy);
 
-        return toResponse(campaign);
+        return toResponse(campaignRepository.save(campaign));
     }
 
     public CampaignResponseDto getById(Long id) {
@@ -96,6 +93,15 @@ public class CampaignService {
         Campaign campaign = campaignRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Campaign bulunamadı: id=" + id));
         campaign.setActive(false);
+        campaignRepository.save(campaign);
+    }
+
+    @Transactional
+    public void activate(Long id) {
+        Campaign campaign = campaignRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Campaign bulunamadı: id=" + id));
+        campaign.setActive(true);
+        campaignRepository.save(campaign);
     }
 
     // --- iş kuralı validasyonu ---

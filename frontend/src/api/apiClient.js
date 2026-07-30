@@ -1,27 +1,20 @@
 import axios from "axios";
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+  import.meta.env.VITE_API_URL || "/api";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const AUTH_USER_KEY = "authUser";
 
-/*
- * Normal API istekleri bu instance üzerinden gider.
- */
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     Accept: "application/json",
   },
 });
 
-/*
- * Refresh isteği ayrı instance üzerinden gönderilir.
- * Böylece refresh endpoint'i 401 döndürürse interceptor döngüsüne girmez.
- */
 const refreshClient = axios.create({
   baseURL: API_URL,
   timeout: 10000,
@@ -37,32 +30,35 @@ function clearStoredSession() {
   localStorage.removeItem(AUTH_USER_KEY);
 }
 
-/*
- * Aynı anda birden fazla API isteği 401 döndürürse
- * sadece bir refresh isteği gönderilir.
- */
 let refreshPromise = null;
 
 /*
- * Her API isteğine access token eklenir.
+ * Token varsa isteğe eklenir.
+ *
+ * allowAnonymous true olsa bile kullanıcı giriş yaptıysa
+ * token gönderilir. Böylece aynı endpoint hem misafir hem
+ * giriş yapmış kullanıcı tarafından kullanılabilir.
  */
 apiClient.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    const lang = localStorage.getItem('i18nextLng') || 'TR';
 
     if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+      config.headers.Authorization =
+        `Bearer ${accessToken}`;
+    } else {
+      delete config.headers.Authorization;
     }
+
+    config.headers['Accept-Language'] = lang;
 
     return config;
   },
-  (error) => Promise.reject(error)
+
+  (error) => Promise.reject(error),
 );
 
-/*
- * 401 gelirse refresh token ile yeni access token alınır
- * ve başarısız olan ilk istek tekrar gönderilir.
- */
 apiClient.interceptors.response.use(
   (response) => response,
 
@@ -70,33 +66,24 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    /*
-     * Sunucudan cevap gelmediyse veya hata 401 değilse
-     * normal şekilde hatayı döndür.
-     */
     if (!originalRequest || status !== 401) {
       return Promise.reject(error);
     }
 
     /*
-     * Aynı istek için yalnızca bir defa refresh denensin.
-     * Sonsuz döngüyü önler.
+     * Bu istek misafir kullanıcıların da erişebildiği
+     * bir endpoint mi?
      */
-    if (originalRequest._retry) {
-      clearStoredSession();
+    const allowAnonymous =
+      originalRequest.allowAnonymous === true;
 
-      if (window.location.pathname !== "/login") {
-        window.location.replace("/login");
-      }
-
-      return Promise.reject(error);
-    }
+    const requestUrl =
+      originalRequest.url || "";
 
     /*
-     * Login ve refresh endpoint'lerinde refresh işlemi yapılmaz.
+     * Login ve refresh isteklerinde yeniden refresh
+     * denenmez.
      */
-    const requestUrl = originalRequest.url || "";
-
     if (
       requestUrl.includes("/auth/login") ||
       requestUrl.includes("/auth/refresh")
@@ -104,13 +91,46 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const storedRefreshToken =
-      localStorage.getItem(REFRESH_TOKEN_KEY);
+    /*
+     * Aynı istek daha önce refresh edilerek tekrar
+     * gönderildiyse ikinci kez deneme.
+     */
+    if (originalRequest._retry) {
+      clearStoredSession();
 
+      /*
+       * Public isteklerde login sayfasına yönlendirme.
+       * Hata ilgili sayfada gösterilsin.
+       */
+      if (
+        !allowAnonymous &&
+        window.location.pathname !== "/login"
+      ) {
+        window.location.replace("/login");
+      }
+
+      return Promise.reject(error);
+    }
+
+    const storedRefreshToken =
+      localStorage.getItem(
+        REFRESH_TOKEN_KEY,
+      );
+
+    /*
+     * Refresh token yoksa kullanıcı misafirdir veya
+     * oturumu tamamen bitmiştir.
+     */
     if (!storedRefreshToken) {
       clearStoredSession();
 
-      if (window.location.pathname !== "/login") {
+      /*
+       * Misafir erişimine açık endpointlerde login'e atma.
+       */
+      if (
+        !allowAnonymous &&
+        window.location.pathname !== "/login"
+      ) {
         window.location.replace("/login");
       }
 
@@ -120,39 +140,37 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      /*
-       * Başka bir refresh işlemi yoksa yeni refresh isteği başlat.
-       */
       if (!refreshPromise) {
         refreshPromise = refreshClient
           .post("/auth/refresh", {
             refreshToken: storedRefreshToken,
           })
           .then((response) => {
-            const {
-              accessToken: newAccessToken,
-              refreshToken: newRefreshToken,
-            } = response.data?.data ?? response.data;
+            const responseData =
+              response.data?.data ??
+              response.data;
+
+            const newAccessToken =
+              responseData?.accessToken;
+
+            const newRefreshToken =
+              responseData?.refreshToken;
 
             if (!newAccessToken) {
               throw new Error(
-                "Backend yeni access token döndürmedi."
+                "Backend yeni access token döndürmedi.",
               );
             }
 
             localStorage.setItem(
               ACCESS_TOKEN_KEY,
-              newAccessToken
+              newAccessToken,
             );
 
-            /*
-             * Backend yeni refresh token döndürürse güncelle.
-             * Şu an backend aynı refresh token'ı döndürüyor.
-             */
             if (newRefreshToken) {
               localStorage.setItem(
                 REFRESH_TOKEN_KEY,
-                newRefreshToken
+                newRefreshToken,
               );
             }
 
@@ -163,29 +181,33 @@ apiClient.interceptors.response.use(
           });
       }
 
-      const newAccessToken = await refreshPromise;
+      const newAccessToken =
+        await refreshPromise;
 
-      /*
-       * Başarısız olan isteğin Authorization header'ını
-       * yeni token ile değiştir.
-       */
+      originalRequest.headers =
+        originalRequest.headers || {};
+
       originalRequest.headers.Authorization =
         `Bearer ${newAccessToken}`;
 
-      /*
-       * Orijinal isteği yeniden gönder.
-       */
       return apiClient(originalRequest);
     } catch (refreshError) {
       clearStoredSession();
 
-      if (window.location.pathname !== "/login") {
+      /*
+       * Public sayfada bulunan misafir kullanıcıyı
+       * login sayfasına zorla gönderme.
+       */
+      if (
+        !allowAnonymous &&
+        window.location.pathname !== "/login"
+      ) {
         window.location.replace("/login");
       }
 
       return Promise.reject(refreshError);
     }
-  }
+  },
 );
 
 export default apiClient;

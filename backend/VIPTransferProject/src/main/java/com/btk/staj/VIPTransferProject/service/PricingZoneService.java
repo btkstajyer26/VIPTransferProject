@@ -9,7 +9,11 @@ import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.mapper.GeoJSONMapper;
 import com.btk.staj.VIPTransferProject.repository.pricing.PricingZoneRepository;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,10 +83,67 @@ public class PricingZoneService {
         return polygon;
     }
 
+    /**
+     * Yeni poligonu mevcut aktif bölgelerin dışına iter (ST_Difference).
+     * Çakışan alan otomatik kesilir; kalan alan döndürülür.
+     * <ul>
+     *   <li>Çakışma yoksa orijinal poligon değişmeden döner.</li>
+     *   <li>Sonuç MultiPolygon ise en büyük parça alınır (çizilen alan mevcut bölge tarafından ikiye bölündü).</li>
+     *   <li>Sonuç tamamen boşsa (çizilen alan zaten kaplı) hata fırlatılır.</li>
+     * </ul>
+     */
+    private Polygon clipToNonOverlapping(Polygon polygon, Long excludeId) {
+        String clippedWkt = pricingZoneRepository
+                .computeNonOverlappingAreaWkt(polygon.toText(), excludeId)
+                .orElse(null);
+
+        // Sorgu sonuç döndürmediyse veya boş geometriyse çakışma yoktur, orijinali kullan.
+        if (clippedWkt == null || clippedWkt.isBlank()) {
+            return polygon;
+        }
+
+        Geometry clipped;
+        try {
+            clipped = new WKTReader().read(clippedWkt);
+        } catch (ParseException e) {
+            // WKT parse hatası beklenmiyor; güvenli tarafta kalıp orijinali döndür.
+            return polygon;
+        }
+
+        clipped.setSRID(4326);
+
+        if (clipped.isEmpty()) {
+            throw new InvalidPricingRuleException(
+                    "Çizilen alan tamamen mevcut aktif fiyat bölgeleriyle kaplıdır. " +
+                    "Lütfen daha önce tanımlanmamış bir alan seçiniz.");
+        }
+
+        if (clipped instanceof Polygon clippedPolygon) {
+            return clippedPolygon;
+        }
+
+        if (clipped instanceof MultiPolygon mp) {
+            // Mevcut bölge çizimi ikiye böldüyse en büyük parçayı kaydet.
+            Polygon largest = null;
+            double maxArea = -1;
+            for (int i = 0; i < mp.getNumGeometries(); i++) {
+                Polygon part = (Polygon) mp.getGeometryN(i);
+                if (part.getArea() > maxArea) {
+                    maxArea = part.getArea();
+                    largest = part;
+                }
+            }
+            return largest;
+        }
+
+        // Beklenmedik geometri türü — orijinali döndür.
+        return polygon;
+    }
+
     @Transactional
     public PricingZoneResponseDto create(PricingZoneRequestDto request){
         validate(request);
-        Polygon polygon = toValidPolygon(request);
+        Polygon polygon = clipToNonOverlapping(toValidPolygon(request), null);
 
         PricingZone zone = PricingZone.builder()
                 .name(request.getName())
@@ -101,7 +162,7 @@ public class PricingZoneService {
     @Transactional
     public PricingZoneResponseDto update(Long id, PricingZoneRequestDto request) {
         validate(request);
-        Polygon polygon = toValidPolygon(request);
+        Polygon polygon = clipToNonOverlapping(toValidPolygon(request), id);
 
         PricingZone zone = pricingZoneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PricingZone bulunamadı: id=" + id));

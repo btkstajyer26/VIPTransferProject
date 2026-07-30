@@ -9,8 +9,11 @@ import {
 } from "@/components/ui/card";
 
 import { getLoyaltyTierLabel } from "@/constants/loyalty";
+import { useTranslation } from "react-i18next";
 
 function LoyaltyAccountCard({ account }) {
+  const { t } = useTranslation();
+
   if (!account) {
     return null;
   }
@@ -24,10 +27,10 @@ function LoyaltyAccountCard({ account }) {
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Sadakat Hesabı</CardTitle>
+            <CardTitle>{t("loyaltyPage.cardTitle")}</CardTitle>
 
             <CardDescription>
-              Kullanıcının toplam puanı ve mevcut seviyesi.
+              {t("loyaltyPage.cardDesc")}
             </CardDescription>
           </div>
 
@@ -42,7 +45,7 @@ function LoyaltyAccountCard({ account }) {
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <UserRound className="size-4" />
-              Kullanıcı ID
+              {t("loyaltyPage.userId")}
             </div>
 
             <p className="mt-2 text-2xl font-semibold">
@@ -53,7 +56,7 @@ function LoyaltyAccountCard({ account }) {
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Star className="size-4" />
-              Toplam Puan
+              {t("loyaltyPage.totalPoints")}
             </div>
 
             <p className="mt-2 text-2xl font-semibold">
@@ -64,7 +67,7 @@ function LoyaltyAccountCard({ account }) {
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Award className="size-4" />
-              Seviye
+              {t("loyaltyPage.tier")}
             </div>
 
             <p className="mt-2 text-2xl font-semibold">

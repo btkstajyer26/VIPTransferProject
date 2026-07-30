@@ -1,4 +1,5 @@
 import { Plus, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ function VehicleToolbar({
   onClassFilterChange,
   onCreate,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row">
@@ -26,7 +28,7 @@ function VehicleToolbar({
           <Input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Plaka, marka veya model ara..."
+            placeholder={t("admin.vehiclesList.searchPlaceholder")}
             className="pl-9"
           />
         </div>
@@ -36,11 +38,11 @@ function VehicleToolbar({
           onValueChange={onClassFilterChange}
         >
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Araç sınıfı" />
+            <SelectValue placeholder={t("admin.vehiclesList.classFilter")} />
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="ALL">Tüm sınıflar</SelectItem>
+            <SelectItem value="ALL">{t("admin.vehiclesList.allClasses")}</SelectItem>
             <SelectItem value="ECONOMY">Economy</SelectItem>
             <SelectItem value="STANDARD">Standard</SelectItem>
             <SelectItem value="BUSINESS">Business</SelectItem>

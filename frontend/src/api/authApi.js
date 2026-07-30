@@ -10,16 +10,14 @@ export async function register(payload) {
   return response.data;
 }
 
-export async function verifyEmail(token) {
-    const response = await apiClient.get("/auth/verify-email", {
-        params: {
-            token,
-        },
-    });
-
-    return response.data;
+export async function verifyEmail(email, code) {
+  const response = await apiClient.post("/auth/verify-email", { email, code });
+  return response.data;
 }
-
+export async function resendVerificationCode(email) {
+  const response = await apiClient.post("/auth/resend-code", { email });
+  return response.data;
+}
 export async function refreshToken(refreshTokenValue) {
   const response = await apiClient.post("/auth/refresh", {
     refreshToken: refreshTokenValue,
@@ -33,5 +31,19 @@ export async function logout(refreshTokenValue) {
     refreshToken: refreshTokenValue,
   });
 
+  return response.data;
+}
+
+export async function forgotPassword(email) {
+  const response = await apiClient.post("/auth/forgot-password", { email });
+  return response.data;
+}
+
+export async function resetPassword(email, code, newPassword) {
+  const response = await apiClient.post("/auth/reset-password", {
+    email,
+    code,
+    newPassword,
+  });
   return response.data;
 }

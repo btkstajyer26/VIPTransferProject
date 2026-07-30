@@ -57,6 +57,17 @@ services:
     restart: on-failure
 
   # ==========================================================
+  # 2.5. FRONTEND SERVİSİ
+  # ==========================================================
+  frontend-service:
+    build:
+      context: ./frontend
+    container_name: vip-frontend
+    networks:
+      - vip-network
+    restart: unless-stopped
+
+  # ==========================================================
   # 3. API GATEWAY (DIŞ DÜNYAYA AÇIK TEK KAPI)
   # ==========================================================
   api-gateway:
@@ -68,6 +79,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - backend-service
+      - frontend-service
     networks:
       - vip-network
     restart: unless-stopped

@@ -11,6 +11,7 @@ import com.btk.staj.VIPTransferProject.dto.reservation.ReservationStatusHistoryR
 import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
 import com.btk.staj.VIPTransferProject.dto.routing.RouteInfoDto;
 import com.btk.staj.VIPTransferProject.entity.*;
+import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.event.ReservationNotificationEvent;
@@ -23,18 +24,21 @@ import com.btk.staj.VIPTransferProject.repository.*;
 import com.btk.staj.VIPTransferProject.repository.pricing.PricingZoneRepository;
 import com.btk.staj.VIPTransferProject.util.BookingReferenceGenerator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -52,6 +56,7 @@ public class ReservationService {
     private final BookingReferenceGenerator bookingReferenceGenerator;
     private final UserService userService;
     private final LoyaltyService loyaltyService;
+    private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
@@ -121,7 +126,7 @@ public class ReservationService {
 
         // 8. Gerçek Reservation oluştur ve kaydet
         Reservation reservation = Reservation.builder()
-                .bookingReference(bookingReferenceGenerator.generate())
+                .bookingReference(generateUniqueBookingReference())
                 .user(user)
                 .pickupAddress(request.getPickupAddress())
                 .pickupPoint(pickupPoint)
@@ -146,16 +151,17 @@ public class ReservationService {
                 .status(ReservationStatus.PENDING)
                 .build();
 
-        // TODO(pricing-team): Rezervasyon kaydedildikten sonra campaigns.used_count +1 artırılmalı.
-        // Şu an used_count hiç güncellenmiyor; max_uses limiti hiçbir zaman dolmuyor.
-        // Öneri: CampaignRepository.incrementUsedCount(campaignId) — @Modifying @Query ile.
-
         try {
             reservation = reservationRepository.save(reservation);
         } catch (DataIntegrityViolationException e) {
-            log.warn("bookingReference çarpışması, yeniden deneniyor. ref={}", reservation.getBookingReference());
-            reservation.setBookingReference(bookingReferenceGenerator.generate());
-            reservation = reservationRepository.save(reservation);
+            throw new BusinessRuleException("Rezervasyon oluşturulamadı, lütfen tekrar deneyin.");
+        }
+
+        if (campaign != null) {
+            int updated = campaignRepository.incrementUsedCountIfAvailable(campaign.getId());
+            if (updated == 0) {
+                throw new BusinessRuleException("Kampanyanın kullanım limiti dolmuş.");
+            }
         }
 
         log.info("Rezervasyon oluşturuldu. id={}, bookingRef={}, zone={}, finalPrice={}",
@@ -185,7 +191,8 @@ public class ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Araç bulunamadı: " + request.getVehicleId()));
 
         User user = userId != null
-                ? userRepository.findByIdAndActiveTrue(userId).orElse(null)
+                ? userRepository.findByIdAndActiveTrue(userId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı veya aktif değil: " + userId))
                 : null;
 
         Point pickupPoint  = GEO_FACTORY.createPoint(new Coordinate(request.getPickupLon(),  request.getPickupLat()));
@@ -233,6 +240,7 @@ public class ReservationService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<ReservationResponse> getAllReservations() {
         return reservationRepository.findAllByOrderByScheduledTimeDesc()
                 .stream()
@@ -240,6 +248,7 @@ public class ReservationService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<ReservationResponse> getMyReservations(Long userId) {
         findUserByUserId(userId);
         return reservationRepository.findByUserIdOrderByScheduledTimeDesc(userId)
@@ -278,8 +287,20 @@ public class ReservationService {
             reservation.setCompletedAt(OffsetDateTime.now());
         } else if (target == ReservationStatus.CANCELLED) {
             reservation.setCancelledAt(OffsetDateTime.now());
+            reservation.setCancellationReason(request.getNote());
         }
         reservationRepository.save(reservation);
+
+        statusHistoryRepository.save(ReservationStatusHistory.builder()
+                .reservation(reservation)
+                .status(target)
+                .changedBy(requester)
+                .note(request.getNote())
+                .build());
+
+        log.info("Rezervasyon durumu güncellendi. id={}, {} -> {}", id, current, target);
+
+        sendStatusChangeNotifications(reservation, current, target, request.getNote());
 
         if (target == ReservationStatus.COMPLETED
                 && reservation.getUser() != null
@@ -306,6 +327,94 @@ public class ReservationService {
         return toResponse(reservation);
     }
 
+    private void sendStatusChangeNotifications(
+            Reservation reservation,
+            ReservationStatus oldStatus,
+            ReservationStatus newStatus,
+            String note) {
+
+        User user = reservation.getUser();
+        if (user == null || user.isGuest()) {
+            return;
+        }
+
+        String langCode = user.getPreferredLang() != null ? user.getPreferredLang() : "tr";
+        String templateCode = resolveTemplateCode(newStatus);
+        List<NotificationChannel> channels = resolveNotificationChannels(newStatus);
+        Map<String, String> variables = buildNotificationVariables(reservation, oldStatus, newStatus, note);
+
+        for (NotificationChannel channel : channels) {
+            try {
+                CreateNotificationRequest req = new CreateNotificationRequest();
+                req.setUserId(user.getId());
+                req.setReservationId(reservation.getId());
+                req.setTemplateCode(templateCode);
+                req.setChannel(channel);
+                req.setLangCode(langCode);
+                req.setVariables(variables);
+                req.setSendImmediately(true);
+                notificationService.create(req);
+            } catch (Exception e) {
+                log.warn("Bildirim gönderilemedi. channel={}, reservationId={}, hata={}",
+                        channel, reservation.getId(), e.getMessage());
+            }
+        }
+    }
+
+    private String resolveTemplateCode(ReservationStatus status) {
+        return switch (status) {
+            case CANCELLED -> "RESERVATION_CANCELLED";
+            case COMPLETED -> "RESERVATION_COMPLETED";
+            default -> "RESERVATION_STATUS_CHANGED";
+        };
+    }
+
+    private List<NotificationChannel> resolveNotificationChannels(ReservationStatus status) {
+        return switch (status) {
+            case CANCELLED -> List.of(
+                    NotificationChannel.EMAIL,
+                    NotificationChannel.SMS,
+                    NotificationChannel.PUSH
+            );
+            case COMPLETED -> List.of(
+                    NotificationChannel.EMAIL,
+                    NotificationChannel.PUSH
+            );
+            default -> List.of(
+                    NotificationChannel.EMAIL,
+                    NotificationChannel.PUSH
+            );
+        };
+    }
+
+    private Map<String, String> buildNotificationVariables(
+            Reservation reservation,
+            ReservationStatus oldStatus,
+            ReservationStatus newStatus,
+            String note) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+        User user = reservation.getUser();
+
+        Map<String, String> vars = new HashMap<>();
+        vars.put("firstName", user.getFirstName() != null ? user.getFirstName() : "");
+        vars.put("bookingReference", reservation.getBookingReference() != null ? reservation.getBookingReference() : "");
+        vars.put("oldStatus", oldStatus.name());
+        vars.put("newStatus", newStatus.name());
+        vars.put("pickupAddress", reservation.getPickupAddress() != null ? reservation.getPickupAddress() : "");
+        vars.put("dropoffAddress", reservation.getDropoffAddress() != null ? reservation.getDropoffAddress() : "");
+        vars.put("scheduledTime", reservation.getScheduledTime() != null
+                ? reservation.getScheduledTime().format(formatter) : "");
+        vars.put("calculatedPrice", reservation.getCalculatedPrice() != null
+                ? reservation.getCalculatedPrice().toPlainString() : "");
+        vars.put("currency", reservation.getCurrency() != null ? reservation.getCurrency() : "TRY");
+        vars.put("vehicleName", reservation.getVehicle() != null && reservation.getVehicle().getModel() != null
+                ? reservation.getVehicle().getModel() : "");
+        vars.put("passengerCount", String.valueOf(reservation.getPassengerCount()));
+        vars.put("cancellationReason", note != null ? note : "");
+        return vars;
+    }
+
     @Transactional
     public void cancelReservation(Long id, Long userId) {
         User requester = findUserByUserId(userId);
@@ -318,15 +427,18 @@ public class ReservationService {
             throw new BusinessRuleException(
                     "Sadece PENDING durumundaki rezervasyon iptal edilebilir. Mevcut durum: " + reservation.getStatus());
         }
+
+        String reason = "Kullanıcı tarafından iptal edildi.";
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservation.setCancelledAt(OffsetDateTime.now());
+        reservation.setCancellationReason(reason);
         reservationRepository.save(reservation);
 
         statusHistoryRepository.save(ReservationStatusHistory.builder()
                 .reservation(reservation)
                 .status(ReservationStatus.CANCELLED)
                 .changedBy(requester)
-                .note("Rezervasyon iptal edildi.")
+                .note(reason)
                 .build());
 
         publishNotification(
@@ -335,6 +447,8 @@ public class ReservationService {
                 ReservationStatus.CANCELLED
         );
         log.info("Rezervasyon iptal edildi. id={}, userId={}", id, userId);
+
+        sendStatusChangeNotifications(reservation, ReservationStatus.PENDING, ReservationStatus.CANCELLED, reason);
     }
 
     @Transactional(readOnly = true)
@@ -395,7 +509,9 @@ public class ReservationService {
         }
         boolean valid = switch (current) {
             case PENDING  -> target == ReservationStatus.ASSIGNED || target == ReservationStatus.CANCELLED;
-            case ASSIGNED -> target == ReservationStatus.COMPLETED || target == ReservationStatus.NO_SHOW;
+            case ASSIGNED -> target == ReservationStatus.COMPLETED
+                    || target == ReservationStatus.NO_SHOW
+                    || target == ReservationStatus.CANCELLED;
             case COMPLETED, CANCELLED, NO_SHOW -> false;
         };
         if (!valid) {
@@ -455,6 +571,17 @@ public class ReservationService {
                 .note(h.getNote())
                 .changedAt(h.getChangedAt())
                 .build();
+    }
+
+    private String generateUniqueBookingReference() {
+        for (int i = 0; i < 5; i++) {
+            String ref = bookingReferenceGenerator.generate();
+            if (!reservationRepository.existsByBookingReference(ref)) {
+                return ref;
+            }
+            log.warn("bookingReference çakışması, yeniden üretiliyor. deneme={}", i + 1);
+        }
+        throw new BusinessRuleException("Rezervasyon referansı üretilemedi, lütfen tekrar deneyin.");
     }
 
     private ReservationResponse toResponse(Reservation r) {

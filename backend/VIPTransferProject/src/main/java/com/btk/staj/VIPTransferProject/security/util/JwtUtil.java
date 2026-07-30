@@ -76,8 +76,7 @@ public class JwtUtil {
     }
     public Long extractSessionId(String token) {
         Number sessionId = extractAllClaims(token).get("sessionId", Number.class);
-        return sessionId != null ? sessionId.longValue() : null;
-    }
+        return sessionId != null ? sessionId.longValue() : null; }
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(keyProvider.getPublicKey())

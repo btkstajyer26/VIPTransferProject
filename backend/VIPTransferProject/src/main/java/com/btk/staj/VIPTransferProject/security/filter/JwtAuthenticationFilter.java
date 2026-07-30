@@ -2,6 +2,7 @@ package com.btk.staj.VIPTransferProject.security.filter;
 
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
+import com.btk.staj.VIPTransferProject.security.util.IpUtil;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
 import com.btk.staj.VIPTransferProject.security.util.UserPrincipal;
 import com.btk.staj.VIPTransferProject.service.RefreshTokenService;
@@ -21,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -35,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     //private final ObjectMapper objectMapper;
     private final RefreshTokenService refreshTokenService;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -42,12 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        final String currentDeviceInfo = request.getHeader("User-Agent");
+        final String currentIp = IpUtil.getClientIp(request);
         final String jwt;
         final String phoneNumber;
         final String role;
         final Long userId;
         final Long sessionId;
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -63,12 +67,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 phoneNumber = jwtUtil.extractUsername(jwt);
                 userId= jwtUtil.extractUserId(jwt);
                 sessionId= jwtUtil.extractSessionId(jwt);
-                if (sessionId != null) {
-                    boolean isSessionValid = refreshTokenService.isRefreshTokenValidById(sessionId);
-                    if (!isSessionValid) {
-                        // Eğer oturum geçerli değilse, kod aşağıya (5. adıma) geçemez.
-                        throw new UnauthorizedException("Bu oturum sonlandırılmış veya başka bir cihazdan çıkış yapılmış!");
-                    }
+                log.info("[SOC-MONITOR] İstek onaylanıyor -> IP: {}, User-Agent: {}, User: {}", currentIp, currentDeviceInfo, phoneNumber);
+
+                if(sessionId!=null){
+                    refreshTokenService.validateSessionIntegrity(sessionId,currentDeviceInfo,currentIp);
                 }
 
                 if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -88,31 +90,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-
         catch (Exception e) {
             log.error("[AUTH-401] [JwtFilter] Kimlik doğrulama başarısız (Geçersiz Token): {}", e.getMessage());
-            //STATUS : 401
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED.value(), "Oturum süreniz dolmuş veya geçersiz token. Lütfen tekrar giriş yapın.");
+            // Eğer fırlatılan hata zaten bizim UnauthorizedException ise (örn. Hijacking) olduğu gibi al,
+            // değilse (örn. süresi dolmuş veya imzası bozuk token) standart mesajla yeni bir hata fırlat.
+            UnauthorizedException resolvedException = (e instanceof UnauthorizedException)
+                    ? (UnauthorizedException) e
+                    : new UnauthorizedException("Oturum süreniz dolmuş veya geçersiz token. Lütfen tekrar giriş yapın.");
+
+            // Hatayı GlobalExceptionHandler'a pasla ve döngüyü kır
+            handlerExceptionResolver.resolveException(request, response, null, resolvedException);
             return;
         }
         filterChain.doFilter(request, response);
-    }
-    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-
-        String timestamp = OffsetDateTime.now().toString();
-        // Kendi ApiResponse formatımıza birebir uyan Text Block
-        String jsonResponse = """
-                {
-                  "timestamp": "%s",
-                  "status": %d,
-                  "message": "%s",
-                  "data": null
-                }
-                """.formatted(timestamp, status, message);
-
-        response.getWriter().write(jsonResponse);
     }
 }

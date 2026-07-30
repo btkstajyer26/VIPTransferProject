@@ -5,6 +5,7 @@ import {
   Check,
   UsersRound,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const vehicles = [
   {
@@ -55,6 +56,8 @@ const vehicles = [
 ];
 
 function VehicleShowcase() {
+  const { t } = useTranslation();
+
   return (
     <section
       id="vehicles"
@@ -65,17 +68,15 @@ function VehicleShowcase() {
           <div className="max-w-2xl">
             <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
               <span className="h-px w-8 bg-blue-600" />
-              Araç filomuz
+              {t("vehicles.badge")}
             </div>
 
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-[#0b1f3a] sm:text-4xl lg:text-5xl">
-              Her yolculuk için doğru araç
+              {t("vehicles.title")}
             </h2>
 
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
-              Bireysel, aile veya grup transferleri için
-              konforlu ve modern araç seçeneklerini
-              inceleyin.
+              {t("vehicles.subtitle")}
             </p>
           </div>
 
@@ -83,7 +84,7 @@ function VehicleShowcase() {
             to="/reservation"
             className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:gap-3 hover:text-blue-700"
           >
-            Tüm araçları görüntüle
+            {t("vehicles.viewAll")}
             <ArrowRight size={17} />
           </Link>
         </div>
@@ -119,7 +120,7 @@ function VehicleShowcase() {
                       size={18}
                       className="text-blue-600"
                     />
-                    {vehicle.passengerCapacity} yolcu
+                    {vehicle.passengerCapacity} {t("vehicles.passenger")}
                   </div>
 
                   <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -127,7 +128,7 @@ function VehicleShowcase() {
                       size={18}
                       className="text-blue-600"
                     />
-                    {vehicle.luggageCapacity} bagaj
+                    {vehicle.luggageCapacity} {t("vehicles.luggage")}
                   </div>
                 </div>
 
@@ -150,7 +151,7 @@ function VehicleShowcase() {
                   to="/reservation"
                   className="mt-7 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#0b1f3a] px-5 text-sm font-semibold text-white transition hover:bg-blue-600"
                 >
-                  Bu araçla rezervasyon yap
+                  {t("vehicles.bookThis")}
                   <ArrowRight size={16} />
                 </Link>
               </div>

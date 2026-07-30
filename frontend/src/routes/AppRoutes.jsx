@@ -13,11 +13,13 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import HomePage from "../pages/public/HomePage";
 import ReservationPage from "../pages/public/ReservationPage";
+import ReservationConfirm from "../components/reservations/ReservationConfirm";
 
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
 import VerifyEmailPendingPage from "../pages/auth/VerifyEmailPendingPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
 import DashboardPage from "../pages/admin/DashboardPage";
 import UsersPage from "../pages/admin/UsersPage";
@@ -26,6 +28,7 @@ import VehiclesPage from "../pages/admin/VehiclesPage";
 import CampaignsPage from "../pages/admin/CampaignsPage";
 import LoyaltyPage from "../pages/admin/LoyaltyPage";
 import PricingZonesPage from "../pages/admin/PricingZonesPage";
+import NotificationsPage from "../pages/admin/NotificationsPage";
 
 function AppRoutes() {
   return (
@@ -33,34 +36,62 @@ function AppRoutes() {
       <Routes>
         {/* Public */}
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={<HomePage />}
+          />
+
           <Route
             path="/reservation"
             element={<ReservationPage />}
+          />
+
+          <Route
+            path="/reservation/confirm"
+            element={<ReservationConfirm />}
           />
         </Route>
 
         {/* Auth */}
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/login"
+            element={<LoginPage />}
+          />
+
+          <Route
+            path="/register"
+            element={<RegisterPage />}
+          />
+
           <Route
             path="/verify-email"
             element={<VerifyEmailPage />}
           />
+
           <Route
             path="/verify-email-pending"
             element={<VerifyEmailPendingPage />}
+          />
+
+          <Route
+            path="/forgot-password"
+            element={<ForgotPasswordPage />}
           />
         </Route>
 
         {/* Admin */}
         <Route
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]} />
+            <ProtectedRoute
+              allowedRoles={["ADMIN"]}
+            />
           }
         >
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={<AdminLayout />}
+          >
             <Route
               index
               element={
@@ -105,13 +136,23 @@ function AppRoutes() {
               path="pricing-zones"
               element={<PricingZonesPage />}
             />
+
+            <Route
+              path="notifications"
+              element={<NotificationsPage />}
+            />
           </Route>
         </Route>
 
         {/* 404 */}
         <Route
           path="*"
-          element={<Navigate to="/" replace />}
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
         />
       </Routes>
     </BrowserRouter>
