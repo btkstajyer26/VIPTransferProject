@@ -1,0 +1,55 @@
+{
+    "validation_version": "core-output-validation-v3",
+    "generated_at_utc": "2026-07-26T17:56:48+00:00",
+    "project_root": "C:\\Users\\elaay\\OneDrive - Ankara Medipol Üniversitesi\\Masaüstü\\proje",
+    "validation_scope": "01–12 core data pipeline outputs, before weather and demand forecasting stages",
+    "validation_passed": true,
+    "total_check_count": 97,
+    "passed_check_count": 97,
+    "failed_error_count": 0,
+    "warning_count": 0,
+    "file_count": 23,
+    "sha256_calculated": true,
+    "row_counts": {
+        "users": 250000,
+        "vehicles": 500,
+        "pricing_zones": 60,
+        "pricing_rules": 165,
+        "loyalty_tier_config": 5,
+        "loyalty_accounts": 187500,
+        "reservations": 3154257,
+        "reservation_status_history": 9112545,
+        "rfm_customer_segments": 250000,
+        "customer_kmeans_segments": 250000,
+        "admin_customer_recommendations": 250000
+    },
+    "reservation_summary": {
+        "reservation_count": 3154257,
+        "completed_count": 2704680,
+        "cancelled_count": 279266,
+        "no_show_count": 124478,
+        "guest_reservation_count": 273150
+    },
+    "status_history_summary": {
+        "history_row_count": 9112545,
+        "invalid_history_id_sequence": 0,
+        "unknown_reservation_id": 0,
+        "invalid_status": 0,
+        "unknown_changed_by": 0,
+        "invalid_changed_at": 0,
+        "non_chronological_change": 0
+    },
+    "pricing_currency": "TRY",
+    "distance_unit": "kilometre",
+    "source_usd_used_for_backend_price": false,
+    "weather_outputs_checked": false,
+    "demand_model_outputs_checked": false,
+    "reason_weather_not_checked": "15–22 numaralı hava durumu, tahmin, XGBoost ve backend teslim aşamaları bu kontrol noktasından sonra çalışacaktır.",
+    "simulated_geometry_warning": "SIMULATED_GRID polygonlar staj simülasyonu içindir. Üretimde admin panelinden çizilmiş doğrulanmış polygonlar kullanılmalıdır.",
+    "report_files": {
+        "file_manifest": "C:\\Users\\elaay\\OneDrive - Ankara Medipol Üniversitesi\\Masaüstü\\proje\\outputs\\reports\\12_validate_core_outputs\\file_manifest.csv",
+        "validation_checks": "C:\\Users\\elaay\\OneDrive - Ankara Medipol Üniversitesi\\Masaüstü\\proje\\outputs\\reports\\12_validate_core_outputs\\validation_checks.csv",
+        "table_row_counts": "C:\\Users\\elaay\\OneDrive - Ankara Medipol Üniversitesi\\Masaüstü\\proje\\outputs\\reports\\12_validate_core_outputs\\table_row_counts.csv",
+        "status_distribution": "C:\\Users\\elaay\\OneDrive - Ankara Medipol Üniversitesi\\Masaüstü\\proje\\outputs\\reports\\12_validate_core_outputs\\reservation_status_distribution.csv"
+    }
+}

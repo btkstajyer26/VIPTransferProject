@@ -1,0 +1,45 @@
+{
+    "model_version": "random-forest-demand-weather-v1",
+    "target": "demand_count",
+    "target_definition": "Number of reservation requests scheduled for each active pricing zone and hour.",
+    "random_forest_metrics": {
+        "mae": 12.594135846415439,
+        "rmse": 25.29677085672631,
+        "r2": 0.9486942278159739,
+        "wape": 0.16779219403512052,
+        "smape": 0.42836637508124054,
+        "actual_total": 756584.0,
+        "predicted_total": 758072.7295002583
+    },
+    "seasonal_naive_168h_metrics": {
+        "mae": 15.906051587301587,
+        "rmse": 31.895456398817824,
+        "r2": 0.9184369051119681,
+        "wape": 0.21191698476309306,
+        "smape": 0.48390584057777564,
+        "actual_total": 756584.0,
+        "predicted_total": 756171.0
+    },
+    "random_forest_better_than_baseline_by_mae": true,
+    "residual_quantiles": {
+        "q10": -19.377136563157983,
+        "q50": -0.3083414039910668,
+        "q90": 16.388255560959283
+    },
+    "test_start_hour_utc": "2025-01-24 21:00:00+00:00",
+    "test_hour_count": 168,
+    "test_row_count": 10080,
+    "random_split_used": false,
+    "temporal_split_used": true,
+    "target_log_transformation": "log1p",
+    "negative_predictions_clipped": true,
+    "leakage_features_excluded": [
+        "avg_distance_km",
+        "avg_price",
+        "cancel_rate",
+        "no_show_rate",
+        "completed_count",
+        "cancelled_count",
+        "no_show_count"
+    ]
+}

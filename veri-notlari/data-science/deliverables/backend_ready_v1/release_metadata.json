@@ -1,0 +1,49 @@
+{
+    "release_name": "backend_ready_v1",
+    "package_version": "backend-import-package-v3",
+    "database_schema_version": "4.3.0",
+    "generated_at_utc": "2026-07-26T18:47:29+00:00",
+    "validation_passed": true,
+    "failed_error_count": 0,
+    "warning_count": 0,
+    "selected_model": "XGBOOST_WEATHER",
+    "sql_table_row_counts": {
+        "users": 250000,
+        "vehicles": 500,
+        "pricing_zones": 60,
+        "pricing_rules": 165,
+        "loyalty_tier_config": 5,
+        "loyalty_accounts": 187500,
+        "translations": 58,
+        "entity_translations": 955,
+        "campaigns": 0,
+        "reservations": 3154257,
+        "reservation_status_history": 9112545
+    },
+    "reservation_status_distribution": {
+        "COMPLETED": 2704680,
+        "CANCELLED": 279266,
+        "NO_SHOW": 124478,
+        "PENDING": 25127,
+        "ASSIGNED": 20706
+    },
+    "status_history_distribution": {
+        "PENDING": 3154257,
+        "ASSIGNED": 2849864,
+        "COMPLETED": 2704680,
+        "CANCELLED": 279266,
+        "NO_SHOW": 124478
+    },
+    "guest_reservation_count": 273150,
+    "registered_reservation_count": 2881107,
+    "pricing_contract_row_count": 1440,
+    "admin_contract_row_count": 250000,
+    "top_admin_contract_row_count": 1000,
+    "sql_import_and_service_contracts_are_separate": true,
+    "weather_enriched_reservations_used_as_sql_table": false,
+    "missing_values_fabricated": false,
+    "reservation_prices_recalculated": false,
+    "surge_auto_apply": false,
+    "admin_auto_execute": false,
+    "contains_sensitive_sql_data": true
+}
