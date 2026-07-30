@@ -11,6 +11,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { useCurrency } from "@/context/CurrencyContext";
 import ReservationStatusBadge from "@/components/reservations/ReservationStatusBadge";
 
 import {
@@ -77,20 +78,6 @@ function formatDateTime(dateValue) {
   }).format(date);
 }
 
-function formatPrice(price, currency = "TRY") {
-  const numericPrice = Number(price);
-
-  if (Number.isNaN(numericPrice)) {
-    return "-";
-  }
-
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(numericPrice);
-}
-
 function DetailItem({ icon: Icon, label, value, className = "" }) {
   return (
     <div className={`flex gap-3 ${className}`}>
@@ -113,6 +100,8 @@ function ReservationDetailDialog({
   onOpenChange,
   reservation,
 }) {
+  const { formatPrice } = useCurrency();
+
   if (!reservation) {
     return null;
   }

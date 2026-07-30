@@ -3,6 +3,8 @@ import { Bell, CheckCheck, Loader2, MailWarning, RefreshCw, Send } from "lucide-
 
 import {
   getAllNotifications,
+  getMyNotifications,
+  markMyNotificationRead,
   sendNotification,
   updateNotificationStatus,
 } from "@/api/notificationApi";
@@ -48,7 +50,7 @@ function formatRelativeTime(dateString) {
   return `${days}g önce`;
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ scope = "user" }) {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +59,10 @@ export default function NotificationBell() {
   const dropdownRef = useRef(null);
 
   const unreadCount = notifications.filter(
-    (n) => n.status === "PENDING" || n.status === "FAILED",
+    (n) =>
+      scope === "admin"
+        ? n.status === "PENDING" || n.status === "FAILED"
+        : n.status !== "READ",
   ).length;
 
   const recent = notifications.slice(0, 8);
@@ -66,7 +71,10 @@ export default function NotificationBell() {
     try {
       setIsLoading(true);
 
-      const data = await getAllNotifications();
+      const data =
+        scope === "admin"
+          ? await getAllNotifications()
+          : await getMyNotifications();
       const sorted = (Array.isArray(data) ? data : []).sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
       );
@@ -77,11 +85,7 @@ export default function NotificationBell() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  }, [scope]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -97,11 +101,22 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  const handleToggle = () => {
+    if (!isOpen) {
+      fetchNotifications();
+    }
+
+    setIsOpen((prev) => !prev);
+  };
+
   const handleMarkRead = async (id) => {
     setActionLoadingId(id);
 
     try {
-      const updated = await updateNotificationStatus(id, "READ");
+      const updated =
+        scope === "admin"
+          ? await updateNotificationStatus(id, "READ")
+          : await markMyNotificationRead(id);
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? updated : n)),
@@ -133,7 +148,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
         aria-label="Bildirimler"
       >
@@ -207,7 +222,7 @@ export default function NotificationBell() {
                   </div>
 
                   <div className="flex shrink-0 flex-col gap-1">
-                    {n.status === "PENDING" && (
+                    {scope === "admin" && n.status === "PENDING" && (
                       <button
                         type="button"
                         onClick={() => handleSend(n.id)}
@@ -223,7 +238,7 @@ export default function NotificationBell() {
                       </button>
                     )}
 
-                    {n.status !== "READ" && (
+                    {scope === "user" && n.status !== "READ" && (
                       <button
                         type="button"
                         onClick={() => handleMarkRead(n.id)}
@@ -244,15 +259,17 @@ export default function NotificationBell() {
             ))}
           </ul>
 
-          <div className="border-t border-slate-100 px-4 py-2.5">
-            <a
-              href="/admin/notifications"
-              className="block text-center text-xs font-medium text-blue-600 hover:text-blue-500"
-              onClick={() => setIsOpen(false)}
-            >
-              Tüm bildirimleri gör →
-            </a>
-          </div>
+          {scope === "admin" && (
+            <div className="border-t border-slate-100 px-4 py-2.5">
+              <a
+                href="/admin/notifications"
+                className="block text-center text-xs font-medium text-blue-600 hover:text-blue-500"
+                onClick={() => setIsOpen(false)}
+              >
+                Tüm bildirimleri gör →
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,15 +1,18 @@
 package com.btk.staj.VIPTransferProject.service;
 
+import com.btk.staj.VIPTransferProject.dto.ChangePasswordRequest;
 import com.btk.staj.VIPTransferProject.dto.UpdateUserRequest;
 import com.btk.staj.VIPTransferProject.dto.UserResponse;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.exception.InvalidRequestException;
 import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse getCurrentUser(Long userId) {
         User user = userRepository.findByIdAndActiveTrue(userId)
@@ -38,6 +42,28 @@ public class UserService {
         if (request.getPreferredLang() != null) user.setPreferredLang(request.getPreferredLang());
 
         return toResponse(userRepository.save(user));
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findByIdAndActiveTrue(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + userId));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new UnauthorizedException("Mevcut şifre yanlış.");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidRequestException("Yeni şifre ve şifre tekrarı eşleşmiyor.");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new InvalidRequestException("Yeni şifre mevcut şifre ile aynı olamaz.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("Kullanıcı şifresi değiştirildi. id={}", userId);
     }
 
     @Transactional

@@ -5,6 +5,16 @@ export async function getAllNotifications() {
   return response.data?.data ?? response.data;
 }
 
+export async function getMyNotifications() {
+  const response = await apiClient.get("/notifications/my");
+  return response.data?.data ?? response.data;
+}
+
+export async function markMyNotificationRead(id) {
+  const response = await apiClient.post(`/notifications/my/${id}/read`);
+  return response.data?.data ?? response.data;
+}
+
 export async function getNotificationById(id) {
   const response = await apiClient.get(`/notifications/${id}`);
   return response.data?.data ?? response.data;

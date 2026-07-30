@@ -6,27 +6,30 @@ import {
 } from "lucide-react";
 
 import QuickReservationForm from "./QuickReservationForm";
-
-const trustItems = [
-  {
-    icon: Clock3,
-    text: "7/24 Hizmet",
-  },
-  {
-    icon: ShieldCheck,
-    text: "Güvenli Yolculuk",
-  },
-  {
-    icon: CheckCircle2,
-    text: "Sabit Fiyat",
-  },
-  {
-    icon: Headphones,
-    text: "Canlı Destek",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 function HeroSection() {
+  const { t } = useTranslation();
+
+  const trustItems = [
+    {
+      icon: Clock3,
+      text: t("hero.features.support"),
+    },
+    {
+      icon: ShieldCheck,
+      text: t("hero.features.security"),
+    },
+    {
+      icon: CheckCircle2,
+      text: t("hero.features.fixedPrice"),
+    },
+    {
+      icon: Headphones,
+      text: t("hero.features.liveSupport"),
+    },
+  ];
+
   return (
     <section className="relative bg-[#071a32]">
       {/* Sadece arka plan ve hero içeriği kesilsin */}
@@ -51,20 +54,18 @@ function HeroSection() {
           <div className="max-w-3xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-300/20 bg-blue-300/10 px-4 py-2 text-sm font-medium text-blue-100 backdrop-blur-md">
               <span className="size-2 rounded-full bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,0.9)]" />
-              Premium VIP Transfer Deneyimi
+              {t("hero.badge")}
             </div>
 
             <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-[-0.04em] text-white sm:text-5xl lg:text-[68px]">
-              Yolculuğunuzun her anında
+              {t("hero.titleMain")}
               <span className="block bg-gradient-to-r from-[#7cb8ff] to-[#dceeff] bg-clip-text text-transparent">
-                konfor ve ayrıcalık.
+                {t("hero.titleHighlight")}
               </span>
             </h1>
 
             <p className="mt-7 max-w-2xl text-base leading-8 text-slate-200 sm:text-lg">
-              Havalimanı ve şehir içi transferlerinizi profesyonel
-              sürücüler, premium araçlar ve şeffaf fiyatlarla kolayca
-              planlayın.
+              {t("hero.subtitle")}
             </p>
 
             <div className="mt-9 flex flex-wrap gap-x-6 gap-y-4">
@@ -93,7 +94,10 @@ function HeroSection() {
       </div>
 
       {/* Form artık overflow-hidden dışında */}
-      <div className="relative z-30 mx-auto -mt-[94px] max-w-[1320px] px-4 sm:px-6 lg:px-8">
+      <div
+        id="reservation-form"
+        className="relative z-30 mx-auto -mt-[94px] max-w-[1320px] scroll-mt-32 px-4 sm:px-6 lg:px-8"
+      >
         <QuickReservationForm />
       </div>
     </section>

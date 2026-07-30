@@ -4,11 +4,13 @@ import com.btk.staj.VIPTransferProject.dto.campaign.CampaignRequestDto;
 import com.btk.staj.VIPTransferProject.dto.campaign.CampaignResponseDto;
 import com.btk.staj.VIPTransferProject.entity.Campaign;
 import com.btk.staj.VIPTransferProject.entity.User;
+import com.btk.staj.VIPTransferProject.event.CampaignPublishedEvent;
 import com.btk.staj.VIPTransferProject.exception.InvalidPricingRuleException;
 import com.btk.staj.VIPTransferProject.exception.ResourceNotFoundException;
 import com.btk.staj.VIPTransferProject.repository.CampaignRepository;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class CampaignService {
 
     private final CampaignRepository campaignRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public CampaignResponseDto create(CampaignRequestDto request, Long adminId) {
@@ -45,6 +48,7 @@ public class CampaignService {
                 .build();
 
         Campaign saved = campaignRepository.save(campaign);
+        eventPublisher.publishEvent(new CampaignPublishedEvent(saved.getId()));
         return toResponse(saved);
     }
 

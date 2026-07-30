@@ -44,6 +44,27 @@ public interface PricingZoneRepository extends JpaRepository<PricingZone, Long>{
             nativeQuery = true)
     Double calculateTotalRouteLengthMeters(@Param("routeWkt") String routeWkt);
 
+    // Yeni bölgeyi mevcut aktif bölgelerin birleşiminden çıkararak çakışmayan alanın WKT'sini döndürür.
+    // excludeId: güncelleme sırasında kendi bölgesini dışlamak için kullanılır; oluşturmada null gönderilir.
+    // Hiçbir aktif bölge yoksa ST_Union NULL döner; COALESCE ile boş geometri fallback verilir,
+    // böylece ST_Difference orijinal polygonu değişmeden geri verir.
+    @Query(value = """
+            SELECT ST_AsText(
+                ST_Difference(
+                    ST_SetSRID(ST_GeomFromText(:polygonWkt), 4326),
+                    COALESCE(
+                        (SELECT ST_Union(pz.polygon_geom)
+                         FROM pricing_zones pz
+                         WHERE pz.is_active = true
+                           AND (:excludeId IS NULL OR pz.id != :excludeId)),
+                        ST_GeomFromText('GEOMETRYCOLLECTION EMPTY', 4326)
+                    )
+                )
+            )
+            """, nativeQuery = true)
+    Optional<String> computeNonOverlappingAreaWkt(@Param("polygonWkt") String polygonWkt,
+                                                   @Param("excludeId") Long excludeId);
+
     interface ZoneIntersectionResult {
         Long getZoneId();
         BigDecimal getPricePerKm();

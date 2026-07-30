@@ -5,6 +5,7 @@ import com.btk.staj.VIPTransferProject.entity.LoyaltyAccount;
 import com.btk.staj.VIPTransferProject.entity.LoyaltyTierConfig;
 import com.btk.staj.VIPTransferProject.entity.User;
 import com.btk.staj.VIPTransferProject.enums.LoyaltyTier;
+import com.btk.staj.VIPTransferProject.event.LoyaltyPointsAccruedEvent;
 import com.btk.staj.VIPTransferProject.exception.InvalidTierConfigException;
 import com.btk.staj.VIPTransferProject.exception.TierConfigNotFoundException;
 import com.btk.staj.VIPTransferProject.exception.UserNotFoundException;
@@ -13,6 +14,8 @@ import com.btk.staj.VIPTransferProject.repository.LoyaltyTierConfigRepository;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,7 @@ public class LoyaltyService {
     private final LoyaltyAccountRepository loyaltyAccountRepository;
     private final LoyaltyTierConfigRepository loyaltyTierConfigRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void createLoyaltyAccount(Long userId) {
@@ -67,7 +71,8 @@ public class LoyaltyService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void AccruePoints(AccruePointsRequests requests) {
-        LoyaltyAccount account = findAccountOrThrow(requests.getUserId());
+        LoyaltyAccount account = findOrCreateAccount(requests.getUserId());
+        LoyaltyTier previousTier = account.getTier();
         LoyaltyTierConfig currentConfig = findTierConfigOrThrow(account.getTier());
 
         int earnedPoints = requests.getFareAmount()
@@ -87,11 +92,33 @@ public class LoyaltyService {
         }
 
         loyaltyAccountRepository.save(account);
+
+        eventPublisher.publishEvent(new LoyaltyPointsAccruedEvent(
+                account.getUserId(),
+                earnedPoints,
+                newLifeTimePoints,
+                previousTier,
+                account.getTier()
+        ));
     }
 
     private LoyaltyAccount findAccountOrThrow(Long userId) {
         return loyaltyAccountRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    private LoyaltyAccount findOrCreateAccount(Long userId) {
+        return loyaltyAccountRepository.findById(userId)
+                .orElseGet(() -> {
+                    User user = userRepository.findByIdAndActiveTrue(userId)
+                            .orElseThrow(() -> new UserNotFoundException(userId));
+
+                    LoyaltyAccount account = new LoyaltyAccount();
+                    account.setUser(user);
+                    account.setTier(LoyaltyTier.BRONZE);
+                    account.setLifetimePoints(0);
+                    return loyaltyAccountRepository.save(account);
+                });
     }
 
     private LoyaltyTierConfig findTierConfigOrThrow(LoyaltyTier tier) {
@@ -127,13 +154,29 @@ public class LoyaltyService {
                     .orElse(null);
         }
 
-        if (newMinPoints.compareTo(lowerBound) <= 0 ||
+        boolean invalidLowerBound = currentIndex == 0
+                ? newMinPoints < 0
+                : newMinPoints.compareTo(lowerBound) <= 0;
+
+        if (invalidLowerBound ||
                 (upperBound != null && newMinPoints.compareTo(upperBound) >= 0)) {
             throw new InvalidTierConfigException( tier,lowerBound,upperBound);
         }
     }
 
-    public LoyaltyTierConfig updateTierConfig(LoyaltyTier tier, UpdateTierConfigRequest request) {
+    public List<LoyaltyTierConfigResponse> getTierConfigs() {
+        return loyaltyTierConfigRepository.findAllByOrderByMinPointsAsc()
+                .stream()
+                .map(this::toTierConfigResponse)
+                .toList();
+    }
+
+    public LoyaltyTierConfigResponse getTierConfig(LoyaltyTier tier) {
+        return toTierConfigResponse(findTierConfigOrThrow(tier));
+    }
+
+    @Transactional
+    public LoyaltyTierConfigResponse updateTierConfig(LoyaltyTier tier, UpdateTierConfigRequest request) {
         LoyaltyTierConfig config = loyaltyTierConfigRepository.findByTier(tier)
                 .orElseThrow(() -> new TierConfigNotFoundException(tier));
 
@@ -145,7 +188,18 @@ public class LoyaltyService {
         config.setEarnRate(request.getEarnRate());
         config.setDiscountPercentage(request.getDiscountPercentage());
 
-        return loyaltyTierConfigRepository.save(config);
+        return toTierConfigResponse(loyaltyTierConfigRepository.save(config));
+    }
 
+    private LoyaltyTierConfigResponse toTierConfigResponse(LoyaltyTierConfig config) {
+        return LoyaltyTierConfigResponse.builder()
+                .id(config.getId())
+                .tier(config.getTier())
+                .minPoints(config.getMinPoints())
+                .earnRate(config.getEarnRate())
+                .discountPercentage(config.getDiscountPercentage())
+                .prioritySupport(config.isPrioritySupport())
+                .description(config.getDescription())
+                .build();
     }
 }
