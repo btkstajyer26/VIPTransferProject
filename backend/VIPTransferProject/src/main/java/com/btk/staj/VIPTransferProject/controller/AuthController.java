@@ -1,23 +1,26 @@
 package com.btk.staj.VIPTransferProject.controller;
 
+import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import com.btk.staj.VIPTransferProject.dto.AuthResponse;
 import com.btk.staj.VIPTransferProject.dto.LoginRequest;
 import com.btk.staj.VIPTransferProject.dto.RefreshTokenRequest;
-import com.btk.staj.VIPTransferProject.entity.RefreshToken;
-import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
+import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
+import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
+import com.btk.staj.VIPTransferProject.dto.auth.ForgotPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.ResendCodeRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.ResetPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.VerifyEmailRequest;
+import com.btk.staj.VIPTransferProject.security.util.IpUtil;
 import com.btk.staj.VIPTransferProject.service.AuthService;
-import com.btk.staj.VIPTransferProject.service.RefreshTokenService;
-import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
-import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
+
+import java.time.OffsetDateTime;
 
 @Slf4j
 @RestController
@@ -26,72 +29,99 @@ import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 public class AuthController {
 
     private final AuthService authService;
-    private final RefreshTokenService refreshTokenService;
-    private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request,HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        String ipAddress = IpUtil.getClientIp(httpRequest);
+        String deviceInfo = httpRequest.getHeader("User-Agent");
 
-        AuthResponse authResponse = authService.login(request);
+        AuthResponse authResponse = authService.login(request, ipAddress, deviceInfo);
 
-        String ipAddress = httpRequest.getRemoteAddr();
-        String deviceInfo = httpRequest.getHeader("User-Agent"); // Ã–rn: Mozilla/5.0 (Windows NT 10.0...)
-
-        String refreshTokenString = refreshTokenService.createRefreshToken(authResponse.getUserId(), ipAddress, deviceInfo).getToken();
-        authResponse.setRefreshToken(refreshTokenString);
-//        Cookie cookie = new Cookie("refreshToken", refreshTokenString);
-//        cookie.setPath("/api/auth");
-//        cookie.setHttpOnly(true);
-//        cookie.setMaxAge(7 * 24 * 60 * 60);
-//        response.addCookie(cookie);
-
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(ApiResponse.<AuthResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Giriş başarılı.")
+                .data(authResponse)
+                .timestamp(OffsetDateTime.now())
+                .build());
     }
 
-    // YENİ ACCESS TOKEN
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshRequest,HttpServletRequest httpRequest) {
-        String refreshTokenRequest = refreshRequest.getRefreshToken();
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshRequest, HttpServletRequest httpRequest) {
+        String ipAddress = IpUtil.getClientIp(httpRequest);
+        String deviceInfo = httpRequest.getHeader("User-Agent");
 
-        String currentIpAddress = httpRequest.getRemoteAddr();
-        String currentDeviceInfo = httpRequest.getHeader("User-Agent");
+        AuthResponse authResponse = authService.refreshAccessToken(refreshRequest.getRefreshToken(), ipAddress, deviceInfo);
 
-        return refreshTokenService.findByToken(refreshTokenRequest)
-                // TÃ¼m gÃ¼venlik (sÃ¼re, iptal, hÄ±rsÄ±zlÄ±k) doÄŸrulamalarÄ±nÄ± tek satÄ±rda yapÄ±yoruz
-                .map(token -> refreshTokenService.verifyExpiration(token, currentIpAddress, currentDeviceInfo))
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    // GÃ¼venlik testlerini geÃ§ti, yeni Access Token Ã¼retiliyor
-                    String newAccessToken = jwtUtil.generateToken(user.getPhoneNumber(), user.getId(), user.getRole().name());
-
-                    return ResponseEntity.ok(AuthResponse.builder()
-                            .accessToken(newAccessToken)
-                            .refreshToken(refreshTokenRequest) // AynÄ± refresh token ile devam ediliyor
-                            .tokenType("Bearer")
-                            .userId(user.getId())
-                            .build());
-                })
-                .orElseThrow(() -> new RuntimeException("Refresh token sistemde bulunamadÄ±!"));
+        return ResponseEntity.ok(ApiResponse.<AuthResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Token başarıyla yenilendi.")
+                .data(authResponse)
+                .timestamp(OffsetDateTime.now())
+                .build());
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logoutUser(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
-        String refreshTokenRequest = refreshRequest.getRefreshToken();
+    public ResponseEntity<ApiResponse<String>> logoutUser(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
+        authService.logout(refreshRequest.getRefreshToken());
 
-        RefreshToken token = refreshTokenService.findByToken(refreshTokenRequest)
-                .orElseThrow(() -> new UnauthorizedException("Geçersiz ya da süresi dolmuş token."));
-
-        refreshTokenService.revokeToken(token);
-
-        return ResponseEntity.ok("Başarıyla çıkış yapıldı.");
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Başarıyla çıkış yapıldı.")
+                .timestamp(OffsetDateTime.now())
+                .build());
     }
+
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
-        return ResponseEntity.ok(authService.register(request));
+        RegisterResponseDto response = authService.register(request);
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/verify-email")
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
-        return ResponseEntity.ok(authService.verifyEmail(token));
+    // ==========================================
+    // E-POSTA DOĞRULAMA VE ŞİFRE SIFIRLAMA (OTP)
+    // ==========================================
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("E-posta adresiniz başarıyla doğrulandı.")
+                .timestamp(OffsetDateTime.now())
+                .build());
+    }
+    @PostMapping("/resend-code")
+    public ResponseEntity<ApiResponse<String>> resendVerificationCode(@RequestBody @Valid ResendCodeRequest request) {
+        authService.resendVerificationCode(request.getEmail());
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Yeni doğrulama kodu e-posta adresinize gönderildi.")
+                .timestamp(OffsetDateTime.now())
+                .build());
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Eğer bu e-posta adresi sistemde kayıtlıysa, şifre sıfırlama kodu gönderilmiştir.")
+                .timestamp(OffsetDateTime.now())
+                .build());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Şifreniz başarıyla sıfırlandı. Artık yeni şifrenizle giriş yapabilirsiniz.")
+                .timestamp(OffsetDateTime.now())
+                .build());
     }
 }

@@ -20,8 +20,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useLoyalty from "@/hooks/useLoyalty";
+import { useTranslation } from "react-i18next";
 
 function LoyaltyPage() {
+  const { t } = useTranslation();
   const [userId, setUserId] = useState("");
 
   const {
@@ -42,22 +44,20 @@ function LoyaltyPage() {
     <section className="space-y-6">
       <div>
         <h2 className="text-3xl font-semibold tracking-tight">
-          Sadakat Yönetimi
+          {t('admin.loyalty.title')}
         </h2>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Kullanıcıların sadakat puanlarını ve seviyelerini
-          görüntüleyin.
+          {t('admin.loyalty.subtitle')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Kullanıcı Ara</CardTitle>
+          <CardTitle>{t('admin.loyalty.searchTitle')}</CardTitle>
 
           <CardDescription>
-            Sadakat hesabını görüntülemek için kullanıcı ID
-            bilgisini girin.
+            {t('admin.loyalty.searchDesc')}
           </CardDescription>
         </CardHeader>
 
@@ -68,7 +68,7 @@ function LoyaltyPage() {
           >
             <div className="flex-1 space-y-2">
               <Label htmlFor="loyalty-user-id">
-                Kullanıcı ID
+                {t('admin.loyalty.label')}
               </Label>
 
               <Input
@@ -76,7 +76,7 @@ function LoyaltyPage() {
                 type="number"
                 min="1"
                 value={userId}
-                placeholder="Örneğin: 6"
+                placeholder={t('admin.loyalty.placeholder')}
                 onChange={(event) =>
                   setUserId(event.target.value)
                 }
@@ -90,8 +90,8 @@ function LoyaltyPage() {
               <Search className="mr-2 size-4" />
 
               {searching
-                ? "Sorgulanıyor..."
-                : "Hesabı Görüntüle"}
+                ? t('admin.loyalty.searching')
+                : t('admin.loyalty.searchBtn')}
             </Button>
           </form>
         </CardContent>

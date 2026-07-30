@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import ReservationStatusBadge from "@/components/reservations/ReservationStatusBadge";
 
@@ -23,33 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-const transitionConfig = {
-  PENDING: [
-    {
-      value: "ASSIGNED",
-      label: "Araç Atandı",
-    },
-    {
-      value: "CANCELLED",
-      label: "İptal Edildi",
-    },
-  ],
 
-  ASSIGNED: [
-    {
-      value: "COMPLETED",
-      label: "Tamamlandı",
-    },
-    {
-      value: "NO_SHOW",
-      label: "Müşteri Gelmedi",
-    },
-  ],
-
-  COMPLETED: [],
-  CANCELLED: [],
-  NO_SHOW: [],
-};
 
 function ReservationStatusDialog({
   open,
@@ -57,8 +32,37 @@ function ReservationStatusDialog({
   reservation,
   onSubmit,
 }) {
+  const { t } = useTranslation();
   const [selectedStatus, setSelectedStatus] = useState("");
   const [note, setNote] = useState("");
+
+  const transitionConfig = useMemo(() => ({
+    PENDING: [
+      {
+        value: "ASSIGNED",
+        label: t('admin.reservationList.status.ASSIGNED'),
+      },
+      {
+        value: "CANCELLED",
+        label: t('admin.reservationList.status.CANCELLED'),
+      },
+    ],
+  
+    ASSIGNED: [
+      {
+        value: "COMPLETED",
+        label: t('admin.reservationList.status.COMPLETED'),
+      },
+      {
+        value: "NO_SHOW",
+        label: t('admin.reservationList.dialog.noShow'),
+      },
+    ],
+  
+    COMPLETED: [],
+    CANCELLED: [],
+    NO_SHOW: [],
+  }), [t]);
 
   const availableStatuses = useMemo(() => {
     if (!reservation) {
@@ -96,18 +100,17 @@ function ReservationStatusDialog({
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Rezervasyon Durumunu Değiştir</DialogTitle>
+            <DialogTitle>{t('admin.reservationList.dialog.title')}</DialogTitle>
 
             <DialogDescription>
-              {reservation.bookingReference} numaralı rezervasyonun durumunu
-              güncelleyin.
+              {t('admin.reservationList.dialog.desc', { ref: reservation.bookingReference })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 py-5">
             <div className="rounded-xl border bg-muted/30 p-4">
               <p className="text-xs font-medium text-muted-foreground">
-                Mevcut Durum
+                {t('admin.reservationList.dialog.currentStatus')}
               </p>
 
               <div className="mt-2">
@@ -119,24 +122,23 @@ function ReservationStatusDialog({
               <Alert>
                 <AlertCircle className="h-4 w-4" />
 
-                <AlertTitle>Durum değiştirilemez</AlertTitle>
+                <AlertTitle>{t('admin.reservationList.dialog.cannotChangeTitle')}</AlertTitle>
 
                 <AlertDescription>
-                  Bu rezervasyon son durumuna ulaşmıştır. Yeni bir durum
-                  seçilemez.
+                  {t('admin.reservationList.dialog.cannotChangeDesc')}
                 </AlertDescription>
               </Alert>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="reservation-status">Yeni Durum</Label>
+                  <Label htmlFor="reservation-status">{t('admin.reservationList.dialog.newStatus')}</Label>
 
                   <Select
                     value={selectedStatus}
                     onValueChange={setSelectedStatus}
                   >
                     <SelectTrigger id="reservation-status">
-                      <SelectValue placeholder="Yeni durumu seçin" />
+                      <SelectValue placeholder={t('admin.reservationList.dialog.selectNewStatus')} />
                     </SelectTrigger>
 
                     <SelectContent>
@@ -151,14 +153,14 @@ function ReservationStatusDialog({
 
                 <div className="space-y-2">
                   <Label htmlFor="reservation-status-note">
-                    Durum Değişikliği Notu
+                    {t('admin.reservationList.dialog.noteLabel')}
                   </Label>
 
                   <Textarea
                     id="reservation-status-note"
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
-                    placeholder="Örneğin: Şoför ve araç bilgileri müşteriye iletildi."
+                    placeholder={t('admin.reservationList.dialog.notePlaceholder')}
                     rows={4}
                     maxLength={500}
                   />
@@ -177,14 +179,14 @@ function ReservationStatusDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Vazgeç
+              {t('admin.reservationList.dialog.cancel')}
             </Button>
 
             <Button
               type="submit"
               disabled={!hasAvailableTransition || !selectedStatus}
             >
-              Durumu Güncelle
+              {t('admin.reservationList.dialog.update')}
             </Button>
           </DialogFooter>
         </form>

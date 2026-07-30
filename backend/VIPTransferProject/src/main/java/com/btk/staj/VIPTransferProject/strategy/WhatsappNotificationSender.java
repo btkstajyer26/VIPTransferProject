@@ -7,11 +7,13 @@ import com.btk.staj.VIPTransferProject.exception.NotificationSendException;
 import com.btk.staj.VIPTransferProject.service.MetaWhatsappClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "app.whatsapp.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class WhatsappNotificationSender implements NotificationSender {
 
@@ -40,14 +42,10 @@ public class WhatsappNotificationSender implements NotificationSender {
         } catch (NotificationSendException exception) {
             throw exception;
         } catch (RuntimeException exception) {
-            String reason = StringUtils.hasText(exception.getMessage())
-                    ? exception.getMessage()
-                    : "WhatsApp servisine gonderim sirasinda hata olustu.";
-
             throw new NotificationSendException(
                     notification.getId(),
                     NotificationChannel.WHATSAPP,
-                    reason,
+                    "WhatsApp servisine gonderim sirasinda hata olustu.",
                     exception
             );
         }

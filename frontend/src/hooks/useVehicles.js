@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createVehicle,
   deleteVehicleById,
-  getVehicles,
+  getAllVehicles,
   updateVehicle,
 } from "@/api/vehicleServices";
 
@@ -55,10 +55,6 @@ function normalizeVehicle(vehicle = {}) {
       vehicle.base_price_multiplier ??
       1,
 
-    /*
-     * Backend bunlardan hangisini döndürürse döndürsün,
-     * frontend içinde sadece vehicle.active kullanacağız.
-     */
     active:
       vehicle.active ??
       vehicle.isActive ??
@@ -98,9 +94,6 @@ function normalizeVehicleResponse(response) {
 
 /**
  * Frontend araç verisini backend request gövdesine dönüştürür.
- *
- * active ve isActive birlikte gönderiliyor. Böylece backend DTO'su
- * hangi ismi kullanıyorsa onu okuyabilir.
  */
 function createVehiclePayload(vehicleData = {}, currentVehicle = {}) {
   const mergedVehicle = {
@@ -176,7 +169,8 @@ function useVehicles() {
       setLoading(true);
       setError("");
 
-      const response = await getVehicles();
+      // Admin ekranı tüm araçları çeker.
+      const response = await getAllVehicles();
       const vehicleList = normalizeVehicleResponse(response);
 
       setVehicles(vehicleList);
@@ -360,10 +354,6 @@ function useVehicles() {
       setUpdatingStatusId(vehicle.id);
       setError("");
 
-      /*
-       * PATCH endpoint'i tüm alanları bekliyorsa hata almamak için
-       * mevcut aracın bütün bilgilerini gönderiyoruz.
-       */
       const payload = createVehiclePayload(
         {
           active: newStatus,
@@ -374,9 +364,6 @@ function useVehicles() {
 
       await updateVehicle(vehicle.id, payload);
 
-      /*
-       * Başarılı olunca local state'i güncelliyoruz.
-       */
       setVehicles((currentVehicles) =>
         currentVehicles.map((currentVehicle) =>
           currentVehicle.id === vehicle.id

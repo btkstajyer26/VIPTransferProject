@@ -12,6 +12,8 @@ import {
   logout as logoutRequest,
   refreshToken as refreshTokenRequest,
 } from "@/api/authApi";
+import { getCurrentUser } from "@/api/userServices";
+import i18n from "@/lib/i18n";
 
 export const AuthContext = createContext(null);
 
@@ -136,6 +138,15 @@ export function AuthProvider({ children }) {
         role: authResponse.role,
       });
 
+      try {
+        const userProfile = await getCurrentUser();
+        if (userProfile?.preferredLang) {
+          i18n.changeLanguage(userProfile.preferredLang.toUpperCase());
+        }
+      } catch (err) {
+        console.error("Failed to fetch user profile on login", err);
+      }
+
       return {
         accessToken: authResponse.accessToken,
         refreshToken: authResponse.refreshToken,
@@ -221,6 +232,16 @@ export function AuthProvider({ children }) {
             storedRefreshToken
           );
           setUser(storedUser);
+          
+          try {
+            const userProfile = await getCurrentUser();
+            if (userProfile?.preferredLang) {
+              i18n.changeLanguage(userProfile.preferredLang.toUpperCase());
+            }
+          } catch (err) {
+            console.error("Failed to sync language on init", err);
+          }
+
           return;
         }
 
@@ -248,6 +269,16 @@ export function AuthProvider({ children }) {
           });
 
           setUser(storedUser);
+
+          try {
+            const userProfile = await getCurrentUser();
+            if (userProfile?.preferredLang) {
+              i18n.changeLanguage(userProfile.preferredLang.toUpperCase());
+            }
+          } catch (err) {
+            console.error("Failed to sync language after token refresh", err);
+          }
+
           return;
         }
 

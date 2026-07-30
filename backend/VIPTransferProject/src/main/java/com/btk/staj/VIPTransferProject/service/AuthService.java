@@ -4,13 +4,20 @@ import com.btk.staj.VIPTransferProject.dto.AuthResponse;
 import com.btk.staj.VIPTransferProject.dto.LoginRequest;
 import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
 import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
+import com.btk.staj.VIPTransferProject.dto.auth.ForgotPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.ResetPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.VerifyEmailRequest;
+import com.btk.staj.VIPTransferProject.entity.RefreshToken;
 import com.btk.staj.VIPTransferProject.entity.User;
-import com.btk.staj.VIPTransferProject.entity.VerificationToken;
+import com.btk.staj.VIPTransferProject.entity.VerificationCode;
+import com.btk.staj.VIPTransferProject.enums.CodePurpose;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
+import com.btk.staj.VIPTransferProject.exception.TokenRefreshException;
 import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
+import com.btk.staj.VIPTransferProject.exception.UserUnverifiedException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
-import com.btk.staj.VIPTransferProject.repository.VerificationTokenRepository;
+import com.btk.staj.VIPTransferProject.repository.VerificationCodeRepository;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +25,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -28,13 +35,53 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final VerificationTokenRepository verificationTokenRepository;
+    private final VerificationCodeRepository verificationCodeRepository;
     private final EmailService emailService;
-    private final LoyaltyService loyaltyService; // Sadakat puanı servisi enjekte edildi
+    private final LoyaltyService loyaltyService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthResponse login(LoginRequest request) {
+    private final SecureRandom secureRandom = new SecureRandom();
+
+    // ==========================================
+    // YARDIMCI METOTLAR (KOD ÜRETİMİ VE KAYIT)
+    // ==========================================
+
+    private String generateCode() {
+        return String.format("%06d", secureRandom.nextInt(1_000_000));
+    }
+
+    private void saveVerificationCode(User user, CodePurpose purpose, int expiryMinutes) {
+        // Varsa aynı kullanıcı ve amaç için oluşturulmuş eski kodu sil
+        verificationCodeRepository.deleteByUserAndPurpose(user, purpose);
+
+        String code = generateCode();
+
+        VerificationCode verificationCode = VerificationCode.builder()
+                .user(user)
+                .code(code)
+                .purpose(purpose)
+                .expiryDate(LocalDateTime.now().plusMinutes(expiryMinutes))
+                .attemptCount(0)
+                .build();
+
+        verificationCodeRepository.save(verificationCode);
+
+        // E-posta gönderimi
+        if (purpose == CodePurpose.EMAIL_VERIFICATION) {
+            emailService.sendVerificationEmail(user.getEmail(), code);
+        } else if (purpose == CodePurpose.PASSWORD_RESET) {
+            emailService.sendPasswordResetEmail(user.getEmail(), code);
+        }
+    }
+
+    // ==========================================
+    // GİRİŞ & OTURUM İŞLEMLERİ
+    // ==========================================
+
+    @Transactional
+    public AuthResponse login(LoginRequest request, String ipAddress, String deviceInfo) {
         log.info("Giriş denemesi başlatıldı. Email: {}, Telefon: {}", request.getEmail(), request.getPhoneNumber());
 
         User user;
@@ -62,55 +109,80 @@ public class AuthService {
 
         if (!user.isEmailVerified()) {
             log.warn("Güvenlik - Onaysız Giriş Denemesi: E-posta henüz doğrulanmamış ({})", user.getEmail());
-            throw new UnauthorizedException("Lütfen önce e-posta adresinizi doğrulayın!");
+            throw new UserUnverifiedException("Lütfen önce e-posta adresinizi doğrulayın!", user.getEmail());
         }
 
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
-        log.warn("{} {}",user.getPhoneNumber(),user.getEmail());
-        log.info("1 - User bulundu: {}", user.getId());
 
-        String token = jwtUtil.generateToken(identifier,user.getId(),user.getRole().name());
-        log.info("2 - Token üretildi");
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId(), ipAddress, deviceInfo);
+        String refreshTokenString = refreshToken.getToken();
+        Long sessionId = refreshToken.getId();
 
-        Long userId = user.getId();
-        log.info("3 - User ID alındı: {}", userId);
+        String accessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(), sessionId);
 
-        String role = user.getRole().name();
-        log.info("4 - Role alındı: {}", role);
+        log.info("Güvenlik - Başarılı Giriş: Kullanıcı ({}) için token üretildi.", identifier);
 
-        AuthResponse response = AuthResponse.builder()
-                .accessToken(token)
-                .userId(userId)
-                .role(role)
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshTokenString)
+                .tokenType("Bearer")
+                .userId(user.getId())
+                .role(user.getRole().name())
                 .build();
-
-        log.info("5 - AuthResponse oluşturuldu");
-
-        return response;
     }
 
     @Transactional
+    public AuthResponse refreshAccessToken(String refreshTokenRequest, String currentIpAddress, String currentDeviceInfo) {
+        RefreshToken token = refreshTokenService.findByToken(refreshTokenRequest)
+                .orElseThrow(() -> new TokenRefreshException("Refresh token sistemde bulunamadı veya geçersiz!"));
+
+        refreshTokenService.verifyExpiration(token, currentIpAddress, currentDeviceInfo);
+
+        User user = token.getUser();
+        String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
+
+        String newAccessToken = jwtUtil.generateToken(identifier, user.getId(), user.getRole().name(), token.getId());
+
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshTokenRequest)
+                .tokenType("Bearer")
+                .userId(user.getId())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    @Transactional
+    public void logout(String refreshTokenRequest) {
+        RefreshToken token = refreshTokenService.findByToken(refreshTokenRequest)
+                .orElseThrow(() -> new TokenRefreshException("Geçersiz ya da süresi dolmuş token."));
+
+        refreshTokenService.revokeToken(token);
+        log.info("Kullanıcı çıkış yaptı. İptal edilen Token ID: {}", token.getId());
+    }
+
+    // ==========================================
+    // KAYIT & E-POSTA DOĞRULAMA İŞLEMLERİ
+    // ==========================================
+
+    @Transactional
     public RegisterResponseDto register(RegisterRequestDto request) {
+
         log.info("Yeni kayıt denemesi. Email: {}, Telefon: {}", request.getEmail(), request.getPhoneNumber());
 
-        // 1. E-posta Çakışma Kontrolü
         userRepository.findByEmail(request.getEmail()).ifPresent(existingUser -> {
-            // E-posta var ve bu kişi bir misafir değilse veya telefonları eşleşmiyorsa hata fırlat
             if (!existingUser.isGuest() || !existingUser.getPhoneNumber().equals(request.getPhoneNumber())) {
                 throw new BusinessRuleException("Bu e-posta adresi zaten kullanımda!");
             }
         });
 
         User userToSave;
-
-        // 2. Telefon Numarası Kontrolü (Guest -> User Dönüşümü veya Yeni Kayıt)
         Optional<User> existingUserOpt = userRepository.findByPhoneNumber(request.getPhoneNumber());
 
         if (existingUserOpt.isPresent()) {
             User existingUser = existingUserOpt.get();
 
             if (existingUser.isGuest()) {
-                // A) Var olan misafir kullanıcıyı tam üyeliğe dönüştürüyoruz
                 log.info("Misafir kullanıcı tespit edildi, üyeliğe dönüştürülüyor. Telefon: {}", request.getPhoneNumber());
 
                 existingUser.setFirstName(request.getFirstName());
@@ -118,16 +190,14 @@ public class AuthService {
                 existingUser.setEmail(request.getEmail());
                 existingUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
                 existingUser.setRole(UserRole.CUSTOMER);
-                existingUser.setGuest(false); // Misafir durumu artık false!
+                existingUser.setGuest(false);
                 existingUser.setEmailVerified(false);
 
                 userToSave = existingUser;
             } else {
-                // B) Zaten gerçek üye olan kullanıcı uyarısı
                 throw new BusinessRuleException("Bu telefon numarası zaten kullanımda!");
             }
         } else {
-            // C) Mükerrer kayıt yoksa sıfırdan yeni üye oluşturuluyor
             log.info("Yeni kullanıcı oluşturuluyor. Telefon: {}", request.getPhoneNumber());
 
             userToSave = User.builder()
@@ -142,10 +212,8 @@ public class AuthService {
                     .build();
         }
 
-        // 3. Kullanıcıyı kaydet/güncelle
         User savedUser = userRepository.save(userToSave);
 
-        // 4. Loyalty Hesabı Oluşturma (Görseldeki metoda çağrı)
         try {
             loyaltyService.createLoyaltyAccount(savedUser.getId());
             log.info("Kullanıcı (ID: {}) için sadakat hesabı oluşturuldu.", savedUser.getId());
@@ -153,50 +221,137 @@ public class AuthService {
             log.warn("Sadakat hesabı oluşturulurken veya kontroller sırasında durum oluştu: {}", e.getMessage());
         }
 
-        // 5. Varsa eski doğrulama token'ını temizle
-        verificationTokenRepository.findByUser(savedUser)
-                .ifPresent(verificationTokenRepository::delete);
-
-        // 6. Yeni E-posta Doğrulama Token'ı Üret ve Kaydet
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = VerificationToken.builder()
-                .token(token)
-                .user(savedUser)
-                .expiryDate(LocalDateTime.now().plusMinutes(30))
-                .build();
-
-        verificationTokenRepository.save(verificationToken);
-
-        // 7. Doğrulama e-postası gönder
-        emailService.sendVerificationEmail(savedUser.getEmail(), token);
-        log.info("Kayıt/Dönüşüm başarılı, doğrulama maili gönderildi: {}", savedUser.getEmail());
+        // 15 dakika geçerli E-posta Doğrulama Kodu (OTP) oluştur ve kaydet
+        saveVerificationCode(savedUser, CodePurpose.EMAIL_VERIFICATION, 15);
+        log.info("Kayıt/Dönüşüm başarılı, doğrulama kodu e-postaya gönderildi: {}", savedUser.getEmail());
 
         return RegisterResponseDto.builder()
-                .message("Kayıt başarılı! Lütfen e-postanıza gönderilen doğrulama bağlantısına tıklayın.")
+                .message("Kayıt başarılı! Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu girin.")
                 .emailVerificationRequired(true)
                 .build();
     }
 
-    @Transactional
-    public String verifyEmail(String token) {
-        log.info("E-posta doğrulama isteği token: {}", token);
+    @Transactional(noRollbackFor = BusinessRuleException.class)
+    public void verifyEmail(VerifyEmailRequest request) {
+        log.info("E-posta doğrulama isteği başlatıldı. Email: {}", request.getEmail());
 
-        VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new BusinessRuleException("Geçersiz doğrulama bağlantısı!"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BusinessRuleException("Kullanıcı bulunamadı."));
 
-        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new BusinessRuleException("Doğrulama bağlantısının süresi dolmuş!");
+        VerificationCode verificationCode = verificationCodeRepository
+                .findByUserAndPurpose(user, CodePurpose.EMAIL_VERIFICATION)
+                .orElseThrow(() -> new BusinessRuleException("Geçerli bir doğrulama kodu bulunamadı."));
+
+        // 1. Süre Kontrolü
+        if (verificationCode.getExpiryDate().isBefore(LocalDateTime.now())) {
+            verificationCodeRepository.delete(verificationCode);
+            throw new BusinessRuleException("Kodun süresi dolmuş. Lütfen yeni doğrulama kodu talep edin.");
         }
 
-        User user = verificationToken.getUser();
-        user.setEmailVerified(true);
-        user.setPhoneVerified(true); // E-posta doğrulandığı an telefon da onaylanıyor
+        // 2. Kod Eşleşme ve Brute-Force Koruması Kontrolü
+        if (!verificationCode.getCode().equals(request.getCode())) {
+            int newAttemptCount = verificationCode.getAttemptCount() + 1;
+            verificationCode.setAttemptCount(newAttemptCount);
 
+            if (newAttemptCount >= 5) {
+                verificationCodeRepository.delete(verificationCode);
+                throw new BusinessRuleException("Çok fazla yanlış deneme. Lütfen yeni doğrulama kodu talep edin.");
+            } else {
+                verificationCodeRepository.save(verificationCode);
+                int remaining = 5 - newAttemptCount;
+                throw new BusinessRuleException("Hatalı kod. " + remaining + " deneme hakkınız kaldı.");
+            }
+        }
+
+        // 3. Başarılı Doğrulama
+        user.setEmailVerified(true);
+        user.setPhoneVerified(true);
         userRepository.save(user);
 
-        verificationTokenRepository.delete(verificationToken);
-
+        verificationCodeRepository.delete(verificationCode);
         log.info("E-posta ve telefon başarıyla doğrulandı: {}", user.getEmail());
-        return "E-posta ve telefon numaranız başarıyla doğrulandı! Artık giriş yapabilirsiniz.";
+    }
+    @Transactional
+    public void resendVerificationCode(String email) {
+        log.info("Yeni doğrulama kodu talebi alındı. Email: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessRuleException("Kullanıcı bulunamadı."));
+
+        if (user.isEmailVerified()) {
+            throw new BusinessRuleException("Bu hesap zaten doğrulanmış. Lütfen giriş yapmayı deneyin.");
+        }
+
+        // Eski kod varsa veritabanında çakışma olmaması için siliyoruz
+        verificationCodeRepository.findByUserAndPurpose(user, CodePurpose.EMAIL_VERIFICATION)
+                .ifPresent(verificationCodeRepository::delete);
+
+        // Register metodunda kullandığın aynı fonksiyonu çağırıyoruz!
+        // Bu metodun içinde zaten yeni kod oluşturulup e-postaya gönderiliyor.
+        saveVerificationCode(user, CodePurpose.EMAIL_VERIFICATION, 15);
+
+        log.info("Kullanıcının isteği üzerine yeni doğrulama kodu gönderildi: {}", email);
+    }
+
+    // ==========================================
+    // ŞİFRE SIFIRLAMA İŞLEMLERİ (YENİ)
+    // ==========================================
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        log.info("Şifre sıfırlama talebi alındı. Email: {}", request.getEmail());
+
+        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+
+        // Email Enumeration Koruması:
+        // Kullanıcı veritabanında olmasa veya misafir olsa bile hata fırlatmıyoruz.
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (!user.isGuest()) {
+                saveVerificationCode(user, CodePurpose.PASSWORD_RESET, 10);
+                log.info("Şifre sıfırlama kodu oluşturuldu ve gönderildi. Email: {}", user.getEmail());
+            }
+        }
+    }
+
+    @Transactional(noRollbackFor = BusinessRuleException.class)
+    public void resetPassword(ResetPasswordRequest request) {
+        log.info("Şifre sıfırlama tamamlama isteği alındı. Email: {}", request.getEmail());
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BusinessRuleException("Kullanıcı bulunamadı."));
+
+        VerificationCode verificationCode = verificationCodeRepository
+                .findByUserAndPurpose(user, CodePurpose.PASSWORD_RESET)
+                .orElseThrow(() -> new BusinessRuleException("Geçerli bir şifre sıfırlama kodu bulunamadı."));
+
+        // 1. Süre Kontrolü
+        if (verificationCode.getExpiryDate().isBefore(LocalDateTime.now())) {
+            verificationCodeRepository.delete(verificationCode);
+            throw new BusinessRuleException("Kodun süresi dolmuş. Lütfen tekrar şifre sıfırlama isteği oluşturun.");
+        }
+
+        // 2. Kod Kontrolü ve Brute-Force Koruması
+        if (!verificationCode.getCode().equals(request.getCode())) {
+            int newAttemptCount = verificationCode.getAttemptCount() + 1;
+            verificationCode.setAttemptCount(newAttemptCount);
+
+            if (newAttemptCount >= 5) {
+                verificationCodeRepository.delete(verificationCode);
+                throw new BusinessRuleException("Çok fazla yanlış deneme. Lütfen tekrar şifre sıfırlama isteği oluşturun.");
+            } else {
+                verificationCodeRepository.save(verificationCode);
+                int remaining = 5 - newAttemptCount;
+                throw new BusinessRuleException("Hatalı kod. " + remaining + " deneme hakkınız kaldı.");
+            }
+        }
+
+        // 3. Şifreyi Güncelle
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Kullanılan sıfırlama kodunu sil
+        verificationCodeRepository.delete(verificationCode);
+        log.info("Şifre başarıyla değiştirildi. Email: {}", user.getEmail());
     }
 }

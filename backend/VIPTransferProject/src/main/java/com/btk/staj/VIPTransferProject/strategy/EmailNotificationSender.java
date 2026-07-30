@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 
 @Component
 
-@ConditionalOnProperty(name = "spring.mail.host") 
+@ConditionalOnProperty(name = "app.email.enabled", havingValue = "true")
 
 @RequiredArgsConstructor
 public class EmailNotificationSender implements NotificationSender {
@@ -44,7 +44,7 @@ public class EmailNotificationSender implements NotificationSender {
             throw new NotificationSendException(
                     notification.getId(),
                     notification.getChannel(),
-                    exception.getMessage(),
+                    "Email servisine gonderim sirasinda hata olustu.",
                     exception
             );
         }

@@ -23,6 +23,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -36,6 +38,7 @@ public class SecurityConfig {
 
     private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final HandlerExceptionResolver handlerExceptionResolver;
     //private final ObjectMapper objectMapper;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -59,11 +62,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations/price-preview").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/guest/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/translations/**").permitAll()
                         // Monitoring iÃ§in
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger / OpenAPI UI
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -87,7 +92,7 @@ public class SecurityConfig {
 
         // React/Frontend uygulamasÄ±nÄ±n Ã§alÄ±ÅŸtÄ±ÄŸÄ± adresleri buraya ekliyoruz
         // CanlÄ±ya Ã§Ä±karken buraya gerÃ§ek domain adresini de (Ã¶rn: https://viptransfer.com) eklemelisin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:8888", "http://localhost:3000", "http://localhost:5173", "http://192.168.*.*:5173"));
 
         // Frontend'in atabileceÄŸi HTTP metotlarÄ±
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
@@ -109,24 +114,9 @@ public class SecurityConfig {
         return (request, response, authException) -> {
             log.warn("[AUTH-401] [EntryPoint] Kimlik doğrulama başarısız (Kimliksiz İstek): Hedef URL ->  {}", request.getRequestURI());
 
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setCharacterEncoding("UTF-8");
-
-            String timestamp = OffsetDateTime.now().toString();
-            String message = "Bu işlemi gerçekleştirmek için giriş yapmalısınız.";
-
-            // Text block ile JSON şablonu
-            String jsonResponse = """
-                    {
-                      "timestamp": "%s",
-                      "status": 401,
-                      "message": "%s",
-                      "data": null
-                    }
-                    """.formatted(timestamp, message);
-
-            response.getWriter().write(jsonResponse);
+            // Yukarıda tanımladığımız handlerExceptionResolver'ı doğrudan kullanıyoruz
+            handlerExceptionResolver.resolveException(request, response, null,
+                    new UnauthorizedException("Bu işlemi gerçekleştirmek için giriş yapmalısınız."));
         };
     }
     @Bean
