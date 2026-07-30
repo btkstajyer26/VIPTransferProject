@@ -127,13 +127,29 @@ public class LoyaltyService {
                     .orElse(null);
         }
 
-        if (newMinPoints.compareTo(lowerBound) <= 0 ||
+        boolean invalidLowerBound = currentIndex == 0
+                ? newMinPoints < 0
+                : newMinPoints.compareTo(lowerBound) <= 0;
+
+        if (invalidLowerBound ||
                 (upperBound != null && newMinPoints.compareTo(upperBound) >= 0)) {
             throw new InvalidTierConfigException( tier,lowerBound,upperBound);
         }
     }
 
-    public LoyaltyTierConfig updateTierConfig(LoyaltyTier tier, UpdateTierConfigRequest request) {
+    public List<LoyaltyTierConfigResponse> getTierConfigs() {
+        return loyaltyTierConfigRepository.findAllByOrderByMinPointsAsc()
+                .stream()
+                .map(this::toTierConfigResponse)
+                .toList();
+    }
+
+    public LoyaltyTierConfigResponse getTierConfig(LoyaltyTier tier) {
+        return toTierConfigResponse(findTierConfigOrThrow(tier));
+    }
+
+    @Transactional
+    public LoyaltyTierConfigResponse updateTierConfig(LoyaltyTier tier, UpdateTierConfigRequest request) {
         LoyaltyTierConfig config = loyaltyTierConfigRepository.findByTier(tier)
                 .orElseThrow(() -> new TierConfigNotFoundException(tier));
 
@@ -145,7 +161,18 @@ public class LoyaltyService {
         config.setEarnRate(request.getEarnRate());
         config.setDiscountPercentage(request.getDiscountPercentage());
 
-        return loyaltyTierConfigRepository.save(config);
+        return toTierConfigResponse(loyaltyTierConfigRepository.save(config));
+    }
 
+    private LoyaltyTierConfigResponse toTierConfigResponse(LoyaltyTierConfig config) {
+        return LoyaltyTierConfigResponse.builder()
+                .id(config.getId())
+                .tier(config.getTier())
+                .minPoints(config.getMinPoints())
+                .earnRate(config.getEarnRate())
+                .discountPercentage(config.getDiscountPercentage())
+                .prioritySupport(config.isPrioritySupport())
+                .description(config.getDescription())
+                .build();
     }
 }

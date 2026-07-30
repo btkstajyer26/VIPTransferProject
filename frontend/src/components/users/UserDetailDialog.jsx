@@ -8,6 +8,8 @@ import {
 
 import UserRoleBadge from "@/components/users/UserRoleBadge";
 import UserStatusBadge from "@/components/users/UserStatusBadge";
+import { Button } from "@/components/ui/button";
+import { KeyRound, ShieldAlert } from "lucide-react";
 
 function formatDate(value) {
   if (!value) {
@@ -38,6 +40,9 @@ function UserDetailDialog({
   user,
   open,
   onOpenChange,
+  onPasswordReset,
+  resettingPassword,
+  passwordFeedback,
 }) {
   if (!user) {
     return null;
@@ -116,6 +121,37 @@ function UserDetailDialog({
             label="Kayıt tarihi"
             value={formatDate(user.createdAt)}
           />
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 size-5 shrink-0 text-amber-700" />
+            <div>
+              <p className="text-sm font-semibold text-amber-900">Üyelik yönetimi</p>
+              <p className="mt-1 text-xs leading-5 text-amber-800">
+                Mevcut backend başka bir kullanıcının adını, rolünü veya üyelik tipini düzenleme endpointi sunmuyor.
+                Hesap görüntülenebilir, pasife alınabilir veya kullanıcıya güvenli şifre sıfırlama kodu gönderilebilir.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {passwordFeedback && (
+          <div className="rounded-lg border bg-slate-50 p-3 text-sm text-slate-700">
+            {passwordFeedback}
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!user.email || resettingPassword}
+            onClick={() => onPasswordReset(user)}
+          >
+            <KeyRound className="mr-2 size-4" />
+            {resettingPassword ? "Gönderiliyor..." : "Şifre sıfırlama kodu gönder"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

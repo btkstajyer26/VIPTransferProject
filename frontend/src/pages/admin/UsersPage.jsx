@@ -22,11 +22,14 @@ import {
 } from "@/components/ui/card";
 import useUsers from "@/hooks/useUsers";
 import { useTranslation } from "react-i18next";
+import { forgotPassword } from "@/api/authApi";
 
 function UsersPage() {
   const { t } = useTranslation();
   const [selectedUser, setSelectedUser] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [passwordFeedback, setPasswordFeedback] = useState("");
 
   const {
     users,
@@ -50,7 +53,31 @@ function UsersPage() {
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
+    setPasswordFeedback("");
     setDetailOpen(true);
+  };
+
+  const handlePasswordReset = async (user) => {
+    if (!user?.email) {
+      setPasswordFeedback("Bu kullanıcının kayıtlı e-posta adresi bulunmuyor.");
+      return;
+    }
+    if (!window.confirm(`${user.email} adresine şifre sıfırlama kodu gönderilsin mi?`)) {
+      return;
+    }
+    try {
+      setResettingPassword(true);
+      setPasswordFeedback("");
+      await forgotPassword(user.email);
+      setPasswordFeedback("Şifre sıfırlama kodu kullanıcının e-posta adresine gönderildi.");
+    } catch (requestError) {
+      setPasswordFeedback(
+        requestError.response?.data?.message ||
+          "Şifre sıfırlama kodu gönderilemedi.",
+      );
+    } finally {
+      setResettingPassword(false);
+    }
   };
 
   const handleDeleteUser = async (user) => {
@@ -158,6 +185,9 @@ function UsersPage() {
         user={selectedUser}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onPasswordReset={handlePasswordReset}
+        resettingPassword={resettingPassword}
+        passwordFeedback={passwordFeedback}
       />
     </section>
   );
