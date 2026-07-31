@@ -123,6 +123,9 @@ function ReservationConfirm() {
   const [isPriceLoading, setIsPriceLoading] =
     useState(false);
 
+  const [campaignCodeWarning, setCampaignCodeWarning] =
+    useState("");
+
   const scheduledTime =
     reservationDraft?.scheduledDateTime ||
     createScheduledTime(
@@ -185,6 +188,7 @@ function ReservationConfirm() {
 
         if (!cancelled) {
           setPricePreview(response || {});
+          setCampaignCodeWarning("");
         }
       } catch (priceError) {
         console.error(
@@ -193,7 +197,44 @@ function ReservationConfirm() {
             priceError,
         );
 
-        if (!cancelled) {
+        if (cancelled) {
+          return;
+        }
+
+        if (appliedCampaignCode.trim()) {
+          try {
+            const fallback = await previewReservationPrice({
+              pickupLat,
+              pickupLon,
+              dropoffLat,
+              dropoffLon,
+              vehicleId: Number(vehicleId),
+              scheduledTime,
+              campaignCode: null,
+            });
+
+            if (!cancelled) {
+              setPricePreview(fallback || {});
+              setAppliedCampaignCode("");
+              setFormData((prev) => ({
+                ...prev,
+                campaignCode: "",
+              }));
+              setCampaignCodeWarning(
+                "Kampanya kodu geçersiz veya bu rezervasyona uygulanamadı. Fiyat kampanyasız hesaplandı.",
+              );
+            }
+          } catch (fallbackError) {
+            if (!cancelled) {
+              setError(
+                getRequestErrorMessage(
+                  fallbackError,
+                  "Fiyat hesaplanamadı. Lütfen bilgileri kontrol edip tekrar deneyin.",
+                ),
+              );
+            }
+          }
+        } else {
           setError(
             getRequestErrorMessage(
               priceError,
@@ -284,6 +325,7 @@ function ReservationConfirm() {
     );
     setPricePreview({});
     setError("");
+    setCampaignCodeWarning("");
   };
 
   const handleRemoveCampaign = () => {
@@ -294,6 +336,7 @@ function ReservationConfirm() {
     setAppliedCampaignCode("");
     setPricePreview({});
     setError("");
+    setCampaignCodeWarning("");
   };
 
   const handlePhoneChange = (event) => {
@@ -636,6 +679,12 @@ function ReservationConfirm() {
                         ✓ Kampanya kodu uygulandı
                       </p>
                     )}
+
+                  {campaignCodeWarning && (
+                    <p className="mt-1.5 text-xs font-semibold text-amber-600">
+                      ⚠ {campaignCodeWarning}
+                    </p>
+                  )}
                 </div>
 
                 <FormField
@@ -717,6 +766,7 @@ function ReservationConfirm() {
               finalPrice={finalPrice}
               distanceKm={distanceKm}
               isPriceLoading={isPriceLoading}
+              campaignCodeWarning={campaignCodeWarning}
             />
           </aside>
         </div>
@@ -732,11 +782,21 @@ function ReservationSummary({
   finalPrice,
   distanceKm,
   isPriceLoading,
+  campaignCodeWarning,
 }) {
   const p = pricePreview?.data ?? pricePreview ?? {};
+  const flagFee = toNumber(p.flagFee);
+  const distanceFee = toNumber(p.distanceFee);
+  const basePrice = toNumber(p.basePrice);
+  const vehicleAdjustedPrice = toNumber(p.vehicleAdjustedPrice);
+  const surgeMultiplier = toNumber(p.surgeMultiplier) || 1;
+  const priceAfterSurge = toNumber(p.priceAfterSurge);
   const campaignDiscount = toNumber(p.campaignDiscount);
   const loyaltyDiscount = toNumber(p.loyaltyDiscount);
-  const priceAfterSurge = toNumber(p.priceAfterSurge);
+
+  const hasBreakdown =
+    priceAfterSurge > 0 || basePrice > 0 || flagFee > 0 || distanceFee > 0;
+  const hasSurge = surgeMultiplier > 1.005;
   const hasDiscount =
     campaignDiscount > 0 || loyaltyDiscount > 0;
 
@@ -855,39 +915,59 @@ function ReservationSummary({
             </p>
           ) : (
             <>
-              {hasDiscount && (
+              {hasBreakdown && (
                 <div className="mb-4 space-y-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">
-                      Transfer ücreti
-                    </span>
+                  {flagFee > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Açılış ücreti</span>
+                      <span className="font-semibold text-slate-700">{formatCurrency(flagFee)}</span>
+                    </div>
+                  )}
 
-                    <span className="font-semibold text-slate-700">
-                      {formatCurrency(priceAfterSurge)}
-                    </span>
-                  </div>
+                  {distanceFee > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">
+                        Km ücreti
+                        {distanceKm !== null && (
+                          <span className="ml-1 text-xs text-slate-400">({formatNumber(distanceKm)} km)</span>
+                        )}
+                      </span>
+                      <span className="font-semibold text-slate-700">{formatCurrency(distanceFee)}</span>
+                    </div>
+                  )}
+
+                  {vehicleAdjustedPrice > 0 && vehicleAdjustedPrice !== basePrice && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Araç fiyatı</span>
+                      <span className="font-semibold text-slate-700">{formatCurrency(vehicleAdjustedPrice)}</span>
+                    </div>
+                  )}
+
+                  {hasSurge && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-amber-600">⏰ Yoğun saat (×{formatNumber(surgeMultiplier)})</span>
+                      <span className="font-semibold text-amber-600">{formatCurrency(priceAfterSurge || finalPrice)}</span>
+                    </div>
+                  )}
+
+                  {!hasSurge && priceAfterSurge > 0 && (hasDiscount || flagFee === 0) && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">Transfer ücreti</span>
+                      <span className="font-semibold text-slate-700">{formatCurrency(priceAfterSurge)}</span>
+                    </div>
+                  )}
 
                   {campaignDiscount > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-emerald-600">
-                        🏷 Kampanya indirimi
-                      </span>
-
-                      <span className="font-semibold text-emerald-600">
-                        −{formatCurrency(campaignDiscount)}
-                      </span>
+                      <span className="text-emerald-600">🏷 Kampanya indirimi</span>
+                      <span className="font-semibold text-emerald-600">−{formatCurrency(campaignDiscount)}</span>
                     </div>
                   )}
 
                   {loyaltyDiscount > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-emerald-600">
-                        ⭐ Sadakat indirimi
-                      </span>
-
-                      <span className="font-semibold text-emerald-600">
-                        −{formatCurrency(loyaltyDiscount)}
-                      </span>
+                      <span className="text-emerald-600">⭐ Sadakat indirimi</span>
+                      <span className="font-semibold text-emerald-600">−{formatCurrency(loyaltyDiscount)}</span>
                     </div>
                   )}
 
@@ -902,6 +982,12 @@ function ReservationSummary({
               <p className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#0b1f3a]">
                 {formatCurrency(finalPrice)}
               </p>
+
+              {campaignCodeWarning && (
+                <p className="mt-3 text-xs font-semibold text-amber-600">
+                  ⚠ {campaignCodeWarning}
+                </p>
+              )}
             </>
           )}
         </div>

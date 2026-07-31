@@ -1,7 +1,6 @@
 package com.btk.staj.VIPTransferProject.service;
 
 import com.btk.staj.VIPTransferProject.dto.loyalty.AccruePointsRequests;
-import com.btk.staj.VIPTransferProject.dto.notification.CreateNotificationRequest;
 import com.btk.staj.VIPTransferProject.dto.pricing.PriceBreakdownResponseDto;
 import com.btk.staj.VIPTransferProject.dto.reservation.CreateReservationRequest;
 import com.btk.staj.VIPTransferProject.dto.reservation.GuestReservationResponse;
@@ -12,7 +11,6 @@ import com.btk.staj.VIPTransferProject.dto.reservation.ReservationStatusHistoryR
 import com.btk.staj.VIPTransferProject.dto.reservation.UpdateStatusRequest;
 import com.btk.staj.VIPTransferProject.dto.routing.RouteInfoDto;
 import com.btk.staj.VIPTransferProject.entity.*;
-import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.event.ReservationNotificationEvent;
@@ -36,10 +34,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -57,7 +52,6 @@ public class ReservationService {
     private final BookingReferenceGenerator bookingReferenceGenerator;
     private final UserService userService;
     private final LoyaltyService loyaltyService;
-    private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
@@ -299,10 +293,6 @@ public class ReservationService {
                 .note(request.getNote())
                 .build());
 
-        log.info("Rezervasyon durumu güncellendi. id={}, {} -> {}", id, current, target);
-
-        sendStatusChangeNotifications(reservation, current, target, request.getNote());
-
         if (target == ReservationStatus.COMPLETED
                 && reservation.getUser() != null
                 && !reservation.getUser().isGuest()) {
@@ -316,104 +306,9 @@ public class ReservationService {
             }
         }
 
-        statusHistoryRepository.save(ReservationStatusHistory.builder()
-                .reservation(reservation)
-                .status(target)
-                .changedBy(requester)
-                .note(request.getNote())
-                .build());
-
         publishNotification(reservation, current, target);
         log.info("Rezervasyon durumu güncellendi. id={}, {} -> {}", id, current, target);
         return toResponse(reservation);
-    }
-
-    private void sendStatusChangeNotifications(
-            Reservation reservation,
-            ReservationStatus oldStatus,
-            ReservationStatus newStatus,
-            String note) {
-
-        User user = reservation.getUser();
-        if (user == null || user.isGuest()) {
-            return;
-        }
-
-        String langCode = user.getPreferredLang() != null ? user.getPreferredLang() : "tr";
-        String templateCode = resolveTemplateCode(newStatus);
-        List<NotificationChannel> channels = resolveNotificationChannels(newStatus);
-        Map<String, String> variables = buildNotificationVariables(reservation, oldStatus, newStatus, note);
-
-        for (NotificationChannel channel : channels) {
-            try {
-                CreateNotificationRequest req = new CreateNotificationRequest();
-                req.setUserId(user.getId());
-                req.setReservationId(reservation.getId());
-                req.setTemplateCode(templateCode);
-                req.setChannel(channel);
-                req.setLangCode(langCode);
-                req.setVariables(variables);
-                req.setSendImmediately(true);
-                notificationService.create(req);
-            } catch (Exception e) {
-                log.warn("Bildirim gönderilemedi. channel={}, reservationId={}, hata={}",
-                        channel, reservation.getId(), e.getMessage());
-            }
-        }
-    }
-
-    private String resolveTemplateCode(ReservationStatus status) {
-        return switch (status) {
-            case CANCELLED -> "RESERVATION_CANCELLED";
-            case COMPLETED -> "RESERVATION_COMPLETED";
-            default -> "RESERVATION_STATUS_CHANGED";
-        };
-    }
-
-    private List<NotificationChannel> resolveNotificationChannels(ReservationStatus status) {
-        return switch (status) {
-            case CANCELLED -> List.of(
-                    NotificationChannel.EMAIL,
-                    NotificationChannel.SMS,
-                    NotificationChannel.PUSH
-            );
-            case COMPLETED -> List.of(
-                    NotificationChannel.EMAIL,
-                    NotificationChannel.PUSH
-            );
-            default -> List.of(
-                    NotificationChannel.EMAIL,
-                    NotificationChannel.PUSH
-            );
-        };
-    }
-
-    private Map<String, String> buildNotificationVariables(
-            Reservation reservation,
-            ReservationStatus oldStatus,
-            ReservationStatus newStatus,
-            String note) {
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-        User user = reservation.getUser();
-
-        Map<String, String> vars = new HashMap<>();
-        vars.put("firstName", user.getFirstName() != null ? user.getFirstName() : "");
-        vars.put("bookingReference", reservation.getBookingReference() != null ? reservation.getBookingReference() : "");
-        vars.put("oldStatus", oldStatus.name());
-        vars.put("newStatus", newStatus.name());
-        vars.put("pickupAddress", reservation.getPickupAddress() != null ? reservation.getPickupAddress() : "");
-        vars.put("dropoffAddress", reservation.getDropoffAddress() != null ? reservation.getDropoffAddress() : "");
-        vars.put("scheduledTime", reservation.getScheduledTime() != null
-                ? reservation.getScheduledTime().format(formatter) : "");
-        vars.put("calculatedPrice", reservation.getCalculatedPrice() != null
-                ? reservation.getCalculatedPrice().toPlainString() : "");
-        vars.put("currency", reservation.getCurrency() != null ? reservation.getCurrency() : "TRY");
-        vars.put("vehicleName", reservation.getVehicle() != null && reservation.getVehicle().getModel() != null
-                ? reservation.getVehicle().getModel() : "");
-        vars.put("passengerCount", String.valueOf(reservation.getPassengerCount()));
-        vars.put("cancellationReason", note != null ? note : "");
-        return vars;
     }
 
     @Transactional
@@ -448,8 +343,6 @@ public class ReservationService {
                 ReservationStatus.CANCELLED
         );
         log.info("Rezervasyon iptal edildi. id={}, userId={}", id, userId);
-
-        sendStatusChangeNotifications(reservation, ReservationStatus.PENDING, ReservationStatus.CANCELLED, reason);
     }
 
     @Transactional(readOnly = true)

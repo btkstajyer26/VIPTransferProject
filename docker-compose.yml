@@ -154,6 +154,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
     depends_on:
       - prometheus
+      - loki
     networks:
       - vip-network
     restart: unless-stopped

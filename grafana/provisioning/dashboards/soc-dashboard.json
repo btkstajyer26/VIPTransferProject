@@ -13,14 +13,11 @@
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
-      "grafana.app/folder": "bfto020pur474e",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "VIP Transfer Dashboards",
       "grafana.app/sourceChecksum": "7a4a3e2f346e3c6d63ca2a701d3ea41f",
       "grafana.app/sourcePath": "/etc/grafana/provisioning/dashboards/soc-dashboard.json",
-      "grafana.app/sourceTimestamp": "1785443108000",
-      "grafana.app/folderTitle": "VIP Transfer",
-      "grafana.app/folderUrl": "/dashboards/f/bfto020pur474e/vip-transfer"
+      "grafana.app/sourceTimestamp": "1785443108000"
     }
   },
   "spec": {

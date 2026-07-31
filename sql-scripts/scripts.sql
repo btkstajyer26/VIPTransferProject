@@ -599,3 +599,65 @@ INSERT INTO entity_translations (entity_type, entity_id, field_name, lang_code, 
     ('loyalty_tier', 3, 'description', 'en', 'Valued customer'),
     ('loyalty_tier', 4, 'description', 'en', 'Premium customer'),
     ('loyalty_tier', 5, 'description', 'en', 'Elite VIP customer');
+
+-- =============================================================
+-- PRİCİNG ZONES + RULES SEED (idempotent — boş tabloda çalışır)
+-- =============================================================
+DO $seed$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pricing_zones LIMIT 1) THEN
+
+    -- 1. Türkiye Geneli (fallback)
+    INSERT INTO pricing_zones (name, price_per_km, base_price, min_price, currency, polygon_geom, is_active, created_at, updated_at)
+    VALUES ('Türkiye Geneli', 3.50, 15.00, 50.00, 'TRY',
+      ST_GeomFromText('POLYGON((25.5 35.5, 44.9 35.5, 44.9 42.3, 25.5 42.3, 25.5 35.5))', 4326), true, NOW(), NOW());
+
+    -- 2. Bölgesel Zonlar
+    INSERT INTO pricing_zones (name, price_per_km, base_price, min_price, currency, polygon_geom, is_active, created_at, updated_at) VALUES
+      ('Marmara Bölgesi',      4.00, 18.00, 60.00, 'TRY', ST_GeomFromText('POLYGON((26.0 39.5, 32.0 39.5, 32.0 42.3, 26.0 42.3, 26.0 39.5))', 4326), true, NOW(), NOW()),
+      ('Ege Bölgesi',          3.80, 17.00, 55.00, 'TRY', ST_GeomFromText('POLYGON((25.5 36.5, 30.5 36.5, 30.5 40.0, 25.5 40.0, 25.5 36.5))', 4326), true, NOW(), NOW()),
+      ('Akdeniz Bölgesi',      3.80, 17.00, 55.00, 'TRY', ST_GeomFromText('POLYGON((28.5 35.5, 36.5 35.5, 36.5 37.8, 28.5 37.8, 28.5 35.5))', 4326), true, NOW(), NOW()),
+      ('İç Anadolu Bölgesi',   3.60, 16.00, 52.00, 'TRY', ST_GeomFromText('POLYGON((30.5 37.5, 36.5 37.5, 36.5 40.5, 30.5 40.5, 30.5 37.5))', 4326), true, NOW(), NOW()),
+      ('Karadeniz Bölgesi',    3.60, 16.00, 52.00, 'TRY', ST_GeomFromText('POLYGON((30.5 40.5, 40.0 40.5, 40.0 42.3, 30.5 42.3, 30.5 40.5))', 4326), true, NOW(), NOW()),
+      ('Doğu Anadolu Bölgesi', 3.50, 15.00, 50.00, 'TRY', ST_GeomFromText('POLYGON((37.5 37.5, 44.9 37.5, 44.9 40.5, 37.5 40.5, 37.5 37.5))', 4326), true, NOW(), NOW()),
+      ('Güneydoğu Anadolu',    3.50, 15.00, 50.00, 'TRY', ST_GeomFromText('POLYGON((36.0 36.5, 44.9 36.5, 44.9 38.5, 36.0 38.5, 36.0 36.5))', 4326), true, NOW(), NOW());
+
+    -- 3. Şehir Genel Zonlar
+    INSERT INTO pricing_zones (name, price_per_km, base_price, min_price, currency, polygon_geom, is_active, created_at, updated_at) VALUES
+      ('İstanbul Tüm Şehir', 5.50, 25.00, 80.00, 'TRY', ST_GeomFromText('POLYGON((28.0 40.8, 29.5 40.8, 29.5 41.4, 28.0 41.4, 28.0 40.8))', 4326), true, NOW(), NOW()),
+      ('Ankara Tüm Şehir',   4.50, 20.00, 70.00, 'TRY', ST_GeomFromText('POLYGON((32.4 39.7, 33.2 39.7, 33.2 40.1, 32.4 40.1, 32.4 39.7))', 4326), true, NOW(), NOW()),
+      ('İzmir Tüm Şehir',    4.50, 20.00, 70.00, 'TRY', ST_GeomFromText('POLYGON((26.8 38.2, 27.4 38.2, 27.4 38.7, 26.8 38.7, 26.8 38.2))', 4326), true, NOW(), NOW()),
+      ('Antalya Tüm Şehir',  4.50, 20.00, 70.00, 'TRY', ST_GeomFromText('POLYGON((30.5 36.7, 31.1 36.7, 31.1 37.1, 30.5 37.1, 30.5 36.7))', 4326), true, NOW(), NOW()),
+      ('Bursa Tüm Şehir',    4.20, 18.00, 65.00, 'TRY', ST_GeomFromText('POLYGON((28.8 39.9, 29.4 39.9, 29.4 40.3, 28.8 40.3, 28.8 39.9))', 4326), true, NOW(), NOW()),
+      ('Bodrum',             5.00, 22.00, 75.00, 'TRY', ST_GeomFromText('POLYGON((27.3 36.9, 27.6 36.9, 27.6 37.1, 27.3 37.1, 27.3 36.9))', 4326), true, NOW(), NOW()),
+      ('Kapadokya',          4.80, 22.00, 75.00, 'TRY', ST_GeomFromText('POLYGON((34.5 38.5, 35.2 38.5, 35.2 38.9, 34.5 38.9, 34.5 38.5))', 4326), true, NOW(), NOW());
+
+    -- 4. Şehir Merkezi / Havalimanı Zonları (en spesifik — en küçük alan)
+    INSERT INTO pricing_zones (name, price_per_km, base_price, min_price, currency, polygon_geom, is_active, created_at, updated_at) VALUES
+      ('İstanbul Avrupa Yakası Merkez',  6.50, 30.00, 100.00, 'TRY', ST_GeomFromText('POLYGON((28.8 41.0, 29.1 41.0, 29.1 41.2, 28.8 41.2, 28.8 41.0))', 4326), true, NOW(), NOW()),
+      ('İstanbul Anadolu Yakası Merkez', 6.00, 28.00,  95.00, 'TRY', ST_GeomFromText('POLYGON((29.1 40.9, 29.4 40.9, 29.4 41.1, 29.1 41.1, 29.1 40.9))', 4326), true, NOW(), NOW()),
+      ('İstanbul Havalimanı (IGA)',      7.00, 35.00, 120.00, 'TRY', ST_GeomFromText('POLYGON((28.68 41.25, 28.80 41.25, 28.80 41.32, 28.68 41.32, 28.68 41.25))', 4326), true, NOW(), NOW()),
+      ('Sabiha Gökçen (SAW)',            7.00, 35.00, 120.00, 'TRY', ST_GeomFromText('POLYGON((29.28 40.89, 29.36 40.89, 29.36 40.93, 29.28 40.93, 29.28 40.89))', 4326), true, NOW(), NOW()),
+      ('Ankara Merkez (Kızılay)',        5.50, 25.00,  85.00, 'TRY', ST_GeomFromText('POLYGON((32.82 39.91, 32.88 39.91, 32.88 39.95, 32.82 39.95, 32.82 39.91))', 4326), true, NOW(), NOW()),
+      ('Esenboğa Havalimanı (ESB)',      6.50, 32.00, 110.00, 'TRY', ST_GeomFromText('POLYGON((32.98 40.11, 33.04 40.11, 33.04 40.15, 32.98 40.15, 32.98 40.11))', 4326), true, NOW(), NOW()),
+      ('İzmir Merkez (Alsancak)',        5.50, 25.00,  85.00, 'TRY', ST_GeomFromText('POLYGON((27.12 38.42, 27.18 38.42, 27.18 38.46, 27.12 38.46, 27.12 38.42))', 4326), true, NOW(), NOW()),
+      ('Adnan Menderes (ADB)',           6.50, 32.00, 110.00, 'TRY', ST_GeomFromText('POLYGON((27.14 38.27, 27.18 38.27, 27.18 38.31, 27.14 38.31, 27.14 38.27))', 4326), true, NOW(), NOW()),
+      ('Antalya Merkez',                 5.50, 25.00,  85.00, 'TRY', ST_GeomFromText('POLYGON((30.68 36.87, 30.74 36.87, 30.74 36.91, 30.68 36.91, 30.68 36.87))', 4326), true, NOW(), NOW()),
+      ('Antalya Havalimanı (AYT)',       6.50, 32.00, 110.00, 'TRY', ST_GeomFromText('POLYGON((30.77 36.89, 30.82 36.89, 30.82 36.93, 30.77 36.93, 30.77 36.89))', 4326), true, NOW(), NOW());
+
+    -- Pricing Rules: İstanbul yoğun saat + havalimanı ek ücretleri
+    INSERT INTO pricing_rules (zone_id, name, reason, day_of_week, start_time, end_time, multiplier, is_active, created_at)
+    SELECT z.id, 'Sabah Yoğun Saat', 'rush_hour', NULL, '07:00', '10:00', 1.30, true, NOW()
+      FROM pricing_zones z WHERE z.name IN ('İstanbul Tüm Şehir','İstanbul Avrupa Yakası Merkez','İstanbul Anadolu Yakası Merkez');
+
+    INSERT INTO pricing_rules (zone_id, name, reason, day_of_week, start_time, end_time, multiplier, is_active, created_at)
+    SELECT z.id, 'Akşam Yoğun Saat', 'rush_hour', NULL, '17:00', '21:00', 1.50, true, NOW()
+      FROM pricing_zones z WHERE z.name IN ('İstanbul Tüm Şehir','İstanbul Avrupa Yakası Merkez','İstanbul Anadolu Yakası Merkez');
+
+    INSERT INTO pricing_rules (zone_id, name, reason, day_of_week, start_time, end_time, multiplier, is_active, created_at)
+    SELECT z.id, 'Havalimanı Operasyon Saati', 'airport_surcharge', NULL, '05:00', '23:59', 1.10, true, NOW()
+      FROM pricing_zones z WHERE z.name IN ('İstanbul Havalimanı (IGA)','Sabiha Gökçen (SAW)','Esenboğa Havalimanı (ESB)','Adnan Menderes (ADB)','Antalya Havalimanı (AYT)');
+
+  END IF;
+END;
+$seed$;

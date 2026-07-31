@@ -15,6 +15,11 @@ export async function updateCurrentUser(payload) {
   return response.data;
 }
 
+export async function changeCurrentPassword(payload) {
+  const response = await apiClient.patch("/users/me/password", payload);
+  return response.data;
+}
+
 export async function deleteCurrentUser() {
   await apiClient.delete("/users/me");
 }

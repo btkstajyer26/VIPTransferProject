@@ -18,6 +18,7 @@ public interface PricingZoneRepository extends JpaRepository<PricingZone, Long>{
             SELECT * FROM pricing_zones pz
             WHERE pz.is_active = true
               AND ST_Within(ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), pz.polygon_geom)
+            ORDER BY ST_Area(pz.polygon_geom) ASC
             LIMIT 1
             """, nativeQuery = true)
     Optional<PricingZone> findZoneContainingPoint(@Param("lon") double lon, @Param("lat") double lat);
