@@ -2,11 +2,14 @@ package com.btk.staj.VIPTransferProject.exception;
 
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -14,17 +17,12 @@ import java.time.OffsetDateTime;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class AppExceptionHandler {
-
     private final MeterRegistry meterRegistry;
 
-    // Constructor Injection ile MeterRegistry alınıyor
-    public AppExceptionHandler(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
-
-    // ── 404 Not Found ────────────────────────────────────────────────────────
+    // ── 404 Not Found (Data yok -> Void) ─────────────────────────────────────
     @ExceptionHandler({
             ResourceNotFoundException.class,
             VehicleNotFoundException.class,
@@ -33,77 +31,103 @@ public class AppExceptionHandler {
             NotificationTemplateNotFoundException.class,
             TierConfigNotFoundException.class
     })
-    public ResponseEntity<ApiResponse<String>> handleNotFound(RuntimeException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(RuntimeException ex) {
         log.warn("404 Not Found: {}", ex.getMessage());
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    // ── 403 Forbidden ────────────────────────────────────────────────────────
+    // ── 403 Forbidden (Data yok -> Void) ─────────────────────────────────────
     @ExceptionHandler({
             ForbiddenOperationException.class,
-            TokenRefreshException.class
+            TokenRefreshException.class,
+            AccessDeniedException.class
     })
-    public ResponseEntity<ApiResponse<String>> handleForbidden(RuntimeException ex) {
-        log.warn("403 Forbidden: {}", ex.getMessage());
-
+    public ResponseEntity<ApiResponse<Void>> handleForbidden(RuntimeException ex, HttpServletRequest request) {
+        log.warn("[AUTH-403] [AccessDenied] Yetkisiz erişim denemesi! Hedef URL -> {} | Sebep: {}",
+                request.getRequestURI(), ex.getClass().getSimpleName());
         // SOC SENSÖRÜ: 403 Yetki Aşımı Metriği
         meterRegistry.counter("soc_security_alerts_total",
                 "alert_type", "forbidden_access",
                 "reason", ex.getClass().getSimpleName()).increment();
-
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
-    // ── 401 Unauthorized ─────────────────────────────────────────────────────
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiResponse<String>> handleUnauthorized(UnauthorizedException ex) {
-        log.warn("401 Unauthorized: {}", ex.getMessage());
+    // ── 401 Unauthorized (Mail Onaysız Durumu) ───────────────────────────────
+    @ExceptionHandler(UserUnverifiedException.class)
+    // DİKKAT: Map yerine sadece String dönüyoruz
+    public ResponseEntity<ApiResponse<String>> handleUserUnverified(UserUnverifiedException ex) {
+        log.warn("401 Unauthorized (Unverified): {} - Email: {}", ex.getMessage(), ex.getEmail());
 
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.<String>builder()
+                        .status(HttpStatus.UNAUTHORIZED.value())
+                        .errorCode("USER_UNVERIFIED")
+                        .message(ex.getMessage())
+                        .data(ex.getEmail())      // Doğrudan string: "ornek@email.com"
+                        .timestamp(OffsetDateTime.now())
+                        .build());
+    }
+
+    // ── 401 Unauthorized (Diğer Tüm Yetki/Şifre Hataları) ────────────────────
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
+        log.warn("401 Unauthorized: {}", ex.getMessage());
         // SOC SENSÖRÜ: 401 Yetkisiz Giriş / Hatalı Şifre Metriği
         meterRegistry.counter("soc_security_alerts_total",
                 "alert_type", "unauthorized_access",
                 "reason", "BAD_CREDENTIALS").increment();
-
-        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        // Normal yetkisizliklerde BAD_CREDENTIALS dönüyoruz
+        return build(HttpStatus.UNAUTHORIZED, "BAD_CREDENTIALS", ex.getMessage());
     }
 
-    // ── 409 Conflict ─────────────────────────────────────────────────────────
+    // ── 409 Conflict (Data yok -> Void) ──────────────────────────────────────
     @ExceptionHandler({
             BusinessRuleException.class,
             DuplicatePlateException.class,
             IllegalStateException.class
     })
-    public ResponseEntity<ApiResponse<String>> handleConflict(RuntimeException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleConflict(RuntimeException ex) {
         log.warn("409 Conflict: {}", ex.getMessage());
         return build(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    // ── 400 Bad Request ──────────────────────────────────────────────────────
+    // ── 400 Bad Request (Data yok -> Void) ───────────────────────────────────
     @ExceptionHandler({
             InvalidRequestException.class,
             IllegalArgumentException.class,
-            UnsupportedNotificationChannelException.class,
-            InvalidTierConfigException.class
+            UnsupportedNotificationChannelException.class
     })
-    public ResponseEntity<ApiResponse<String>> handleBadRequest(RuntimeException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleBadRequest(RuntimeException ex) {
         log.warn("400 Bad Request: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
-    // ── 502 Bad Gateway ──────────────────────────────────────────────────────
+    @ExceptionHandler(InvalidTierConfigException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTierConfig(InvalidTierConfigException ex) {
+        log.warn("400 Bad Request: {}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, "Tier config is invalid.");
+    }
+
+    // ── 502 Bad Gateway (Data yok -> Void) ───────────────────────────────────
     @ExceptionHandler(NotificationSendException.class)
-    public ResponseEntity<ApiResponse<String>> handleNotificationSend(NotificationSendException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleNotificationSend(NotificationSendException ex) {
         log.error("502 Bad Gateway — bildirim teslim hatası: {}", ex.getMessage());
         return build(HttpStatus.BAD_GATEWAY, "Bildirim gönderilemedi. Lütfen daha sonra tekrar deneyin.");
     }
 
-    // ── Ortak yardımcı ───────────────────────────────────────────────────────
-    private ResponseEntity<ApiResponse<String>> build(HttpStatus status, String message) {
+    // ── Ortak yardımcı 1 (Sadece Mesaj Dönen Standart Hatalar İçin) ──────────
+    private ResponseEntity<ApiResponse<Void>> build(HttpStatus status, String message) {
+        return build(status, null, message); // errorCode null gidiyor
+    }
+
+    // ── Ortak yardımcı 2 (Mesaj + Özel Hata Kodu Dönenler İçin) ──────────────
+    private ResponseEntity<ApiResponse<Void>> build(HttpStatus status, String errorCode, String message) {
         return ResponseEntity.status(status)
-                .body(ApiResponse.<String>builder()
+                .body(ApiResponse.<Void>builder()
                         .status(status.value())
+                        .errorCode(errorCode) // Frontend'in yakalayacağı kod
                         .message(message)
                         .timestamp(OffsetDateTime.now())
-                        .build());
+                        .build()); // data() alanı hiç setlenmediği için hep null
     }
 }

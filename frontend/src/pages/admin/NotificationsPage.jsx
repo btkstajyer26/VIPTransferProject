@@ -39,13 +39,7 @@ import {
 } from "@/components/ui/table";
 import useNotifications from "@/hooks/useNotifications";
 
-const STATUS_LABEL = {
-  PENDING: "Bekliyor",
-  SENT: "Gönderildi",
-  DELIVERED: "İletildi",
-  FAILED: "Başarısız",
-  READ: "Okundu",
-};
+import { useTranslation } from "react-i18next";
 
 const STATUS_VARIANT = {
   PENDING: "outline",
@@ -63,13 +57,6 @@ const STATUS_CLASS = {
   READ: "text-slate-400",
 };
 
-const CHANNEL_LABEL = {
-  EMAIL: "E-posta",
-  SMS: "SMS",
-  PUSH: "Push",
-  WHATSAPP: "WhatsApp",
-};
-
 const CHANNEL_CLASS = {
   EMAIL: "bg-violet-100 text-violet-700",
   SMS: "bg-sky-100 text-sky-700",
@@ -77,16 +64,19 @@ const CHANNEL_CLASS = {
   WHATSAPP: "bg-emerald-100 text-emerald-700",
 };
 
-function formatDate(dateString) {
+function formatDate(dateString, lng) {
   if (!dateString) return "—";
 
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(lng === "TR" ? "tr-TR" : "en-US", {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(dateString));
 }
 
 function NotificationsPage() {
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
+
   const {
     filteredNotifications,
     isLoading,
@@ -111,11 +101,11 @@ function NotificationsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">
-            Bildirimler
+            {t("admin.notifications.title")}
           </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Sistemdeki tüm bildirimleri görüntüleyin ve yönetin.
+            {t("admin.notifications.subtitle")}
           </p>
         </div>
 
@@ -128,16 +118,16 @@ function NotificationsPage() {
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
           />
-          Yenile
+          {t("admin.notifications.refresh")}
         </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "Bekleyen", status: "PENDING", color: "text-amber-600" },
-          { label: "Gönderilen", status: "SENT", color: "text-blue-600" },
-          { label: "Başarısız", status: "FAILED", color: "text-red-600" },
-          { label: "Toplam", status: "ALL", color: "text-slate-700" },
+          { label: t("admin.notifications.stats.pending"), status: "PENDING", color: "text-amber-600" },
+          { label: t("admin.notifications.stats.sent"), status: "SENT", color: "text-blue-600" },
+          { label: t("admin.notifications.stats.failed"), status: "FAILED", color: "text-red-600" },
+          { label: t("admin.notifications.stats.total"), status: "ALL", color: "text-slate-700" },
         ].map(({ label, status, color }) => (
           <Card key={status} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter(status)}>
             <CardContent className="p-4">
@@ -155,7 +145,9 @@ function NotificationsPage() {
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error === "Network Error" || error === "Ağ Hatası" ? t("admin.errors.network") : error}
+          </AlertDescription>
         </Alert>
       )}
 
@@ -163,16 +155,16 @@ function NotificationsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Bildirim Listesi
+            {t("admin.notifications.listTitle")}
             {unreadCount > 0 && (
               <Badge variant="destructive" className="ml-1">
-                {unreadCount} işlem bekliyor
+                {unreadCount} {t("admin.notifications.pendingActions")}
               </Badge>
             )}
           </CardTitle>
 
           <CardDescription>
-            Tüm kanallardaki bildirimler listelenmektedir.
+            {t("admin.notifications.listDesc")}
           </CardDescription>
         </CardHeader>
 
@@ -182,7 +174,7 @@ function NotificationsPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
               <Input
-                placeholder="Başlık, mesaj veya kullanıcı ID ara..."
+                placeholder={t("admin.notifications.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -191,30 +183,30 @@ function NotificationsPage() {
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-44">
-                <SelectValue placeholder="Durum" />
+                <SelectValue placeholder={t("admin.notifications.statusFilter")} />
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="ALL">Tüm Durumlar</SelectItem>
-                <SelectItem value="PENDING">Bekliyor</SelectItem>
-                <SelectItem value="SENT">Gönderildi</SelectItem>
-                <SelectItem value="DELIVERED">İletildi</SelectItem>
-                <SelectItem value="FAILED">Başarısız</SelectItem>
-                <SelectItem value="READ">Okundu</SelectItem>
+                <SelectItem value="ALL">{t("admin.notifications.allStatuses")}</SelectItem>
+                <SelectItem value="PENDING">{t("admin.notifications.statuses.PENDING")}</SelectItem>
+                <SelectItem value="SENT">{t("admin.notifications.statuses.SENT")}</SelectItem>
+                <SelectItem value="DELIVERED">{t("admin.notifications.statuses.DELIVERED")}</SelectItem>
+                <SelectItem value="FAILED">{t("admin.notifications.statuses.FAILED")}</SelectItem>
+                <SelectItem value="READ">{t("admin.notifications.statuses.READ")}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={channelFilter} onValueChange={setChannelFilter}>
               <SelectTrigger className="w-full sm:w-44">
-                <SelectValue placeholder="Kanal" />
+                <SelectValue placeholder={t("admin.notifications.channelFilter")} />
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="ALL">Tüm Kanallar</SelectItem>
-                <SelectItem value="EMAIL">E-posta</SelectItem>
-                <SelectItem value="SMS">SMS</SelectItem>
-                <SelectItem value="PUSH">Push</SelectItem>
-                <SelectItem value="WHATSAPP">WhatsApp</SelectItem>
+                <SelectItem value="ALL">{t("admin.notifications.allChannels")}</SelectItem>
+                <SelectItem value="EMAIL">{t("admin.notifications.channels.EMAIL")}</SelectItem>
+                <SelectItem value="SMS">{t("admin.notifications.channels.SMS")}</SelectItem>
+                <SelectItem value="PUSH">{t("admin.notifications.channels.PUSH")}</SelectItem>
+                <SelectItem value="WHATSAPP">{t("admin.notifications.channels.WHATSAPP")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -226,21 +218,21 @@ function NotificationsPage() {
           ) : filteredNotifications.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
               <Bell className="h-8 w-8 opacity-40" />
-              <p className="text-sm">Bildirim bulunamadı.</p>
+              <p className="text-sm">{t("admin.notifications.notFound")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-lg border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">ID</TableHead>
-                    <TableHead>Başlık</TableHead>
-                    <TableHead>Kullanıcı</TableHead>
-                    <TableHead>Kanal</TableHead>
-                    <TableHead>Durum</TableHead>
-                    <TableHead>Oluşturulma</TableHead>
-                    <TableHead>Gönderilme</TableHead>
-                    <TableHead className="text-right">İşlem</TableHead>
+                    <TableHead className="w-12">{t("admin.notifications.table.id")}</TableHead>
+                    <TableHead>{t("admin.notifications.table.title")}</TableHead>
+                    <TableHead>{t("admin.notifications.table.user")}</TableHead>
+                    <TableHead>{t("admin.notifications.table.channel")}</TableHead>
+                    <TableHead>{t("admin.notifications.table.status")}</TableHead>
+                    <TableHead>{t("admin.notifications.table.createdAt")}</TableHead>
+                    <TableHead>{t("admin.notifications.table.sentAt")}</TableHead>
+                    <TableHead className="text-right">{t("admin.notifications.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -268,7 +260,7 @@ function NotificationsPage() {
 
                           {n.failureReason && (
                             <p className="mt-0.5 line-clamp-1 text-xs text-red-500">
-                              Hata: {n.failureReason}
+                              {t("admin.notifications.table.error")} {n.failureReason}
                             </p>
                           )}
                         </div>
@@ -282,7 +274,7 @@ function NotificationsPage() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-semibold ${CHANNEL_CLASS[n.channel] ?? "bg-slate-100 text-slate-600"}`}
                         >
-                          {CHANNEL_LABEL[n.channel] ?? n.channel}
+                          {t(`admin.notifications.channels.${n.channel}`) || n.channel}
                         </span>
                       </TableCell>
 
@@ -291,16 +283,16 @@ function NotificationsPage() {
                           variant={STATUS_VARIANT[n.status] ?? "outline"}
                           className={STATUS_CLASS[n.status] ?? ""}
                         >
-                          {STATUS_LABEL[n.status] ?? n.status}
+                          {t(`admin.notifications.statuses.${n.status}`) || n.status}
                         </Badge>
                       </TableCell>
 
                       <TableCell className="text-xs text-muted-foreground">
-                        {formatDate(n.createdAt)}
+                        {formatDate(n.createdAt, currentLang)}
                       </TableCell>
 
                       <TableCell className="text-xs text-muted-foreground">
-                        {formatDate(n.sentAt)}
+                        {formatDate(n.sentAt, currentLang)}
                       </TableCell>
 
                       <TableCell className="text-right">
@@ -312,14 +304,14 @@ function NotificationsPage() {
                               className="h-7 gap-1 px-2 text-xs"
                               disabled={isSending}
                               onClick={() => sendNotification(n.id)}
-                              title="Gönder"
+                              title={t("admin.notifications.table.send")}
                             >
                               {isSending ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
                                 <Send className="h-3 w-3" />
                               )}
-                              Gönder
+                              {t("admin.notifications.table.send")}
                             </Button>
                           )}
 
@@ -329,10 +321,10 @@ function NotificationsPage() {
                               variant="ghost"
                               className="h-7 gap-1 px-2 text-xs"
                               onClick={() => markAsRead(n.id)}
-                              title="Okundu işaretle"
+                              title={t("admin.notifications.table.markAsRead")}
                             >
                               <CheckCheck className="h-3 w-3" />
-                              Okundu
+                              {t("admin.notifications.table.read")}
                             </Button>
                           )}
                         </div>

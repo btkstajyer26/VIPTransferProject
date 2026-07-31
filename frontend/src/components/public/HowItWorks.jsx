@@ -4,50 +4,49 @@ import {
   MapPinned,
   MoveRight,
 } from "lucide-react";
-
-const steps = [
-  {
-    number: "01",
-    icon: MapPinned,
-    title: "Rotanızı belirleyin",
-    description:
-      "Alınış ve varış adresinizi, tarih ve saat bilgilerinizi girin.",
-  },
-  {
-    number: "02",
-    icon: CarFront,
-    title: "Aracınızı seçin",
-    description:
-      "Yolcu sayınıza ve ihtiyacınıza uygun premium aracı seçin.",
-  },
-  {
-    number: "03",
-    icon: CalendarCheck2,
-    title: "Rezervasyonu tamamlayın",
-    description:
-      "İletişim bilgilerinizi ekleyerek transferinizi güvence altına alın.",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 function HowItWorks() {
+  const { t } = useTranslation();
+
+  const steps = [
+    {
+      number: "01",
+      icon: MapPinned,
+      title: t("howItWorks.steps.step1Title"),
+      description: t("howItWorks.steps.step1Desc"),
+    },
+    {
+      number: "02",
+      icon: CarFront,
+      title: t("howItWorks.steps.step2Title"),
+      description: t("howItWorks.steps.step2Desc"),
+    },
+    {
+      number: "03",
+      icon: CalendarCheck2,
+      title: t("howItWorks.steps.step3Title"),
+      description: t("howItWorks.steps.step3Desc"),
+    },
+  ];
+
   return (
     <section
       id="how-it-works"
-      className="overflow-hidden bg-[#071a32] py-24 text-white sm:py-28"
+      className="scroll-mt-28 overflow-hidden bg-[#071a32] py-24 text-white sm:py-28"
     >
       <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-300">
-            Nasıl çalışır?
+            {t("howItWorks.badge")}
           </div>
 
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
-            Üç adımda transferinizi planlayın
+            {t("howItWorks.title")}
           </h2>
 
           <p className="mt-5 text-base leading-7 text-slate-300">
-            Karmaşık işlemler olmadan, birkaç dakika
-            içerisinde rezervasyonunuzu oluşturun.
+            {t("howItWorks.subtitle")}
           </p>
         </div>
 

@@ -15,6 +15,7 @@ import com.btk.staj.VIPTransferProject.enums.UserRole;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
 import com.btk.staj.VIPTransferProject.exception.TokenRefreshException;
 import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
+import com.btk.staj.VIPTransferProject.exception.UserUnverifiedException;
 import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import com.btk.staj.VIPTransferProject.repository.VerificationCodeRepository;
 import com.btk.staj.VIPTransferProject.security.util.JwtUtil;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -40,6 +42,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final MeterRegistry meterRegistry;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -89,12 +92,14 @@ public class AuthService {
             user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> {
                         log.warn("Güvenlik - Başarısız Giriş: Bulunamayan e-posta ({})", request.getEmail());
+                        meterRegistry.counter("soc_security_alerts_total", "reason", "BAD_CREDENTIALS").increment();
                         return new UnauthorizedException("Kullanıcı adı veya şifre hatalı!");
                     });
         } else if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
             user = userRepository.findByPhoneNumber(request.getPhoneNumber())
                     .orElseThrow(() -> {
                         log.warn("Güvenlik - Başarısız Giriş: Bulunamayan telefon numarası ({})", request.getPhoneNumber());
+                        meterRegistry.counter("soc_security_alerts_total", "reason", "BAD_CREDENTIALS").increment();
                         return new UnauthorizedException("Kullanıcı adı veya şifre hatalı!");
                     });
         } else {
@@ -103,12 +108,13 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Güvenlik - Başarısız Giriş: Hatalı şifre denemesi ({})", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
+            meterRegistry.counter("soc_security_alerts_total", "reason", "BAD_CREDENTIALS").increment();
             throw new UnauthorizedException("Kullanıcı adı veya şifre hatalı!");
         }
 
         if (!user.isEmailVerified()) {
             log.warn("Güvenlik - Onaysız Giriş Denemesi: E-posta henüz doğrulanmamış ({})", user.getEmail());
-            throw new UnauthorizedException("Lütfen önce e-posta adresinizi doğrulayın!");
+            throw new UserUnverifiedException("Lütfen önce e-posta adresinizi doğrulayın!", user.getEmail());
         }
 
         String identifier = user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail();
@@ -269,6 +275,27 @@ public class AuthService {
 
         verificationCodeRepository.delete(verificationCode);
         log.info("E-posta ve telefon başarıyla doğrulandı: {}", user.getEmail());
+    }
+    @Transactional
+    public void resendVerificationCode(String email) {
+        log.info("Yeni doğrulama kodu talebi alındı. Email: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessRuleException("Kullanıcı bulunamadı."));
+
+        if (user.isEmailVerified()) {
+            throw new BusinessRuleException("Bu hesap zaten doğrulanmış. Lütfen giriş yapmayı deneyin.");
+        }
+
+        // Eski kod varsa veritabanında çakışma olmaması için siliyoruz
+        verificationCodeRepository.findByUserAndPurpose(user, CodePurpose.EMAIL_VERIFICATION)
+                .ifPresent(verificationCodeRepository::delete);
+
+        // Register metodunda kullandığın aynı fonksiyonu çağırıyoruz!
+        // Bu metodun içinde zaten yeni kod oluşturulup e-postaya gönderiliyor.
+        saveVerificationCode(user, CodePurpose.EMAIL_VERIFICATION, 15);
+
+        log.info("Kullanıcının isteği üzerine yeni doğrulama kodu gönderildi: {}", email);
     }
 
     // ==========================================

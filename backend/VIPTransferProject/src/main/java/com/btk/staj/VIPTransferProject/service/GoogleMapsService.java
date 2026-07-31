@@ -6,8 +6,8 @@ import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.LatLng;
 import com.btk.staj.VIPTransferProject.dto.routing.RouteInfoDto;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,12 +15,39 @@ import java.math.RoundingMode;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GoogleMapsService {
 
+    private static final String MOCK_ENCODED_POLYLINE =
+            "sq|zFkrnnD~pm@{ol@";
+
     private final GeoApiContext geoApiContext;
+    private final boolean mockEnabled;
+    private final BigDecimal mockDistanceKm;
+
+    public GoogleMapsService(
+            GeoApiContext geoApiContext,
+            @Value("${app.google-maps.mock-enabled:false}")
+            boolean mockEnabled,
+            @Value("${app.google-maps.mock-distance-km:15.00}")
+            BigDecimal mockDistanceKm
+    ) {
+        this.geoApiContext = geoApiContext;
+        this.mockEnabled = mockEnabled;
+        this.mockDistanceKm = mockDistanceKm;
+    }
 
     public RouteInfoDto getRoute(double pickupLat, double pickupLon, double dropoffLat, double dropoffLon) {
+        if (mockEnabled) {
+            log.info(
+                    "Google Maps mock rota kullanıldı. distanceKm={}",
+                    mockDistanceKm
+            );
+            return new RouteInfoDto(
+                    MOCK_ENCODED_POLYLINE,
+                    mockDistanceKm
+            );
+        }
+
         try {
             DirectionsResult result = DirectionsApi.newRequest(geoApiContext)
                     .origin(new LatLng(pickupLat, pickupLon))

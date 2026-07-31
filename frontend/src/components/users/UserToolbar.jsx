@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +18,7 @@ function UserToolbar({
   onRoleFilterChange,
   onTypeFilterChange,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-3 lg:flex-row">
       <div className="relative flex-1">
@@ -24,7 +26,7 @@ function UserToolbar({
 
         <Input
           value={searchTerm}
-          placeholder="Ad, e-posta veya telefon ara..."
+          placeholder={t("admin.usersList.searchPlaceholder")}
           className="pl-9"
           onChange={(event) =>
             onSearchChange(event.target.value)
@@ -37,13 +39,13 @@ function UserToolbar({
         onValueChange={onRoleFilterChange}
       >
         <SelectTrigger className="w-full lg:w-48">
-          <SelectValue placeholder="Rol" />
+          <SelectValue placeholder={t("admin.usersList.roleFilter")} />
         </SelectTrigger>
 
         <SelectContent>
-          <SelectItem value="ALL">Tüm roller</SelectItem>
-          <SelectItem value="ADMIN">Admin</SelectItem>
-          <SelectItem value="CUSTOMER">Müşteri</SelectItem>
+          <SelectItem value="ALL">{t("admin.usersList.allRoles")}</SelectItem>
+          <SelectItem value="ADMIN">{t("admin.usersList.roles.ADMIN")}</SelectItem>
+          <SelectItem value="CUSTOMER">{t("admin.usersList.roles.CUSTOMER")}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -52,20 +54,20 @@ function UserToolbar({
         onValueChange={onTypeFilterChange}
       >
         <SelectTrigger className="w-full lg:w-48">
-          <SelectValue placeholder="Kullanıcı türü" />
+          <SelectValue placeholder={t("admin.usersList.typeFilter")} />
         </SelectTrigger>
 
         <SelectContent>
           <SelectItem value="ALL">
-            Tüm kullanıcılar
+            {t("admin.usersList.allTypes")}
           </SelectItem>
 
           <SelectItem value="MEMBER">
-            Kayıtlı üyeler
+            {t("admin.usersList.types.MEMBER")}
           </SelectItem>
 
           <SelectItem value="GUEST">
-            Misafir kullanıcılar
+            {t("admin.usersList.types.GUEST")}
           </SelectItem>
         </SelectContent>
       </Select>

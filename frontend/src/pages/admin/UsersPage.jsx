@@ -21,10 +21,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import useUsers from "@/hooks/useUsers";
+import { useTranslation } from "react-i18next";
+import { forgotPassword } from "@/api/authApi";
 
 function UsersPage() {
+  const { t } = useTranslation();
   const [selectedUser, setSelectedUser] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [passwordFeedback, setPasswordFeedback] = useState("");
 
   const {
     users,
@@ -48,7 +53,31 @@ function UsersPage() {
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
+    setPasswordFeedback("");
     setDetailOpen(true);
+  };
+
+  const handlePasswordReset = async (user) => {
+    if (!user?.email) {
+      setPasswordFeedback("Bu kullanıcının kayıtlı e-posta adresi bulunmuyor.");
+      return;
+    }
+    if (!window.confirm(`${user.email} adresine şifre sıfırlama kodu gönderilsin mi?`)) {
+      return;
+    }
+    try {
+      setResettingPassword(true);
+      setPasswordFeedback("");
+      await forgotPassword(user.email);
+      setPasswordFeedback("Şifre sıfırlama kodu kullanıcının e-posta adresine gönderildi.");
+    } catch (requestError) {
+      setPasswordFeedback(
+        requestError.response?.data?.message ||
+          "Şifre sıfırlama kodu gönderilemedi.",
+      );
+    } finally {
+      setResettingPassword(false);
+    }
   };
 
   const handleDeleteUser = async (user) => {
@@ -72,11 +101,11 @@ function UsersPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">
-            Kullanıcılar
+            {t('admin.users.title')}
           </h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Sisteme kayıtlı aktif kullanıcıları yönetin.
+            {t('admin.users.subtitle')}
           </p>
         </div>
 
@@ -92,7 +121,7 @@ function UsersPage() {
             }`}
           />
 
-          Yenile
+          {t('admin.users.refresh')}
         </Button>
       </div>
 
@@ -101,7 +130,7 @@ function UsersPage() {
           <AlertCircle className="size-4" />
 
           <AlertDescription>
-            {error}
+            {error === "Network Error" || error === "Ağ Hatası" ? t("admin.errors.network") : error}
           </AlertDescription>
         </Alert>
       )}
@@ -110,11 +139,10 @@ function UsersPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CardTitle>Kullanıcı Listesi</CardTitle>
+              <CardTitle>{t('admin.users.listTitle')}</CardTitle>
 
               <CardDescription>
-                Sistemde toplam {totalUsers} aktif kullanıcı
-                bulunmaktadır.
+                {t('admin.users.listDesc', { count: totalUsers })}
               </CardDescription>
             </div>
 
@@ -139,7 +167,7 @@ function UsersPage() {
               <RefreshCw className="mr-2 size-5 animate-spin" />
 
               <span className="text-sm">
-                Kullanıcılar yükleniyor...
+                {t('admin.users.loading')}
               </span>
             </div>
           ) : (
@@ -157,6 +185,9 @@ function UsersPage() {
         user={selectedUser}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onPasswordReset={handlePasswordReset}
+        resettingPassword={resettingPassword}
+        passwordFeedback={passwordFeedback}
       />
     </section>
   );

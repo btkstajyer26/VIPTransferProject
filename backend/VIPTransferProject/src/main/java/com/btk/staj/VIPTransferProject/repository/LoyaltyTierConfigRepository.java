@@ -14,5 +14,6 @@ public interface LoyaltyTierConfigRepository extends JpaRepository<LoyaltyTierCo
     Optional<LoyaltyTierConfig> findByTier(LoyaltyTier tier);
 
     List<LoyaltyTierConfig> findAllByOrderByMinPointsDesc();
+    List<LoyaltyTierConfig> findAllByOrderByMinPointsAsc();
 
 }

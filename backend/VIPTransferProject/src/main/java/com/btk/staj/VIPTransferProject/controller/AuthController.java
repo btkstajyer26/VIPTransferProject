@@ -7,6 +7,7 @@ import com.btk.staj.VIPTransferProject.dto.RefreshTokenRequest;
 import com.btk.staj.VIPTransferProject.dto.RegisterRequestDto;
 import com.btk.staj.VIPTransferProject.dto.RegisterResponseDto;
 import com.btk.staj.VIPTransferProject.dto.auth.ForgotPasswordRequest;
+import com.btk.staj.VIPTransferProject.dto.auth.ResendCodeRequest;
 import com.btk.staj.VIPTransferProject.dto.auth.ResetPasswordRequest;
 import com.btk.staj.VIPTransferProject.dto.auth.VerifyEmailRequest;
 import com.btk.staj.VIPTransferProject.security.util.IpUtil;
@@ -88,6 +89,16 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .status(HttpStatus.OK.value())
                 .message("E-posta adresiniz başarıyla doğrulandı.")
+                .timestamp(OffsetDateTime.now())
+                .build());
+    }
+    @PostMapping("/resend-code")
+    public ResponseEntity<ApiResponse<String>> resendVerificationCode(@RequestBody @Valid ResendCodeRequest request) {
+        authService.resendVerificationCode(request.getEmail());
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Yeni doğrulama kodu e-posta adresinize gönderildi.")
                 .timestamp(OffsetDateTime.now())
                 .build());
     }

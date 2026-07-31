@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   getAllReservations,
@@ -7,6 +8,7 @@ import {
 } from "@/api/reservationApi";
 
 function useReservations() {
+  const { t } = useTranslation();
   const [reservations, setReservations] = useState([]);
   const [reservationHistory, setReservationHistory] = useState([]);
 
@@ -34,12 +36,12 @@ function useReservations() {
 
       setReservations(Array.isArray(data) ? data : []);
     } catch (requestError) {
-      console.error("Rezervasyonlar alınamadı:", requestError);
+      console.error("Rezervimet nuk mund të merreshin:", requestError);
 
       setError(
         requestError.response?.data?.message ||
           requestError.response?.data?.error ||
-          "Rezervasyonlar alınırken bir hata oluştu.",
+          t('admin.reservationList.errors.fetchFailed'),
       );
     } finally {
       setIsLoading(false);
@@ -111,7 +113,7 @@ function useReservations() {
 
       setReservationHistory(Array.isArray(data) ? data : []);
     } catch (requestError) {
-      console.error("Durum geçmişi alınamadı:", requestError);
+      console.error("Historiku i statusit nuk mund të merrej:", requestError);
       setReservationHistory([]);
     } finally {
       setIsHistoryLoading(false);
@@ -144,14 +146,14 @@ function useReservations() {
       closeStatusDialog();
     } catch (requestError) {
       console.error(
-        "Rezervasyon durumu güncellenemedi:",
+        "Statusi i rezervimit nuk mund të përditësohej:",
         requestError,
       );
 
       setError(
         requestError.response?.data?.message ||
           requestError.response?.data?.error ||
-          "Rezervasyon durumu güncellenirken bir hata oluştu.",
+          t('admin.reservationList.errors.updateFailed'),
       );
     } finally {
       setIsStatusUpdating(false);
