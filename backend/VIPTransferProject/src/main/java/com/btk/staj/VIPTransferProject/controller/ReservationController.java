@@ -99,6 +99,13 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getGuestReservation(bookingReference, phone));
     }
 
+    @GetMapping("/guest/{bookingReference}/history")
+    public ResponseEntity<List<ReservationStatusHistoryResponse>> getGuestReservationHistory(
+            @PathVariable String bookingReference,
+            @RequestParam String phone) {
+        return ResponseEntity.ok(reservationService.getGuestStatusHistory(bookingReference, phone));
+    }
+
     // Rezervasyon oluşturmadan önce fiyat önizlemesi — kayıtlı kullanıcı opsiyonel
     // NOT: Misafir erişimi için security ekibine permitAll eklenmesi gerekiyor
     @PostMapping("/price-preview")

@@ -199,6 +199,7 @@ function ReservationDetailDialog({
                 label="Araç"
                 value={reservation.vehicleName}
               />
+              <DetailItem icon={Car} label="Araç sınıfı / plaka" value={[reservation.requestedVehicleClass || reservation.vehicleClass, reservation.vehiclePlateNumber].filter(Boolean).join(" · ")} />
 
               <DetailItem
                 icon={UsersRound}

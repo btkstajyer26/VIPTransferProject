@@ -1,0 +1,40 @@
+{
+    "weather_feature_version": "weather-features-v2",
+    "generated_at_utc": "2026-07-26T20:43:29+00:00",
+    "reservations_analytics_input": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\reservations_analytics.parquet",
+    "observed_weather_input": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\raw\\weather\\istanbul_hourly_weather.csv",
+    "weather_reference_csv": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\reference\\weather_hourly_istanbul_2025.csv",
+    "weather_reference_parquet": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\reference\\weather_hourly_istanbul_2025.parquet",
+    "reservations_weather_output": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\reservations_weather_features.parquet",
+    "reservation_count": 3154257,
+    "weather_hour_count": 744,
+    "weather_data_source": "SYNTHETIC_SCENARIO",
+    "synthetic_weather_used": true,
+    "random_seed": 42,
+    "simulation_timezone": "Europe/Istanbul",
+    "weather_condition_counts_in_reservations": {
+        "CLOUDY": 2470448,
+        "RAINY": 265451,
+        "FOGGY": 62453,
+        "SNOWY": 31463,
+        "SUNNY": 324442
+    },
+    "weather_quality": {
+        "weather_hour_count": 744,
+        "minimum_weather_hour_utc": "2024-12-31 21:00:00+00:00",
+        "maximum_weather_hour_utc": "2025-01-31 20:00:00+00:00",
+        "bad_weather_hour_count": 84,
+        "synthetic_hour_count": 744,
+        "weather_data_sources": {
+            "SYNTHETIC_SCENARIO": 744
+        }
+    },
+    "reservations_csv_modified": false,
+    "weather_columns_are_sql_reservation_columns": false,
+    "weather_features_saved_as_analytics_output": true,
+    "weather_can_be_used_for_pipeline_testing": true,
+    "weather_can_prove_real_world_effect": false,
+    "model_training_warning": "Sentetik hava durumu kullanıldıysa model performansı gerçek hava etkisini kanıtlamaz. Yalnızca pipeline, özellik üretimi ve entegrasyon testi için kullanılmalıdır.",
+    "future_prediction_requirement": "Gelecek talep tahmininde tarihsel gözlem yerine aynı sütun yapısına sahip hava tahmini verisi sağlanmalıdır.",
+    "data_leakage_note": "Hava durumu dışsal bir özelliktir. Ancak tahmin anında yalnızca o saat için erişilebilir olan hava tahmini kullanılmalıdır."
+}

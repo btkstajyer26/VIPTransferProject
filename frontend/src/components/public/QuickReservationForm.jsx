@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -35,6 +35,22 @@ function QuickReservationForm() {
   const [formData, setFormData] = useState(initialForm);
   const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    const handlePrefill = (event) => {
+      const { pickup, dropoff } = event.detail || {};
+
+      setFormData((current) => ({
+        ...current,
+        pickup: pickup ? { ...pickup } : { ...emptyPlace },
+        dropoff: dropoff ? { ...dropoff } : { ...emptyPlace },
+      }));
+      setFormError("");
+    };
+
+    window.addEventListener("vip:prefill-reservation", handlePrefill);
+    return () => window.removeEventListener("vip:prefill-reservation", handlePrefill);
+  }, []);
 
   const handleAddressTextChange = (fieldName, value) => {
     setFormData((current) => ({

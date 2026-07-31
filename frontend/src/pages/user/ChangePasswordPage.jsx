@@ -25,6 +25,7 @@ function ChangePasswordPage() {
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -181,6 +182,11 @@ function PasswordField({ id, label, value, onChange, show, onToggle, autoComplet
       </div>
     </div>
   );
+}
+
+function Message({ tone, icon: Icon, children }) {
+  const style = tone === "success" ? "border-emerald-100 bg-emerald-50 text-emerald-700" : "border-red-100 bg-red-50 text-red-700";
+  return <div className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-sm ${style}`}><Icon className="mt-0.5 shrink-0" size={19} />{children}</div>;
 }
 
 function getErrorMessage(error, fallback) {

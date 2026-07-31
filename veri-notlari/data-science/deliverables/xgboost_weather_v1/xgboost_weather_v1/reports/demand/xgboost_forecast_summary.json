@@ -1,0 +1,20 @@
+{
+    "model_version": "xgboost-demand-weather-v1",
+    "forecast_start_utc": "2025-01-31 21:00:00+00:00",
+    "forecast_end_utc": "2025-02-01 20:00:00+00:00",
+    "forecast_horizon_hours": 24,
+    "forecast_zone_count": 60,
+    "forecast_row_count": 1440,
+    "total_predicted_demand": 125792.0,
+    "average_recommended_surge": 1.1285833333333335,
+    "maximum_recommended_surge": 1.46,
+    "future_weather_sources": {
+        "SEASONAL_WEEK_AGO_SCENARIO": 1440
+    },
+    "future_weather_is_synthetic": true,
+    "forecast_is_recursive": true,
+    "pricing_rule_merge_strategy": "MAX",
+    "surge_auto_apply": false,
+    "pricing_service_validation_required": true,
+    "model_limit": "The historical dataset covers approximately one month. The forecast is suitable for internship simulation and integration testing, not full production seasonality."
+}

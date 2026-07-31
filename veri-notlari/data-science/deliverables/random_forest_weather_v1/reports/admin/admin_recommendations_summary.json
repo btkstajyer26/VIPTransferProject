@@ -1,0 +1,42 @@
+{
+    "input_parquet_file": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\customer_kmeans_segments.parquet",
+    "input_csv_file": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\customer_kmeans_segments.csv",
+    "admin_recommendations_csv": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\admin_customer_recommendations.csv",
+    "admin_recommendations_parquet": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\admin_customer_recommendations.parquet",
+    "top_recommendations_file": "C:\\Users\\metep\\PycharmProjects\\VIPTransferProject\\veri-notlari\\data-science\\data\\processed\\admin_top_1000_customer_recommendations.csv",
+    "customer_count": 250000,
+    "actionable_customer_count": 250000,
+    "non_actionable_customer_count": 0,
+    "top_queue_customer_count": 1000,
+    "human_review_required_count": 246345,
+    "currency": "TRY",
+    "priority_score_range": [
+        0,
+        100
+    ],
+    "recommendation_confidence_range": [
+        0,
+        1
+    ],
+    "recommendation_types": {
+        "VIP_RETENTION": 106729,
+        "HIGH_VALUE_GROWTH": 90843,
+        "OPERATIONAL_RISK": 38743,
+        "CHURN_RISK": 10030,
+        "FIRST_BOOKING_ACTIVATION": 3655
+    },
+    "recommendation_version": "admin-recommendations-v1",
+    "recommendation_is_sql_table": false,
+    "automatic_campaign_creation": false,
+    "automatic_notification_sending": false,
+    "automatic_discount_application": false,
+    "automatic_loyalty_tier_change": false,
+    "human_review_applied_to_high_impact_actions": true,
+    "direct_personal_contact_fields_included": false,
+    "multilingual_action_texts": [
+        "tr",
+        "en"
+    ],
+    "channel_note": "suggested_channel yalnızca öneridir. Backend, email_verified, phone_verified ve cihaz token bilgisine göre gerçek kanalı seçmelidir.",
+    "admin_integration_note": "Backend bu dosyayı analitik API veya ayrı bir Data Science output store üzerinden admin paneline sunmalıdır."
+}

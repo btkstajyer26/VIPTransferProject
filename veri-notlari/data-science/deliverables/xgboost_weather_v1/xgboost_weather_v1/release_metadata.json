@@ -1,0 +1,57 @@
+{
+    "release_id": "xgboost_weather_v1-20260726T182145Z",
+    "release_name": "xgboost_weather_v1",
+    "package_version": "data-science-release-v1",
+    "created_at_utc": "2026-07-26T18:21:45+00:00",
+    "xgboost_model_version": "xgboost-demand-weather-v1",
+    "segmentation_model_version": "kmeans-rfm-v1",
+    "validation_passed": true,
+    "failed_error_count": 0,
+    "warning_count": 1,
+    "forecast": {
+        "forecast_row_count": 1440,
+        "forecast_zone_count": 60,
+        "forecast_hour_count": 24,
+        "pricing_contract_row_count": 1440,
+        "forecast_start_utc": "2025-01-31 21:00:00+00:00",
+        "forecast_end_utc": "2025-02-01 20:00:00+00:00",
+        "future_weather_is_synthetic": true
+    },
+    "model_comparison": {
+        "backtest_comparison_row_count": 10080,
+        "future_comparison_row_count": 1440,
+        "xgboost_better_row_count": 5381,
+        "random_forest_better_row_count": 4699,
+        "tie_row_count": 0
+    },
+    "customers": {
+        "customer_count": 250000,
+        "top_recommendation_count": 1000,
+        "actionable_customer_count": 250000
+    },
+    "models": {
+        "selected_boosting_rounds": 171,
+        "xgboost_mae": 12.04970984944874,
+        "random_forest_mae": 12.562400694444445,
+        "seasonal_naive_mae": 15.906051587301587,
+        "recommended_model": "XGBOOST_WEATHER",
+        "xgboost_is_recommended_model": true,
+        "core_validation_passed": true
+    },
+    "package_purpose": "XGBoost Data Science analytics, model artifacts and read-only backend integration contracts.",
+    "is_sql_import_package": false,
+    "contains_users_sql_table": false,
+    "contains_vehicles_sql_table": false,
+    "contains_reservations_sql_table": false,
+    "contains_status_history_sql_table": false,
+    "contains_weather_enriched_reservations_as_sql_table": false,
+    "pricing_service_auto_apply": false,
+    "pricing_service_validation_required": true,
+    "pricing_rule_merge_strategy": "MAX",
+    "admin_recommendations_auto_execute": false,
+    "recommended_model_by_test_metrics": "XGBOOST_WEATHER",
+    "xgboost_selected_as_recommended": true,
+    "automatic_model_deployment": false,
+    "currency": "TRY",
+    "backend_ready_sql_package_stage": "22_prepare_backend_ready_csvs.py"
+}

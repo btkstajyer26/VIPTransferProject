@@ -22,7 +22,10 @@ public class ReservationResponse {
 
     private OffsetDateTime scheduledTime;
     private String vehicleName;
-
+    private Long vehicleId;
+    private String vehiclePlateNumber;
+    private String vehicleClass;
+    private String requestedVehicleClass;
     private short passengerCount;
     private BigDecimal basePrice;
     private BigDecimal loyaltyDiscount;
@@ -37,4 +40,7 @@ public class ReservationResponse {
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private OffsetDateTime cancelledAt;
+    private String cancellationReason;
+    private OffsetDateTime completedAt;
 }

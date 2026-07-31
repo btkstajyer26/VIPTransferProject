@@ -10,6 +10,19 @@ export async function getMyReservations() {
   return response.data;
 }
 
+export async function getGuestReservation(bookingReference, phone) {
+  const response = await apiClient.get(
+    `/reservations/guest/${encodeURIComponent(bookingReference)}`,
+    {
+      params: { phone },
+      allowAnonymous: true,
+      skipAuthRefresh: true,
+    },
+  );
+
+  return response.data;
+}
+
 export async function getReservationById(id) {
   const response = await apiClient.get(
     `/reservations/${id}`,
@@ -39,6 +52,11 @@ export async function updateReservationStatus(
     },
   );
 
+  return response.data;
+}
+
+export async function getGuestReservationHistory(bookingReference, phone) {
+  const response = await apiClient.get(`/reservations/guest/${encodeURIComponent(bookingReference)}/history`, { params: { phone }, allowAnonymous: true, skipAuthRefresh: true });
   return response.data;
 }
 

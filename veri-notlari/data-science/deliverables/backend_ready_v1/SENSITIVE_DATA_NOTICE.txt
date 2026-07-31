@@ -1,0 +1,2 @@
+This package contains phone numbers, optional e-mail addresses, reservation locations and operational data.
+Do not publish it in a public repository. Restrict access and remove unnecessary copies.

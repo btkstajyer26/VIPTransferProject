@@ -21,8 +21,9 @@ import CurrencySelector from "@/components/layout/CurrencySelector";
 import trFlag from "@/assets/flags/tr.svg";
 import enFlag from "@/assets/flags/en.svg";
 import ruFlag from "@/assets/flags/ru.svg";
-import alFlag from "@/assets/flags/al.svg";
+import alFlag from "@/assets/flags/albania.png";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import brandMark from "@/assets/brand-mark.svg";
 
 function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -74,6 +75,10 @@ function PublicNavbar() {
       href: "/#how-it-works",
     },
     {
+      title: "Rezervasyon Takip",
+      href: "/reservation/track",
+    },
+    {
       title: t("nav.contact"),
       href: "/#contact",
     },
@@ -81,24 +86,22 @@ function PublicNavbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      <div className="mx-auto max-w-[1700px] px-5 pt-5">
-        <div className="flex h-[82px] items-center justify-between rounded-3xl border border-white/10 bg-[#071a32]/85 px-8 backdrop-blur-2xl shadow-2xl">
+      <div className="mx-auto max-w-[1700px] px-3 pt-3 sm:px-5 sm:pt-5">
+        <div className="flex h-[74px] items-center justify-between rounded-3xl border border-white/10 bg-[#071a32]/85 px-4 backdrop-blur-2xl shadow-2xl sm:h-[82px] sm:px-8">
 
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-4"
+            className="min-w-0 flex items-center gap-3 sm:gap-4"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-2xl font-bold text-white">
-              V
-            </div>
+            <img src={brandMark} alt="" className="h-12 w-12 shrink-0 sm:h-14 sm:w-14" />
 
-            <div>
-              <div className="text-white font-bold tracking-[0.18em] text-xl">
+            <div className="min-w-0">
+              <div className="whitespace-nowrap text-base font-bold tracking-[0.14em] text-white sm:text-xl sm:tracking-[0.18em]">
                 VIP TRANSFER
               </div>
 
-              <div className="text-blue-200 tracking-[0.25em] text-[11px] mt-1">
+              <div className="mt-1 hidden whitespace-nowrap text-[11px] tracking-[0.25em] text-blue-200 sm:block">
                 PREMIUM JOURNEY
               </div>
             </div>
@@ -126,81 +129,62 @@ function PublicNavbar() {
           </nav>
 
           {/* Right */}
-          <div className="hidden xl:flex items-center gap-4">
-          
-            <CurrencySelector variant="public" />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-white/90 transition outline-none hover:bg-white/10 hover:text-white focus:outline-none">
-                <FlagImage
-                  src={currentLanguage.flag}
-                  alt={currentLanguage.label}
-                />
-                {currentLanguage.code}
-                <ChevronDown size={16} />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 rounded-2xl border-slate-100 bg-white p-2 text-slate-900 shadow-2xl">
-                {languageOptions.map((language) => (
-                  <DropdownMenuItem
-                    key={language.code}
-                    className="flex cursor-pointer gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-slate-50 focus:bg-slate-50"
-                    onClick={() => handleLanguageChange(language.code)}
+          <div className="hidden xl:flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              {!isAuthLoading &&
+              isAuthenticated ? (
+                <>
+                  <NotificationBell />
+                  <Link
+                    to={user?.role === "ADMIN" ? "/admin/dashboard" : "/account/dashboard"}
+                    className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm text-white"
                   >
-                    <FlagImage
-                      src={language.flag}
-                      alt={language.label}
-                    />
-                    <span className="font-semibold">{language.code}</span>
-                    <span className="ml-auto text-xs text-slate-400">
-                      {language.label}
-                    </span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <UserRound size={17} />
+                    {t("nav.account")}
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#071a32]"
+                  >
+                    <LogOut size={16} />
+                    {t("nav.logout")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="text-sm text-white/80 transition hover:text-white">
+                    {t("nav.login")}
+                  </Link>
+                  <Link to="/register" className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[#071a32] transition hover:bg-blue-50">
+                    {t("nav.register")}
+                  </Link>
+                </>
+              )}
+            </div>
 
-            {!isAuthLoading &&
-            isAuthenticated ? (
-              <>
-                <NotificationBell />
-
-                <Link
-                  to={
-                    user?.role === "ADMIN"
-                      ? "/admin/dashboard"
-                      : "/account/dashboard"
-                  }
-                  className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-white"
-                >
-                  <UserRound size={18} />
-                  {t("nav.account")}
-                </Link>
-
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-[#071a32]"
-                >
-                  <LogOut size={17} />
-                  {t("nav.logout")}
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-white/80 hover:text-white transition"
-                >
-                  {t("nav.login")}
-                </Link>
-
-                <Link
-                  to="/register"
-                  className="rounded-2xl bg-white px-7 py-4 font-semibold text-[#071a32] hover:bg-blue-50 transition"
-                >
-                  {t("nav.register")}
-                </Link>
-              </>
-            )}
+            <div className="flex min-w-20 flex-col items-stretch gap-0.5 border-l border-white/15 pl-2">
+              <CurrencySelector variant="public" compact />
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-white/75 transition outline-none hover:bg-white/10 hover:text-white focus:outline-none">
+                  <FlagImage src={currentLanguage.flag} alt={currentLanguage.label} compact />
+                  {currentLanguage.code}
+                  <ChevronDown size={13} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 rounded-2xl border-slate-100 bg-white p-2 text-slate-900 shadow-2xl">
+                  {languageOptions.map((language) => (
+                    <DropdownMenuItem
+                      key={language.code}
+                      className="flex cursor-pointer gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-slate-50 focus:bg-slate-50"
+                      onClick={() => handleLanguageChange(language.code)}
+                    >
+                      <FlagImage src={language.flag} alt={language.label} />
+                      <span className="font-semibold">{language.code}</span>
+                      <span className="ml-auto text-xs text-slate-400">{language.label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Mobile */}
@@ -274,9 +258,11 @@ function PublicNavbar() {
   );
 }
 
-function FlagImage({ src, alt }) {
+function FlagImage({ src, alt, compact = false }) {
   return (
-    <span className="block h-6 w-8 shrink-0 overflow-hidden rounded-md border border-slate-200/60 bg-white shadow-sm">
+    <span className={`block shrink-0 overflow-hidden ${
+      compact ? "h-4 w-6 rounded" : "h-6 w-8 rounded-md"
+    }`}>
       <img
         src={src}
         alt={alt}

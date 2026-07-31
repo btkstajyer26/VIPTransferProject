@@ -13,6 +13,7 @@ import {
   Star,
 } from "lucide-react";
 import { FaApple, FaGooglePlay } from "react-icons/fa";
+import toggSlider from "@/assets/togg-slider.jpg";
 
 const slides = [
   {
@@ -20,8 +21,7 @@ const slides = [
     title: "Şehrin her noktasına konforlu ulaşım",
     description:
       "Profesyonel sürücüler, bakımlı araçlar ve önceden görünen fiyatlarla yolculuğunuzu güvenle planlayın.",
-    image:
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1800&q=88",
+    image: toggSlider,
   },
   {
     eyebrow: "Havalimanı karşılama",
@@ -42,22 +42,48 @@ const slides = [
 ];
 
 const airports = [
-  { city: "İstanbul", name: "İstanbul Havalimanı", code: "IST" },
-  { city: "İstanbul", name: "Sabiha Gökçen", code: "SAW" },
-  { city: "Antalya", name: "Antalya Havalimanı", code: "AYT" },
-  { city: "İzmir", name: "Adnan Menderes", code: "ADB" },
-  { city: "Muğla", name: "Dalaman Havalimanı", code: "DLM" },
-  { city: "Ankara", name: "Esenboğa Havalimanı", code: "ESB" },
+  { city: "İstanbul", name: "İstanbul Havalimanı", code: "IST", latitude: 41.2753, longitude: 28.7519 },
+  { city: "İstanbul", name: "Sabiha Gökçen", code: "SAW", latitude: 40.8986, longitude: 29.3092 },
+  { city: "Antalya", name: "Antalya Havalimanı", code: "AYT", latitude: 36.8987, longitude: 30.8005 },
+  { city: "İzmir", name: "Adnan Menderes", code: "ADB", latitude: 38.2924, longitude: 27.157 },
+  { city: "Muğla", name: "Dalaman Havalimanı", code: "DLM", latitude: 36.7131, longitude: 28.7925 },
+  { city: "Ankara", name: "Esenboğa Havalimanı", code: "ESB", latitude: 40.1281, longitude: 32.9951 },
 ];
 
 const popularRoutes = [
-  ["İstanbul Havalimanı", "Taksim"],
-  ["İstanbul Havalimanı", "Kadıköy"],
-  ["Sabiha Gökçen", "Sultanahmet"],
-  ["Sabiha Gökçen", "Taksim"],
-  ["Antalya Havalimanı", "Kemer"],
-  ["Dalaman Havalimanı", "Fethiye"],
+  [airports[0], { name: "Taksim, İstanbul", latitude: 41.0369, longitude: 28.985 }],
+  [airports[0], { name: "Kadıköy, İstanbul", latitude: 40.9909, longitude: 29.0221 }],
+  [airports[1], { name: "Sultanahmet, İstanbul", latitude: 41.0054, longitude: 28.9768 }],
+  [airports[1], { name: "Taksim, İstanbul", latitude: 41.0369, longitude: 28.985 }],
+  [airports[2], { name: "Kemer, Antalya", latitude: 36.602, longitude: 30.5606 }],
+  [airports[4], { name: "Fethiye, Muğla", latitude: 36.621, longitude: 29.1164 }],
 ];
+
+function selectTransfer(pickup, dropoff = null) {
+  window.dispatchEvent(new CustomEvent("vip:prefill-reservation", {
+    detail: {
+      pickup: {
+        address: pickup.name,
+        latitude: pickup.latitude,
+        longitude: pickup.longitude,
+      },
+      dropoff: dropoff
+        ? {
+            address: dropoff.name,
+            latitude: dropoff.latitude,
+            longitude: dropoff.longitude,
+          }
+        : null,
+    },
+  }));
+
+  window.requestAnimationFrame(() => {
+    document.getElementById("reservation-form")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+}
 
 function TravelDiscoverySections() {
   return (
@@ -170,6 +196,7 @@ function ServicePoints() {
             <Link
               key={airport.code}
               to="/#reservation-form"
+              onClick={() => selectTransfer(airport)}
               className="group flex items-center gap-4 rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_35px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-blue-200"
             >
               <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white">
@@ -203,21 +230,22 @@ function PopularRoutes() {
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {popularRoutes.map(([from, to]) => (
             <Link
-              key={`${from}-${to}`}
+              key={`${from.code}-${to.name}`}
               to="/#reservation-form"
+              onClick={() => selectTransfer(from, to)}
               className="group flex items-center gap-4 rounded-[22px] border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/50"
             >
               <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#071a32] text-white">
                 <Navigation size={19} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-[#071a32]">{from}</p>
+                <p className="truncate text-sm font-bold text-[#071a32]">{from.name}</p>
                 <div className="my-1 flex items-center gap-2 text-xs text-slate-400">
                   <span className="h-px flex-1 bg-slate-200" />
                   transfer
                   <span className="h-px flex-1 bg-slate-200" />
                 </div>
-                <p className="truncate text-sm font-semibold text-blue-600">{to}</p>
+                <p className="truncate text-sm font-semibold text-blue-600">{to.name}</p>
               </div>
               <ArrowRight className="text-slate-300 group-hover:text-blue-600" size={18} />
             </Link>
