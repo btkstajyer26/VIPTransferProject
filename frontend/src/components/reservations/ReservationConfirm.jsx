@@ -505,6 +505,8 @@ function ReservationConfirm() {
       <ReservationSuccess
         reservation={createdReservation}
         onHome={() => navigate("/")}
+        isGuest={!isAuthenticated}
+        onTrack={(ref) => navigate(`/track?ref=${encodeURIComponent(ref)}`)}
       />
     );
   }
@@ -1071,6 +1073,8 @@ function FormField({
 function ReservationSuccess({
   reservation,
   onHome,
+  isGuest,
+  onTrack,
 }) {
   const reservationNumber =
     reservation.bookingReference ??
@@ -1107,10 +1111,20 @@ function ReservationSuccess({
           </p>
         </div>
 
+        {isGuest && reservationNumber !== "-" && (
+          <button
+            type="button"
+            onClick={() => onTrack(reservationNumber)}
+            className="mt-4 inline-flex min-h-13 w-full items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 px-6 text-sm font-bold text-blue-700 transition hover:bg-blue-100"
+          >
+            Rezervasyonumu Takip Et
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onHome}
-          className="mt-7 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-blue-600 px-6 text-sm font-bold text-white transition hover:bg-blue-700"
+          className="mt-3 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-blue-600 px-6 text-sm font-bold text-white transition hover:bg-blue-700"
         >
           Ana Sayfaya Dön
         </button>

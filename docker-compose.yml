@@ -8,9 +8,9 @@ services:
     ports:
       - "5432:5432" # IntelliJ'den (localhost üzerinden) bağlanabilmen için şart
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 121361.
-      POSTGRES_DB: vip_transfer_db # application.properties ile birebir aynı
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-vip_transfer_db}
     volumes:
       - ./sql-scripts:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
@@ -29,9 +29,9 @@ services:
       - postgres-db
     environment:
       # Docker içindeyken localhost çalışmaz, bu yüzden container adını (vip-postgres) veriyoruz
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://vip-postgres:5432/vip_transfer_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=vip_password
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://vip-postgres:5432/${POSTGRES_DB:-vip_transfer_db}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - MAIL_ENABLED=${MAIL_ENABLED:-false}
       - MAIL_HOST=${MAIL_HOST:-}
       - MAIL_PORT=${MAIL_PORT:-587}
@@ -150,8 +150,8 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD}
     depends_on:
       - prometheus
       - loki

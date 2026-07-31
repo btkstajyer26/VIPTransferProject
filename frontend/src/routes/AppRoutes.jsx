@@ -21,6 +21,7 @@ import FleetPage from "../pages/public/FleetPage";
 import FaqPage from "../pages/public/FaqPage";
 import TermsPage from "../pages/public/TermsPage";
 import CookiePolicyPage from "../pages/public/CookiePolicyPage";
+import GuestLookupPage from "../pages/public/GuestLookupPage";
 
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
@@ -88,6 +89,11 @@ function AppRoutes() {
           <Route
             path="/cookies"
             element={<CookiePolicyPage />}
+          />
+
+          <Route
+            path="/track"
+            element={<GuestLookupPage />}
           />
         </Route>
 
