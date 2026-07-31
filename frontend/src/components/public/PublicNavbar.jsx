@@ -22,6 +22,7 @@ import trFlag from "@/assets/flags/tr.svg";
 import enFlag from "@/assets/flags/en.svg";
 import ruFlag from "@/assets/flags/ru.svg";
 import alFlag from "@/assets/flags/al.svg";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -161,6 +162,8 @@ function PublicNavbar() {
             {!isAuthLoading &&
             isAuthenticated ? (
               <>
+                <NotificationBell />
+
                 <Link
                   to={
                     user?.role === "ADMIN"

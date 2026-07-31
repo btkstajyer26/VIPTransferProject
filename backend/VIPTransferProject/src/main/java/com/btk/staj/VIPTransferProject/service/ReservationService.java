@@ -15,6 +15,7 @@ import com.btk.staj.VIPTransferProject.entity.*;
 import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
 import com.btk.staj.VIPTransferProject.enums.UserRole;
+import com.btk.staj.VIPTransferProject.event.ReservationNotificationEvent;
 import com.btk.staj.VIPTransferProject.exception.BusinessRuleException;
 import com.btk.staj.VIPTransferProject.exception.ForbiddenOperationException;
 import com.btk.staj.VIPTransferProject.exception.InvalidPricingRuleException;
@@ -31,6 +32,7 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
@@ -56,6 +58,7 @@ public class ReservationService {
     private final UserService userService;
     private final LoyaltyService loyaltyService;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final GeometryFactory GEO_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -174,6 +177,7 @@ public class ReservationService {
                 .note("Rezervasyon oluşturuldu.")
                 .build());
 
+        publishNotification(reservation, null, ReservationStatus.PENDING);
         return toResponse(reservation);
     }
 
@@ -312,6 +316,15 @@ public class ReservationService {
             }
         }
 
+        statusHistoryRepository.save(ReservationStatusHistory.builder()
+                .reservation(reservation)
+                .status(target)
+                .changedBy(requester)
+                .note(request.getNote())
+                .build());
+
+        publishNotification(reservation, current, target);
+        log.info("Rezervasyon durumu güncellendi. id={}, {} -> {}", id, current, target);
         return toResponse(reservation);
     }
 
@@ -429,6 +442,11 @@ public class ReservationService {
                 .note(reason)
                 .build());
 
+        publishNotification(
+                reservation,
+                ReservationStatus.PENDING,
+                ReservationStatus.CANCELLED
+        );
         log.info("Rezervasyon iptal edildi. id={}, userId={}", id, userId);
 
         sendStatusChangeNotifications(reservation, ReservationStatus.PENDING, ReservationStatus.CANCELLED, reason);
@@ -470,6 +488,18 @@ public class ReservationService {
     }
 
     // --- Ortak yardımcı metodlar ---
+
+    private void publishNotification(
+            Reservation reservation,
+            ReservationStatus previousStatus,
+            ReservationStatus newStatus
+    ) {
+        eventPublisher.publishEvent(new ReservationNotificationEvent(
+                reservation.getId(),
+                previousStatus,
+                newStatus
+        ));
+    }
 
     private void validateStatusTransition(ReservationStatus current, ReservationStatus target) {
         if (target == null) {

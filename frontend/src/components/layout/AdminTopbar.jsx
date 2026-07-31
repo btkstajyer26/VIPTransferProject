@@ -1,4 +1,4 @@
-import { LogOut, ChevronDown, KeyRound, UserRound } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -89,7 +89,7 @@ function AdminTopbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <NotificationBell />
+        <NotificationBell scope="admin" />
         <DropdownMenu>
           <DropdownMenuTrigger className="admin-account-trigger">
             <div className="admin-avatar">
@@ -127,6 +127,15 @@ function AdminTopbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        <button
+          type="button"
+          className="admin-logout-button"
+          onClick={handleLogout}
+          title={t('nav.logout')}
+          aria-label={t('nav.logout')}
+        >
+          <LogOut size={19} strokeWidth={2} />
+        </button>
       </div>
     </header>
   );

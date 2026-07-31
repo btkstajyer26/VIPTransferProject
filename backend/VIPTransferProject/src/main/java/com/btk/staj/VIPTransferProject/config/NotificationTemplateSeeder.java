@@ -323,7 +323,17 @@ public class NotificationTemplateSeeder implements CommandLineRunner {
                         "Tebrikler! {{newTier}} seviyesine yükseldiniz. Yeni ayrıcalıklarınız sizi bekliyor."),
                 template("LOYALTY_TIER_UPGRADED", NotificationChannel.PUSH, "en",
                         "Your new tier: {{newTier}}",
-                        "Congratulations! You reached {{newTier}} tier. Your new benefits are waiting.")
+                        "Congratulations! You reached {{newTier}} tier. Your new benefits are waiting."),
+
+                // Campaign published: PUSH
+                template("CAMPAIGN_PUBLISHED", NotificationChannel.PUSH, "tr",
+                        "Yeni kampanya: {{campaignName}}",
+                        "{{campaignCode}} koduyla {{discount}} indirim kazanın. "
+                                + "{{description}} Son kullanım: {{validTo}}."),
+                template("CAMPAIGN_PUBLISHED", NotificationChannel.PUSH, "en",
+                        "New campaign: {{campaignName}}",
+                        "Get {{discount}} off with code {{campaignCode}}. "
+                                + "{{description}} Valid until: {{validTo}}.")
         );
 
         int createdCount = 0;
