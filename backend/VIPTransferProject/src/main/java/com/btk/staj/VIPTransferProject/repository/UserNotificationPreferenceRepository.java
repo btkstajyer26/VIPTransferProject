@@ -5,6 +5,7 @@ import com.btk.staj.VIPTransferProject.enums.NotificationChannel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface UserNotificationPreferenceRepository
         extends JpaRepository<UserNotificationPreference, Long> {
@@ -18,4 +19,6 @@ public interface UserNotificationPreferenceRepository
             Long userId,
             NotificationChannel channel
     );
+
+    List<UserNotificationPreference> findByUserId(Long userId);
 }

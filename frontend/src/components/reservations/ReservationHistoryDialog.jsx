@@ -1,6 +1,7 @@
 import {
   CalendarClock,
   Circle,
+  LoaderCircle,
   User,
   MessageSquareText,
 } from "lucide-react";
@@ -31,39 +32,10 @@ function ReservationHistoryDialog({
   open,
   onOpenChange,
   reservation,
+  history = [],
+  isLoading = false,
 }) {
   if (!reservation) return null;
-
-  /**
-   * Şimdilik Mock
-   * API bağlanınca
-   * GET /api/v1/reservations/{id}/history
-   * gelecek.
-   */
-
-  const history = [
-    {
-      id: 1,
-      status: "PENDING",
-      changedByName: "System",
-      note: "Rezervasyon oluşturuldu.",
-      changedAt: reservation.createdAt,
-    },
-
-    ...(reservation.status !== "PENDING"
-      ? [
-          {
-            id: 2,
-            status: reservation.status,
-            changedByName: "Admin",
-            note:
-              reservation.statusNote ||
-              "Rezervasyon durumu güncellendi.",
-            changedAt: reservation.updatedAt,
-          },
-        ]
-      : []),
-  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,10 +48,19 @@ function ReservationHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative mt-5 ml-3 border-l">
-          {history.map((item) => (
+        {isLoading ? (
+          <div className="flex min-h-40 items-center justify-center text-sm text-muted-foreground">
+            <LoaderCircle className="mr-2 h-5 w-5 animate-spin" /> Durum geçmişi yükleniyor...
+          </div>
+        ) : history.length === 0 ? (
+          <div className="mt-5 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            Bu rezervasyon için durum kaydı bulunamadı.
+          </div>
+        ) : (
+          <div className="relative mt-5 ml-3 border-l">
+          {history.map((item, index) => (
             <div
-              key={item.id}
+              key={item.id || `${item.status}-${item.changedAt}-${index}`}
               className="relative mb-8 ml-6"
             >
               <span className="absolute -left-[34px] flex h-6 w-6 items-center justify-center rounded-full border bg-background">
@@ -98,7 +79,7 @@ function ReservationHistoryDialog({
                 <div className="flex items-center gap-2 text-sm">
                   <User className="h-4 w-4" />
 
-                  {item.changedByName || "-"}
+                  {item.changedByName || item.changedBy || "Sistem"}
                 </div>
 
                 <div className="flex items-start gap-2 text-sm">
@@ -111,7 +92,8 @@ function ReservationHistoryDialog({
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

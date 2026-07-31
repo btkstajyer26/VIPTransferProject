@@ -16,7 +16,11 @@ public class GuestReservationResponse {
     private String pickupAddress;
     private String dropoffAddress;
     private OffsetDateTime scheduledTime;
+    private Long vehicleId;
     private String vehicleName;
+    private String vehiclePlateNumber;
+    private String vehicleClass;
+    private String requestedVehicleClass;
     private short passengerCount;
     private BigDecimal calculatedPrice;
     private String currency;

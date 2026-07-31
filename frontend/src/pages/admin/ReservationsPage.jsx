@@ -6,6 +6,18 @@ import ReservationToolbar from "@/components/reservations/ReservationToolbar";
 
 import useReservations from "@/hooks/useReservations";
 import { useTranslation } from "react-i18next";
+import ExportButtons from "@/components/admin/ExportButtons";
+
+const reservationExportColumns = [
+  { label: "Rezervasyon", value: (r) => r.bookingReference || r.id, width: 18 },
+  { label: "Durum", value: (r) => r.status, width: 18 },
+  { label: "Alış", value: (r) => r.pickupAddress, width: 35 },
+  { label: "Varış", value: (r) => r.dropoffAddress, width: 35 },
+  { label: "Tarih", value: (r) => r.scheduledTime ? new Date(r.scheduledTime).toLocaleString("tr-TR") : "-", width: 22 },
+  { label: "Araç", value: (r) => r.vehicleName || "-", width: 24 },
+  { label: "Yolcu", value: (r) => r.passengerCount || 1, width: 10 },
+  { label: "Tutar", value: (r) => `${r.calculatedPrice ?? "-"} ${r.currency || "TRY"}`, width: 16 },
+];
 
 function ReservationsPage() {
   const { t } = useTranslation();
@@ -45,14 +57,16 @@ function ReservationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><h1 className="text-2xl font-bold tracking-tight">
           {t('admin.reservations.title')}
         </h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
           {t('admin.reservations.subtitle')}
         </p>
+        </div>
+        <ExportButtons title="Rezervasyonlar" columns={reservationExportColumns} rows={filteredReservations} />
       </div>
 
       {error && (

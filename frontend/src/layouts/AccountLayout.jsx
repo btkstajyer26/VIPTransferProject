@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   UserRound,
   KeyRound,
+  Settings,
 } from "lucide-react";
 
 import PublicNavbar from "@/components/public/PublicNavbar";
@@ -16,6 +17,7 @@ const navigation = [
   { to: "/account/loyalty", label: "Sadakat Programı", icon: Gift },
   { to: "/account/profile", label: "Profil Bilgilerim", icon: UserRound },
   { to: "/account/password", label: "Şifre Değiştir", icon: KeyRound },
+  { to: "/account/settings", label: "Hesap Ayarları", icon: Settings },
 ];
 
 function AccountLayout() {

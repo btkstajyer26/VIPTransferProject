@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next";
 import {
   Bell, CalendarDays, Car, ChartNoAxesCombined, Gift,
   LayoutDashboard, MapPinned, PanelLeftClose, PanelLeftOpen,
-  SlidersHorizontal, Users, WalletCards,
+  SlidersHorizontal, Users, WalletCards, Languages,
 } from "lucide-react";
+import brandMark from "@/assets/brand-mark.svg";
 
 function AdminSidebar({ collapsed, onToggle }) {
   const { t } = useTranslation();
@@ -18,12 +19,13 @@ function AdminSidebar({ collapsed, onToggle }) {
     { path: "/admin/pricing-zones", label: t("admin.sidebar.pricing"), icon: MapPinned },
     { path: "/admin/pricing-rules", label: "Fiyat Kuralları", icon: SlidersHorizontal },
     { path: "/admin/notifications", label: t("admin.sidebar.notifications"), icon: Bell },
+    { path: "/admin/translations", label: "Çeviriler", icon: Languages },
   ];
 
   return (
     <aside className="admin-sidebar">
       <div className="admin-brand">
-        <span>V</span>
+        <img src={brandMark} alt="" className="admin-brand-mark" />
         <div className="admin-brand-copy">
           <h2>VIP Transfer</h2>
           <small>Yönetim Merkezi</small>

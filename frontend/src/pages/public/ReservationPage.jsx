@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { getVehicles } from "@/api/vehicleServices";
+import { isVipFleetVehicle } from "@/constants/vehicleImages";
 import { previewReservationPrice } from "@/api/reservationApi";
 
 function ReservationPage() {
@@ -92,7 +93,7 @@ function ReservationPage() {
               ? response.vehicles
               : [];
 
-      setVehicles(vehicleList);
+      setVehicles(vehicleList.filter(isVipFleetVehicle));
     } catch (requestError) {
       console.error(
         "Araçlar alınamadı:",

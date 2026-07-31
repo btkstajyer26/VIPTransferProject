@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarDays,
+  Eye,
+  History,
   LoaderCircle,
   MapPin,
   RefreshCw,
@@ -10,14 +12,22 @@ import {
 
 import {
   deleteReservation,
+  getReservationHistory,
   getMyReservations,
 } from "@/api/reservationApi";
+import ReservationDetailDialog from "@/components/reservations/ReservationDetailDialog";
+import ReservationHistoryDialog from "@/components/reservations/ReservationHistoryDialog";
 
 function MyReservationsPage() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState(null);
   const [error, setError] = useState("");
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const loadReservations = useCallback(async () => {
     try {
@@ -74,6 +84,21 @@ function MyReservationsPage() {
       setError(getErrorMessage(requestError));
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const openHistory = async (reservation) => {
+    setSelectedReservation(reservation);
+    setHistory([]);
+    setHistoryOpen(true);
+    try {
+      setHistoryLoading(true);
+      const data = await getReservationHistory(reservation.id);
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -150,8 +175,14 @@ function MyReservationsPage() {
                   <Address label="Varış noktası" value={reservation.dropoffAddress} />
                 </div>
 
-                {reservation.status === "PENDING" && (
-                  <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  <button type="button" onClick={() => { setSelectedReservation(reservation); setDetailOpen(true); }} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                    <Eye size={16} /> Detay
+                  </button>
+                  <button type="button" onClick={() => openHistory(reservation)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-blue-200 px-4 py-2 text-sm font-bold text-blue-600 transition hover:bg-blue-50">
+                    <History size={16} /> Zaman çizelgesi
+                  </button>
+                  {reservation.status === "PENDING" && (
                     <button
                       type="button"
                       disabled={cancellingId === reservation.id}
@@ -165,8 +196,8 @@ function MyReservationsPage() {
                       )}
                       Rezervasyonu iptal et
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </article>
             ))}
         </div>
@@ -180,6 +211,9 @@ function MyReservationsPage() {
           <RefreshCw size={16} /> Listeyi yenile
         </button>
       )}
+
+      <ReservationDetailDialog open={detailOpen} reservation={selectedReservation} onOpenChange={(open) => { setDetailOpen(open); if (!open) setSelectedReservation(null); }} />
+      <ReservationHistoryDialog open={historyOpen} reservation={selectedReservation} history={history} isLoading={historyLoading} onOpenChange={(open) => { setHistoryOpen(open); if (!open) { setSelectedReservation(null); setHistory([]); } }} />
     </div>
   );
 }

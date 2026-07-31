@@ -5,6 +5,7 @@ import {
   deleteVehicleById,
   getAllVehicles,
   updateVehicle,
+  updateVehicleStatus,
 } from "@/api/vehicleServices";
 
 /**
@@ -354,15 +355,7 @@ function useVehicles() {
       setUpdatingStatusId(vehicle.id);
       setError("");
 
-      const payload = createVehiclePayload(
-        {
-          active: newStatus,
-          isActive: newStatus,
-        },
-        vehicle,
-      );
-
-      await updateVehicle(vehicle.id, payload);
+      await updateVehicleStatus(vehicle.id, newStatus);
 
       setVehicles((currentVehicles) =>
         currentVehicles.map((currentVehicle) =>
