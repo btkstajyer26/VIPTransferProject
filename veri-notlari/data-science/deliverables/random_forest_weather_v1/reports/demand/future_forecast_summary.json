@@ -1,0 +1,24 @@
+{
+    "forecast_model_version": "random-forest-demand-weather-v1",
+    "forecast_generated_at_utc": "2026-07-26T20:45:02+00:00",
+    "forecast_start_utc": "2025-01-31 21:00:00+00:00",
+    "forecast_end_utc": "2025-02-01 20:00:00+00:00",
+    "forecast_horizon_hours": 24,
+    "forecast_zone_count": 60,
+    "forecast_row_count": 1440,
+    "future_weather_source": "SEASONAL_WEEK_AGO_SCENARIO",
+    "future_weather_is_synthetic": true,
+    "total_predicted_demand": 125404.046,
+    "average_recommended_surge": 1.1296,
+    "maximum_recommended_surge": 1.46,
+    "demand_level_distribution": {
+        "LOW": 584,
+        "MEDIUM": 563,
+        "HIGH": 293
+    },
+    "surge_is_automatically_applied": false,
+    "pricing_service_validation_required": true,
+    "pricing_rule_merge_strategy": "MAX",
+    "pricing_service_explanation": "Pricing Service should compare the Data Science recommendation with active configured pricing rules and use the highest valid multiplier.",
+    "production_limitation": "The current historical dataset covers approximately one month. This model is suitable for internship simulation and integration testing, not full seasonal production forecasting."
+}

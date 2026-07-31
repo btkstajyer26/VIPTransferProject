@@ -1,0 +1,85 @@
+{
+    "model_version": "kmeans-rfm-v1",
+    "raw_model_features": [
+        "recency",
+        "frequency",
+        "monetary",
+        "avg_order_value"
+    ],
+    "model_features": [
+        "log1p_recency",
+        "log1p_frequency",
+        "log1p_monetary",
+        "log1p_avg_order_value",
+        "smoothed_cancel_rate",
+        "smoothed_no_show_rate"
+    ],
+    "clipping_quantiles": {
+        "lower": 0.01,
+        "upper": 0.99
+    },
+    "clipping_bounds": {
+        "recency": {
+            "lower": 1.0,
+            "upper": 28.0
+        },
+        "frequency": {
+            "lower": 1.0,
+            "upper": 60.0
+        },
+        "monetary": {
+            "lower": 200.0,
+            "upper": 20927.617799999975
+        },
+        "avg_order_value": {
+            "lower": 195.0,
+            "upper": 727.7175999999978
+        }
+    },
+    "risk_smoothing": {
+        "global_cancel_prior": 0.08984166896150589,
+        "global_no_show_prior": 0.04004537347543321,
+        "smoothing_alpha": 5.0
+    },
+    "model_eligibility_rule": "is_active=true, deleted_at is null, frequency>0 and resolved_reservation_count>0",
+    "lifetime_points_used_as_model_feature": false,
+    "is_guest_used_as_model_feature": false,
+    "segmentation_created_at": "2026-07-26T17:02:13+00:00",
+    "selected_cluster_count": 3,
+    "cluster_label_map": {
+        "2": {
+            "ml_segment_code": "LOYAL_VIP",
+            "ml_segment_name": "ML Sadık VIP",
+            "ml_segment_description": "Yakın zamanda rezervasyon yapan, sıklığı ve harcaması diğer kümelere göre yüksek müşteri grubu. Bu etiket SQL loyalty tier değeri değildir."
+        },
+        "1": {
+            "ml_segment_code": "OPERATIONAL_RISK",
+            "ml_segment_name": "ML Riskli Müşteri",
+            "ml_segment_description": "Yumuşatılmış iptal veya no-show oranı diğer kümelerden daha yüksek müşteri grubu."
+        },
+        "0": {
+            "ml_segment_code": "HIGH_VALUE",
+            "ml_segment_name": "ML Yüksek Değerli Müşteri",
+            "ml_segment_description": "Harcama veya rezervasyon sıklığı ortalamanın üzerinde olan müşteri grubu."
+        }
+    },
+    "final_model_metrics": {
+        "model_version": "kmeans-rfm-v1",
+        "selected_cluster_count": 3,
+        "model_eligible_customer_count": 246290,
+        "metric_sample_size": 10000,
+        "inertia": 878943.8256187036,
+        "silhouette_score": 0.26300129137716477,
+        "davies_bouldin_score": 1.3412395753051947,
+        "calinski_harabasz_score": 3596.656179602502,
+        "minimum_cluster_share": 0.12064639246416825,
+        "maximum_cluster_share": 0.47171626943846684,
+        "cluster_counts": {
+            "0": 100397,
+            "1": 29714,
+            "2": 116179
+        },
+        "total_customer_count": 250000,
+        "excluded_customer_count": 3710
+    }
+}
