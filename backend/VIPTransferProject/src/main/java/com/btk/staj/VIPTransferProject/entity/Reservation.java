@@ -1,6 +1,7 @@
 package com.btk.staj.VIPTransferProject.entity;
 
 import com.btk.staj.VIPTransferProject.enums.ReservationStatus;
+import com.btk.staj.VIPTransferProject.enums.VehicleClass;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -64,6 +65,11 @@ public class Reservation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "requested_vehicle_class", columnDefinition = "vehicle_class")
+    private VehicleClass requestedVehicleClass;
 
     @Builder.Default
     @Column(name = "passenger_count", nullable = false)

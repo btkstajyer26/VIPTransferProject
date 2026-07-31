@@ -7,6 +7,7 @@ import {
 
 import QuickReservationForm from "./QuickReservationForm";
 import { useTranslation } from "react-i18next";
+import toggHero from "@/assets/togg-t10f-hero.webp";
 
 function HeroSection() {
   const { t } = useTranslation();
@@ -35,10 +36,9 @@ function HeroSection() {
       {/* Sadece arka plan ve hero içeriği kesilsin */}
       <div className="relative min-h-[760px] overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-[center_58%]"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=2200&q=90')",
+            backgroundImage: `url(${toggHero})`,
           }}
         />
 

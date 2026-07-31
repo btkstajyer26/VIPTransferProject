@@ -31,7 +31,7 @@ services:
       # Docker içindeyken localhost çalışmaz, bu yüzden container adını (vip-postgres) veriyoruz
       - SPRING_DATASOURCE_URL=jdbc:postgresql://vip-postgres:5432/vip_transfer_db
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=vip_password
+      - SPRING_DATASOURCE_PASSWORD=121361.
       - MAIL_ENABLED=${MAIL_ENABLED:-false}
       - MAIL_HOST=${MAIL_HOST:-}
       - MAIL_PORT=${MAIL_PORT:-587}

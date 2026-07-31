@@ -1,7 +1,7 @@
 import apiClient from "@/api/apiClient";
 
 export async function getAllNotifications() {
-  const response = await apiClient.get("/notifications");
+  const response = await apiClient.get("/notifications/admin");
   return response.data?.data ?? response.data;
 }
 

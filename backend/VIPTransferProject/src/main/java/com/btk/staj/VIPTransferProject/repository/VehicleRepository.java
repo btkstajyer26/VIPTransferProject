@@ -14,6 +14,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     Optional<Vehicle> findVehicleById(Long id);
 
+    Optional<Vehicle> findByPlateNumber(String plateNumber);
+
     List<Vehicle> findAllByActiveTrueOrderByOpeningPriceAsc();
 
     List<Vehicle> findAllByOrderByActiveDescCreatedAtDesc();

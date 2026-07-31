@@ -308,6 +308,13 @@
   box-shadow: 0 10px 25px rgb(37 99 235 / 35%);
 }
 
+.admin-brand-mark {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 10px 12px rgb(37 99 235 / 30%));
+}
+
 .admin-sidebar .admin-brand h2 {
   margin: 0;
   font-size: 19px;

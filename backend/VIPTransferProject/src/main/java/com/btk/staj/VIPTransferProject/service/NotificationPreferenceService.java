@@ -9,6 +9,7 @@ import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +17,20 @@ public class NotificationPreferenceService {
 
     private final UserNotificationPreferenceRepository preferenceRepository;
     private final UserRepository userRepository;
+
+    @Transactional(readOnly = true)
+    public List<NotificationPreferenceResponse> getAll(String authenticatedPhoneNumber) {
+        User user = userRepository.findByPhoneNumber(authenticatedPhoneNumber)
+                .orElseThrow(() -> new IllegalStateException("Kimligi dogrulanan kullanici bulunamadi."));
+        var saved = preferenceRepository.findByUserId(user.getId());
+        return List.of(NotificationChannel.PUSH, NotificationChannel.WHATSAPP).stream()
+                .map(channel -> saved.stream()
+                        .filter(item -> item.getChannel() == channel)
+                        .findFirst()
+                        .map(item -> new NotificationPreferenceResponse(channel, item.isEnabled()))
+                        .orElse(new NotificationPreferenceResponse(channel, false)))
+                .toList();
+    }
 
     @Transactional
     public NotificationPreferenceResponse update(

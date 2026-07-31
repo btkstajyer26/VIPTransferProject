@@ -7,13 +7,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-function CurrencySelector({ variant = "admin" }) {
+function CurrencySelector({ variant = "admin", compact = false }) {
   const { currency, changeCurrency } = useCurrency();
 
   const isPublic = variant === "public";
 
   const triggerClasses = isPublic
-    ? "flex items-center gap-2 rounded-xl px-2.5 py-2 text-white/90 hover:bg-white/10 hover:text-white transition outline-none focus:outline-none"
+    ? `flex items-center rounded-xl text-white/90 hover:bg-white/10 hover:text-white transition outline-none focus:outline-none ${
+        compact ? "w-full justify-between gap-1.5 px-2 py-1 text-xs" : "gap-2 px-2.5 py-2"
+      }`
     : "flex items-center gap-2 text-[#071a32]/80 hover:text-[#071a32] transition outline-none focus:outline-none font-semibold";
 
   const contentClasses = isPublic
@@ -27,7 +29,7 @@ function CurrencySelector({ variant = "admin" }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={triggerClasses}>
-        <CurrencyIcon currency={currency} />
+        <CurrencyIcon currency={currency} compact={compact} />
         <span>{currency === "TRY" ? "TL" : currency}</span>
         <ChevronDown size={16} />
       </DropdownMenuTrigger>
@@ -47,7 +49,7 @@ function CurrencySelector({ variant = "admin" }) {
   );
 }
 
-function CurrencyIcon({ currency }) {
+function CurrencyIcon({ currency, compact = false }) {
   const symbol = {
     TRY: "₺",
     EUR: "€",
@@ -57,7 +59,9 @@ function CurrencyIcon({ currency }) {
   }[currency] || currency.slice(0, 1);
 
   return (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-current text-sm font-black leading-none">
+    <span className={`flex shrink-0 items-center justify-center border-2 border-current font-black leading-none ${
+      compact ? "size-5 rounded-md text-[10px]" : "size-7 rounded-lg text-sm"
+    }`}>
       {symbol}
     </span>
   );

@@ -53,3 +53,10 @@ export async function deleteVehicleById(vehicleId) {
 
   return response.data;
 }
+
+export async function updateVehicleStatus(vehicleId, active) {
+  const response = await apiClient.patch(`/vehicles/${vehicleId}/status`, null, {
+    params: { active },
+  });
+  return response.data;
+}

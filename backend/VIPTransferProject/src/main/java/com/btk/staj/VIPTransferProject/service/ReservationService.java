@@ -110,6 +110,7 @@ public class ReservationService {
         Reservation forPricing = Reservation.builder()
                 .user(user)
                 .vehicle(vehicle)
+                .requestedVehicleClass(vehicle.getVehicleClass())
                 .pickupPoint(pickupPoint)
                 .dropoffPoint(dropoffPoint)
                 .pickupZone(pickupZone)
@@ -137,6 +138,7 @@ public class ReservationService {
                 .dropoffZone(dropoffZone)
                 .scheduledTime(request.getScheduledTime())
                 .vehicle(vehicle)
+                .requestedVehicleClass(vehicle.getVehicleClass())
                 .passengerCount(request.getPassengerCount())
                 .routePolyline(route.getEncodedPolyline())
                 .distanceKm(route.getDistanceKm())
@@ -547,6 +549,10 @@ public class ReservationService {
                 .dropoffAddress(r.getDropoffAddress())
                 .scheduledTime(r.getScheduledTime())
                 .vehicleName(vehicleName)
+                .vehicleId(r.getVehicle() != null ? r.getVehicle().getId() : null)
+                .vehiclePlateNumber(r.getVehicle() != null ? r.getVehicle().getPlateNumber() : null)
+                .vehicleClass(r.getVehicle() != null ? r.getVehicle().getVehicleClass().name() : null)
+                .requestedVehicleClass(r.getRequestedVehicleClass() != null ? r.getRequestedVehicleClass().name() : null)
                 .passengerCount(r.getPassengerCount())
                 .calculatedPrice(r.getCalculatedPrice())
                 .currency(r.getCurrency())
@@ -555,6 +561,19 @@ public class ReservationService {
                 .notes(r.getNotes())
                 .createdAt(r.getCreatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationStatusHistoryResponse> getGuestStatusHistory(String bookingReference, String phone) {
+        Reservation reservation = reservationRepository.findByBookingReference(bookingReference);
+        if (reservation == null) throw new ResourceNotFoundException("Rezervasyon bulunamadı.");
+        String savedPhone = reservation.getUser() != null ? reservation.getUser().getPhoneNumber() : reservation.getGuestPhone();
+        if (savedPhone == null || !normalize(savedPhone).equals(normalize(phone))) {
+            throw new ForbiddenOperationException("Rezervasyon bilgileri eşleşmiyor.");
+        }
+        return statusHistoryRepository.findByReservationIdOrderByChangedAtAsc(reservation.getId()).stream()
+                .map(this::toHistoryResponse)
+                .toList();
     }
 
     private ReservationStatusHistoryResponse toHistoryResponse(ReservationStatusHistory h) {
@@ -611,6 +630,9 @@ public class ReservationService {
                 .notes(r.getNotes())
                 .createdAt(r.getCreatedAt())
                 .updatedAt(r.getUpdatedAt())
+                .cancelledAt(r.getCancelledAt())
+                .cancellationReason(r.getCancellationReason())
+                .completedAt(r.getCompletedAt())
                 .build();
     }
 }
