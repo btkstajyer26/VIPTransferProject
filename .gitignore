@@ -24,3 +24,5 @@ secrets/*
 *firebase-admin*.json
 *serviceAccountKey*.json
 docker-compose.override.yml
+
+node_modules/
