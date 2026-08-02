@@ -59,8 +59,12 @@ public class JwtUtil {
         return false;
     }
     public Long extractUserId(String token) {
-        Number userId = extractAllClaims(token).get("userId", Number.class);
-        return userId != null ? userId.longValue() : null;
+        try {
+            String subject = extractAllClaims(token).getSubject();
+            return subject != null ? Long.parseLong(subject) : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
     public Long extractSessionId(String token) {
         Number sessionId = extractAllClaims(token).get("sessionId", Number.class);
