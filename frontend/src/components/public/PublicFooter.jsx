@@ -5,6 +5,7 @@ import {
   Phone,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import brandMark from "@/assets/brand-mark.svg";
 
 function PublicFooter() {
   const { t } = useTranslation();
@@ -20,9 +21,7 @@ function PublicFooter() {
             to="/"
             className="flex items-center gap-3"
           >
-            <div className="flex size-11 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold">
-              V
-            </div>
+            <img src={brandMark} alt="" className="size-11" />
 
             <div>
               <div className="font-bold tracking-[0.14em]">
@@ -51,6 +50,7 @@ function PublicFooter() {
           <FooterLink to="/about">{t("footer.quickLinks.about")}</FooterLink>
           <FooterLink to="/fleet">{t("footer.quickLinks.vehicles")}</FooterLink>
           <FooterLink to="/#reservation-form">{t("footer.quickLinks.reservation")}</FooterLink>
+          <FooterLink to="/reservation/track">Rezervasyon Takip</FooterLink>
           <FooterLink to="/faq">Sıkça Sorulan Sorular</FooterLink>
           <FooterLink to="/privacy">{t("footer.quickLinks.privacy")}</FooterLink>
           <FooterLink to="/terms">Kullanım Koşulları</FooterLink>

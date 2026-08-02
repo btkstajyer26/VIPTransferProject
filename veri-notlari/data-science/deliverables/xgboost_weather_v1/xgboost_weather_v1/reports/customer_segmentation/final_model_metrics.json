@@ -1,0 +1,19 @@
+{
+    "model_version": "kmeans-rfm-v1",
+    "selected_cluster_count": 3,
+    "model_eligible_customer_count": 246290,
+    "metric_sample_size": 10000,
+    "inertia": 878943.8256187036,
+    "silhouette_score": 0.26300129137716477,
+    "davies_bouldin_score": 1.3412395753051947,
+    "calinski_harabasz_score": 3596.656179602502,
+    "minimum_cluster_share": 0.12064639246416825,
+    "maximum_cluster_share": 0.47171626943846684,
+    "cluster_counts": {
+        "0": 100397,
+        "1": 29714,
+        "2": 116179
+    },
+    "total_customer_count": 250000,
+    "excluded_customer_count": 3710
+}

@@ -462,6 +462,17 @@ function ReservationConfirm() {
       <ReservationSuccess
         reservation={createdReservation}
         onHome={() => navigate("/")}
+        onTrack={() =>
+          navigate("/reservation/track", {
+            state: {
+              bookingReference:
+                createdReservation.bookingReference ??
+                createdReservation.data?.bookingReference ??
+                "",
+              phone: formData.guestPhone,
+            },
+          })
+        }
       />
     );
   }
@@ -985,6 +996,7 @@ function FormField({
 function ReservationSuccess({
   reservation,
   onHome,
+  onTrack,
 }) {
   const reservationNumber =
     reservation.bookingReference ??
@@ -1021,13 +1033,22 @@ function ReservationSuccess({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onHome}
-          className="mt-7 inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-blue-600 px-6 text-sm font-bold text-white transition hover:bg-blue-700"
-        >
-          Ana Sayfaya Dön
-        </button>
+        <div className="mt-7 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onTrack}
+            className="inline-flex min-h-13 w-full items-center justify-center rounded-2xl bg-blue-600 px-6 text-sm font-bold text-white transition hover:bg-blue-700"
+          >
+            Rezervasyonu Takip Et
+          </button>
+          <button
+            type="button"
+            onClick={onHome}
+            className="inline-flex min-h-13 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+          >
+            Ana Sayfaya Dön
+          </button>
+        </div>
       </div>
     </section>
   );

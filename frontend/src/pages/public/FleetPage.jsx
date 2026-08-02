@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 
 import { getVehicles } from "@/api/vehicleServices";
-import { getVehicleImage } from "@/constants/vehicleImages";
+import { getVehicleImage, isVipFleetVehicle } from "@/constants/vehicleImages";
 
-const classes = ["ALL", "ECONOMY", "STANDARD", "BUSINESS", "VIP", "LUXURY", "MINIVAN"];
+const classes = ["ALL", "STANDARD", "BUSINESS", "VIP", "MINIVAN"];
 
 function FleetPage() {
   const [vehicles, setVehicles] = useState([]);
@@ -29,7 +29,11 @@ function FleetPage() {
         const list = Array.isArray(response)
           ? response
           : response?.content || response?.data || response?.vehicles || [];
-        setVehicles(Array.isArray(list) ? list.filter((item) => item.active !== false) : []);
+        setVehicles(
+          Array.isArray(list)
+            ? list.filter((item) => item.active !== false && isVipFleetVehicle(item))
+            : [],
+        );
       })
       .catch((requestError) => {
         if (active) {
@@ -108,30 +112,30 @@ function FleetPage() {
             Bu sınıfta aktif araç bulunmuyor.
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 space-y-5">
             {filteredVehicles.map((vehicle) => (
               <article
                 key={vehicle.id}
-                className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.06)]"
+                className="grid overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.06)] md:grid-cols-[330px_1fr]"
               >
-                <div className="relative h-64 overflow-hidden bg-slate-200">
+                <div className="relative flex min-h-64 items-center justify-center bg-slate-50 p-6">
                   <img
                     src={getVehicleImage(vehicle)}
                     alt={`${vehicle.brand} ${vehicle.model}`}
-                    className="h-full w-full object-cover"
+                    className="h-56 w-full object-contain"
                   />
                   <span className="absolute left-5 top-5 rounded-full bg-[#071a32]/85 px-4 py-2 text-xs font-bold text-white backdrop-blur">
                     {classLabel(vehicle.vehicleClass)}
                   </span>
                 </div>
-                <div className="p-6">
-                  <h2 className="text-xl font-bold text-[#071a32]">
+                <div className="flex flex-col justify-center p-6 md:p-8">
+                  <h2 className="text-2xl font-bold text-[#071a32]">
                     {[vehicle.brand, vehicle.model].filter(Boolean).join(" ")}
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
                     {vehicle.year || "Güncel model"} · {vehicle.color || "Premium"}
                   </p>
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-600">
+                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-600 lg:grid-cols-4">
                     <Feature icon={UsersRound} text={`${vehicle.capacity || 1} yolcu`} />
                     <Feature icon={BriefcaseBusiness} text="Bagaj alanı" />
                     <Feature icon={ShieldCheck} text="Güvenli sürüş" />
@@ -139,7 +143,7 @@ function FleetPage() {
                   </div>
                   <Link
                     to="/#reservation-form"
-                    className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-sm font-bold text-white"
+                    className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-bold text-white sm:w-fit"
                   >
                     Rezervasyon yap <ArrowRight size={16} />
                   </Link>
@@ -165,12 +169,10 @@ function classLabel(value) {
   return (
     {
       ALL: "Tüm araçlar",
-      ECONOMY: "Ekonomi",
-      STANDARD: "Standart",
+      STANDARD: "Eko VAN",
       BUSINESS: "Business",
-      VIP: "VIP",
-      LUXURY: "Luxury",
-      MINIVAN: "Minivan",
+      VIP: "Premium VAN",
+      MINIVAN: "Premium Minibus",
     }[value] ||
     value ||
     "Araç"

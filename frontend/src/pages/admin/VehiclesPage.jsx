@@ -13,6 +13,19 @@ import VehicleTable from "@/components/vehicles/VehicleTable";
 import VehicleToolbar from "@/components/vehicles/VehicleToolbar";
 import useVehicles from "@/hooks/useVehicles";
 import { useTranslation } from "react-i18next";
+import ExportButtons from "@/components/admin/ExportButtons";
+
+const vehicleExportColumns = [
+  { label: "Plaka", value: (v) => v.plateNumber, width: 16 },
+  { label: "Araç", value: (v) => `${v.brand || ""} ${v.model || ""}`.trim(), width: 26 },
+  { label: "Sınıf", value: (v) => v.vehicleClass, width: 16 },
+  { label: "Yıl", value: (v) => v.year || "-", width: 10 },
+  { label: "Renk", value: (v) => v.color || "-", width: 12 },
+  { label: "Kapasite", value: (v) => v.capacity, width: 12 },
+  { label: "Açılış Fiyatı", value: (v) => v.openingPrice, width: 16 },
+  { label: "Çarpan", value: (v) => v.basePriceMultiplier, width: 12 },
+  { label: "Durum", value: (v) => v.active ? "Aktif" : "Pasif", width: 12 },
+];
 
 
 function VehiclesPage() {
@@ -50,14 +63,16 @@ function VehiclesPage() {
 
   return (
     <section className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-semibold tracking-tight">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><h2 className="text-3xl font-semibold tracking-tight">
           {t('admin.vehicles.title')}
         </h2>
 
         <p className="mt-1 text-sm text-muted-foreground">
           {t('admin.vehicles.subtitle')}
         </p>
+        </div>
+        <ExportButtons title="Araçlar" columns={vehicleExportColumns} rows={vehicles} />
       </div>
 
       <Card>

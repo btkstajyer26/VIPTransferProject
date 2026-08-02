@@ -19,6 +19,13 @@ public class TranslationController {
 
     private final LocalizationService localizationService;
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/list")
+    public ResponseEntity<List<TranslationDto>> getTranslationsForAdmin(
+            @RequestParam(required = false) String langCode) {
+        return ResponseEntity.ok(localizationService.getTranslationsForAdmin(langCode));
+    }
+
     @GetMapping("/{langCode}")
     public ResponseEntity<Map<String, String>> getAllTranslations(@PathVariable String langCode) {
         log.info("HTTP GET /api/translations/{} isteÄŸi alÄ±ndÄ±.", langCode);

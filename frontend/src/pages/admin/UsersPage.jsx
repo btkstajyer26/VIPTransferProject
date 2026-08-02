@@ -23,6 +23,17 @@ import {
 import useUsers from "@/hooks/useUsers";
 import { useTranslation } from "react-i18next";
 import { forgotPassword } from "@/api/authApi";
+import ExportButtons from "@/components/admin/ExportButtons";
+
+const userExportColumns = [
+  { label: "ID", value: (u) => u.id, width: 8 },
+  { label: "Ad Soyad", value: (u) => `${u.firstName || ""} ${u.lastName || ""}`.trim(), width: 24 },
+  { label: "E-posta", value: (u) => u.email || "-", width: 30 },
+  { label: "Telefon", value: (u) => u.phoneNumber || "-", width: 18 },
+  { label: "Rol", value: (u) => u.role, width: 14 },
+  { label: "Tür", value: (u) => u.guest ? "Misafir" : "Üye", width: 12 },
+  { label: "Durum", value: (u) => u.active === false ? "Pasif" : "Aktif", width: 12 },
+];
 
 function UsersPage() {
   const { t } = useTranslation();
@@ -109,12 +120,9 @@ function UsersPage() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading}
-          onClick={fetchUsers}
-        >
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons title="Kullanıcılar" columns={userExportColumns} rows={users} />
+          <Button type="button" variant="outline" disabled={loading} onClick={fetchUsers}>
           <RefreshCw
             className={`mr-2 size-4 ${
               loading ? "animate-spin" : ""
@@ -122,7 +130,8 @@ function UsersPage() {
           />
 
           {t('admin.users.refresh')}
-        </Button>
+          </Button>
+        </div>
       </div>
 
       {error && (

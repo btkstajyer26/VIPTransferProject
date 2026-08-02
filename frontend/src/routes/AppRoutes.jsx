@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
 import PublicLayout from "../layouts/PublicLayout";
 import AuthLayout from "../layouts/AuthLayout";
@@ -12,41 +13,43 @@ import AccountLayout from "../layouts/AccountLayout";
 
 import ProtectedRoute from "./ProtectedRoute";
 
-import HomePage from "../pages/public/HomePage";
-import ReservationPage from "../pages/public/ReservationPage";
-import ReservationConfirm from "../components/reservations/ReservationConfirm";
-import AboutPage from "../pages/public/AboutPage";
-import PrivacyPage from "../pages/public/PrivacyPage";
-import FleetPage from "../pages/public/FleetPage";
-import FaqPage from "../pages/public/FaqPage";
-import TermsPage from "../pages/public/TermsPage";
-import CookiePolicyPage from "../pages/public/CookiePolicyPage";
-
-import LoginPage from "../pages/auth/LoginPage";
-import RegisterPage from "../pages/auth/RegisterPage";
-import VerifyEmailPage from "../pages/auth/VerifyEmailPage";
-import VerifyEmailPendingPage from "../pages/auth/VerifyEmailPendingPage";
-import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
-
-import DashboardPage from "../pages/admin/DashboardPage";
-import UsersPage from "../pages/admin/UsersPage";
-import ReservationsPage from "../pages/admin/ReservationsPage";
-import VehiclesPage from "../pages/admin/VehiclesPage";
-import CampaignsPage from "../pages/admin/CampaignsPage";
-import LoyaltyPage from "../pages/admin/LoyaltyPage";
-import PricingZonesPage from "../pages/admin/PricingZonesPage";
-import PricingRulesPage from "../pages/admin/PricingRulesPage";
-import NotificationsPage from "../pages/admin/NotificationsPage";
-import AccountDashboardPage from "../pages/user/AccountDashboardPage";
-import MyReservationsPage from "../pages/user/MyReservationsPage";
-import MyProfilePage from "../pages/user/MyProfilePage";
-import MyLoyaltyPage from "../pages/user/MyLoyaltyPage";
-import ChangePasswordPage from "../pages/user/ChangePasswordPage";
+const HomePage = lazy(() => import("../pages/public/HomePage"));
+const ReservationPage = lazy(() => import("../pages/public/ReservationPage"));
+const GuestReservationTrackPage = lazy(() => import("../pages/public/GuestReservationTrackPage"));
+const ReservationConfirm = lazy(() => import("../components/reservations/ReservationConfirm"));
+const AboutPage = lazy(() => import("../pages/public/AboutPage"));
+const PrivacyPage = lazy(() => import("../pages/public/PrivacyPage"));
+const FleetPage = lazy(() => import("../pages/public/FleetPage"));
+const FaqPage = lazy(() => import("../pages/public/FaqPage"));
+const TermsPage = lazy(() => import("../pages/public/TermsPage"));
+const CookiePolicyPage = lazy(() => import("../pages/public/CookiePolicyPage"));
+const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("../pages/auth/RegisterPage"));
+const VerifyEmailPage = lazy(() => import("../pages/auth/VerifyEmailPage"));
+const VerifyEmailPendingPage = lazy(() => import("../pages/auth/VerifyEmailPendingPage"));
+const ForgotPasswordPage = lazy(() => import("../pages/auth/ForgotPasswordPage"));
+const DashboardPage = lazy(() => import("../pages/admin/DashboardPage"));
+const UsersPage = lazy(() => import("../pages/admin/UsersPage"));
+const ReservationsPage = lazy(() => import("../pages/admin/ReservationsPage"));
+const VehiclesPage = lazy(() => import("../pages/admin/VehiclesPage"));
+const CampaignsPage = lazy(() => import("../pages/admin/CampaignsPage"));
+const LoyaltyPage = lazy(() => import("../pages/admin/LoyaltyPage"));
+const PricingZonesPage = lazy(() => import("../pages/admin/PricingZonesPage"));
+const PricingRulesPage = lazy(() => import("../pages/admin/PricingRulesPage"));
+const NotificationsPage = lazy(() => import("../pages/admin/NotificationsPage"));
+const TranslationsPage = lazy(() => import("../pages/admin/TranslationsPage"));
+const AccountDashboardPage = lazy(() => import("../pages/user/AccountDashboardPage"));
+const MyReservationsPage = lazy(() => import("../pages/user/MyReservationsPage"));
+const MyProfilePage = lazy(() => import("../pages/user/MyProfilePage"));
+const MyLoyaltyPage = lazy(() => import("../pages/user/MyLoyaltyPage"));
+const ChangePasswordPage = lazy(() => import("../pages/user/ChangePasswordPage"));
+const AccountSettingsPage = lazy(() => import("../pages/user/AccountSettingsPage"));
 
 function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-[#f4f7fb]"><div className="size-9 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" aria-label="Sayfa yükleniyor" /></div>}>
+        <Routes>
         {/* Public */}
         <Route element={<PublicLayout />}>
           <Route
@@ -62,6 +65,11 @@ function AppRoutes() {
           <Route
             path="/reservation/confirm"
             element={<ReservationConfirm />}
+          />
+
+          <Route
+            path="/reservation/track"
+            element={<GuestReservationTrackPage />}
           />
 
           <Route
@@ -160,6 +168,7 @@ function AppRoutes() {
               path="password"
               element={<ChangePasswordPage />}
             />
+            <Route path="settings" element={<AccountSettingsPage />} />
           </Route>
         </Route>
 
@@ -228,6 +237,7 @@ function AppRoutes() {
               path="notifications"
               element={<NotificationsPage />}
             />
+            <Route path="translations" element={<TranslationsPage />} />
             <Route
               path="account"
               element={<MyProfilePage />}
@@ -249,7 +259,8 @@ function AppRoutes() {
             />
           }
         />
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

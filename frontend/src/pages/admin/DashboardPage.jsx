@@ -39,6 +39,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 
 const STATUS_LABELS = {
   PENDING: "admin.reservationList.status.PENDING",
+  ASSIGNED: "admin.reservationList.status.ASSIGNED",
   CONFIRMED: "admin.reservationList.status.CONFIRMED",
   DRIVER_ASSIGNED: "admin.reservationList.status.DRIVER_ASSIGNED",
   ON_THE_WAY: "admin.reservationList.status.ON_THE_WAY",

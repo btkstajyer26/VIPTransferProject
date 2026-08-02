@@ -40,6 +40,8 @@ import {
 import useNotifications from "@/hooks/useNotifications";
 
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { createNotification } from "@/api/notificationApi";
 
 const STATUS_VARIANT = {
   PENDING: "outline",
@@ -76,6 +78,9 @@ function formatDate(dateString, lng) {
 function NotificationsPage() {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composer, setComposer] = useState({ userId: "", templateCode: "RESERVATION_STATUS_CHANGED", channel: "EMAIL", langCode: "tr", sendImmediately: true });
+  const [composerBusy, setComposerBusy] = useState(false);
 
   const {
     filteredNotifications,
@@ -109,7 +114,7 @@ function NotificationsPage() {
           </p>
         </div>
 
-        <Button
+        <div className="flex gap-2"><Button onClick={() => setComposerOpen((x) => !x)}>Yeni bildirim</Button><Button
           variant="outline"
           size="sm"
           onClick={fetchNotifications}
@@ -119,8 +124,10 @@ function NotificationsPage() {
             className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
           />
           {t("admin.notifications.refresh")}
-        </Button>
+        </Button></div>
       </div>
+
+      {composerOpen && <form onSubmit={async(e)=>{e.preventDefault();try{setComposerBusy(true);await createNotification({...composer,userId:Number(composer.userId),variables:{}});setComposerOpen(false);fetchNotifications();}finally{setComposerBusy(false);}}} className="grid gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-5 sm:grid-cols-2 xl:grid-cols-5"><Input required type="number" value={composer.userId} onChange={e=>setComposer(x=>({...x,userId:e.target.value}))} placeholder="Kullanıcı ID"/><select value={composer.templateCode} onChange={e=>setComposer(x=>({...x,templateCode:e.target.value}))} className="h-9 rounded-lg border bg-white px-3 text-sm">{["RESERVATION_CREATED","RESERVATION_STATUS_CHANGED","RESERVATION_CANCELLED","RESERVATION_COMPLETED","LOYALTY_TIER_UPGRADED"].map(x=><option key={x}>{x}</option>)}</select><select value={composer.channel} onChange={e=>setComposer(x=>({...x,channel:e.target.value}))} className="h-9 rounded-lg border bg-white px-3 text-sm"><option>EMAIL</option><option>PUSH</option><option>WHATSAPP</option></select><select value={composer.langCode} onChange={e=>setComposer(x=>({...x,langCode:e.target.value}))} className="h-9 rounded-lg border bg-white px-3 text-sm"><option value="tr">TR</option><option value="en">EN</option></select><Button disabled={composerBusy} type="submit">Oluştur ve gönder</Button></form>}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
@@ -204,7 +211,6 @@ function NotificationsPage() {
               <SelectContent>
                 <SelectItem value="ALL">{t("admin.notifications.allChannels")}</SelectItem>
                 <SelectItem value="EMAIL">{t("admin.notifications.channels.EMAIL")}</SelectItem>
-                <SelectItem value="SMS">{t("admin.notifications.channels.SMS")}</SelectItem>
                 <SelectItem value="PUSH">{t("admin.notifications.channels.PUSH")}</SelectItem>
                 <SelectItem value="WHATSAPP">{t("admin.notifications.channels.WHATSAPP")}</SelectItem>
               </SelectContent>

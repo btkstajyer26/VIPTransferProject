@@ -124,45 +124,56 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedVehicles() {
-        if (vehicleRepository.count() > 0) {
-            log.info("Araçlar zaten mevcut, vehicle seeding atlandı.");
-            return;
-        }
-
         List<Vehicle> vehicles = List.of(
                 Vehicle.builder()
-                        .plateNumber("34BTK001").brand("Toyota").model("Corolla")
-                        .vehicleClass(VehicleClass.ECONOMY).capacity((short) 4)
+                        .plateNumber("34VIP101").brand("Volkswagen").model("Caravelle")
+                        .vehicleClass(VehicleClass.STANDARD).capacity((short) 6)
                         .basePriceMultiplier(new BigDecimal("0.80"))
-                        .openingPrice(new BigDecimal("200.00")).year((short) 2022).build(),
+                        .openingPrice(new BigDecimal("300.00")).year((short) 2023).color("Gri").build(),
                 Vehicle.builder()
-                        .plateNumber("34BTK002").brand("Mercedes-Benz").model("C 200")
-                        .vehicleClass(VehicleClass.STANDARD).capacity((short) 4)
+                        .plateNumber("34VIP102").brand("Mercedes-Benz").model("Vito Tourer")
+                        .vehicleClass(VehicleClass.BUSINESS).capacity((short) 6)
                         .basePriceMultiplier(new BigDecimal("1.00"))
-                        .openingPrice(new BigDecimal("350.00")).year((short) 2023).build(),
+                        .openingPrice(new BigDecimal("400.00")).year((short) 2024).color("Siyah").build(),
                 Vehicle.builder()
-                        .plateNumber("34BTK003").brand("Mercedes-Benz").model("E 220 d")
-                        .vehicleClass(VehicleClass.BUSINESS).capacity((short) 4)
+                        .plateNumber("34VIP103").brand("Mercedes-Benz").model("V-Class")
+                        .vehicleClass(VehicleClass.VIP).capacity((short) 6)
                         .basePriceMultiplier(new BigDecimal("1.30"))
-                        .openingPrice(new BigDecimal("500.00")).year((short) 2023).build(),
+                        .openingPrice(new BigDecimal("550.00")).year((short) 2024).color("Siyah").build(),
                 Vehicle.builder()
-                        .plateNumber("34BTK004").brand("BMW").model("7 Serisi 740i")
-                        .vehicleClass(VehicleClass.VIP).capacity((short) 4)
+                        .plateNumber("34VIP104").brand("Mercedes-Benz").model("Sprinter VIP")
+                        .vehicleClass(VehicleClass.MINIVAN).capacity((short) 15)
                         .basePriceMultiplier(new BigDecimal("1.60"))
-                        .openingPrice(new BigDecimal("750.00")).year((short) 2024).build(),
-                Vehicle.builder()
-                        .plateNumber("34BTK005").brand("Mercedes-Benz").model("S 450 4MATIC")
-                        .vehicleClass(VehicleClass.LUXURY).capacity((short) 4)
-                        .basePriceMultiplier(new BigDecimal("2.00"))
-                        .openingPrice(new BigDecimal("1200.00")).year((short) 2024).build(),
-                Vehicle.builder()
-                        .plateNumber("34BTK006").brand("Volkswagen").model("Caravelle")
-                        .vehicleClass(VehicleClass.MINIVAN).capacity((short) 8)
-                        .basePriceMultiplier(new BigDecimal("1.20"))
-                        .openingPrice(new BigDecimal("600.00")).year((short) 2022).build()
+                        .openingPrice(new BigDecimal("750.00")).year((short) 2024).color("Siyah").build()
         );
 
-        vehicleRepository.saveAll(vehicles);
-        log.info("{} araç seed'lendi.", vehicles.size());
+        List<String> fleetPlates = vehicles.stream()
+                .map(Vehicle::getPlateNumber)
+                .toList();
+
+        List<Vehicle> existingVehicles = vehicleRepository.findAll();
+        existingVehicles.stream()
+                .filter(vehicle -> !fleetPlates.contains(vehicle.getPlateNumber()))
+                .forEach(vehicle -> vehicle.setActive(false));
+        vehicleRepository.saveAll(existingVehicles);
+
+        for (Vehicle fleetVehicle : vehicles) {
+            Vehicle vehicle = vehicleRepository.findByPlateNumber(fleetVehicle.getPlateNumber())
+                    .orElse(fleetVehicle);
+
+            vehicle.setBrand(fleetVehicle.getBrand());
+            vehicle.setModel(fleetVehicle.getModel());
+            vehicle.setVehicleClass(fleetVehicle.getVehicleClass());
+            vehicle.setCapacity(fleetVehicle.getCapacity());
+            vehicle.setBasePriceMultiplier(fleetVehicle.getBasePriceMultiplier());
+            vehicle.setOpeningPrice(fleetVehicle.getOpeningPrice());
+            vehicle.setYear(fleetVehicle.getYear());
+            vehicle.setColor(fleetVehicle.getColor());
+            vehicle.setActive(true);
+            vehicleRepository.save(vehicle);
+        }
+
+        log.info("VIP filo senkronize edildi: 4 aktif araç; diğer araçlar pasif.");
     }
+
 }

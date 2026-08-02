@@ -8,17 +8,16 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getVehicles } from "@/api/vehicleServices";
-import { getVehicleImage } from "@/constants/vehicleImages";
+import { getVehicleImage, isVipFleetVehicle } from "@/constants/vehicleImages";
 
 const fallbackVehicles = [
   {
     id: 1,
-    name: "Mercedes-Benz Vito",
-    category: "VIP Minivan",
-    passengerCapacity: 7,
-    luggageCapacity: 7,
-    image:
-      "https://images.unsplash.com/photo-1626668893632-6f3a4466d22f?auto=format&fit=crop&w=1200&q=85",
+    name: "Volkswagen Caravelle",
+    category: "Eko VAN",
+    passengerCapacity: 6,
+    luggageCapacity: 6,
+    image: getVehicleImage({ brand: "Volkswagen", model: "Caravelle" }),
     features: [
       "Deri koltuklar",
       "Ücretsiz Wi-Fi",
@@ -28,12 +27,11 @@ const fallbackVehicles = [
   },
   {
     id: 2,
-    name: "Mercedes-Benz E-Class",
-    category: "Business Sedan",
-    passengerCapacity: 3,
-    luggageCapacity: 3,
-    image:
-      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=85",
+    name: "Mercedes-Benz Vito Tourer",
+    category: "Business Van",
+    passengerCapacity: 6,
+    luggageCapacity: 6,
+    image: getVehicleImage({ brand: "Mercedes-Benz", model: "Vito Tourer" }),
     features: [
       "Business konfor",
       "Deri koltuklar",
@@ -47,8 +45,7 @@ const fallbackVehicles = [
     category: "VIP Minibüs",
     passengerCapacity: 16,
     luggageCapacity: 16,
-    image:
-      "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=85",
+    image: getVehicleImage({ brand: "Mercedes-Benz", model: "Sprinter VIP" }),
     features: [
       "Geniş iç hacim",
       "Grup transferi",
@@ -74,7 +71,7 @@ function VehicleShowcase() {
         if (active && Array.isArray(list) && list.length > 0) {
           setVehicles(
             list
-              .filter((vehicle) => vehicle.active !== false)
+              .filter((vehicle) => vehicle.active !== false && isVipFleetVehicle(vehicle))
               .slice(0, 3)
               .map(normalizeVehicle),
           );
@@ -224,8 +221,9 @@ function formatVehicleClass(value) {
       ECONOMY: "Ekonomik",
       STANDARD: "Standart",
       PREMIUM: "Premium",
-      VIP: "VIP",
+      VIP: "Premium VAN",
       BUSINESS: "Business",
+      MINIVAN: "Premium Minibus",
     }[value] ||
     value ||
     "VIP Transfer"

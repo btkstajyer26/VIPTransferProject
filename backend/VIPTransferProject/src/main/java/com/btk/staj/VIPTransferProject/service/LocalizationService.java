@@ -46,6 +46,13 @@ public class LocalizationService {
                 .collect(Collectors.toMap(Translation::getTransKey, Translation::getValue));
     }
 
+    public List<TranslationDto> getTranslationsForAdmin(String langCode) {
+        List<Translation> translations = langCode == null || langCode.isBlank()
+                ? translationRepository.findAll()
+                : translationRepository.findByLangCode(langCode);
+        return translations.stream().map(this::toDto).toList();
+    }
+
     public TranslationDto createTranslation(CreateTranslationRequest request) {
         Translation translation = Translation.builder()
                 .transKey(request.getTransKey())
