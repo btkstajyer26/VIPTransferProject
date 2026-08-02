@@ -20,15 +20,13 @@ public class JwtUtil {
     private final JwtKeyProvider keyProvider;
     private static final long EXPIRATION_TIME = 1000 * 60 * 15; // 15dk Access Token
 
-    public String generateToken(String username, Long userId, String role, Long sessionId) {
-        if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Token üretimi için geçerli bir kullanıcı adı gereklidir.");
+    public String generateToken(Long userId,Long sessionId) {
+        if (userId == null || sessionId == null) {
+            throw new IllegalArgumentException("Token üretimi için geçerli bir Kullanıcı ID ve Session ID gereklidir.");
         }
 
         return Jwts.builder()
-                .setSubject(username)
-                .claim("userId", userId)
-                .claim("role",role)
+                .setSubject(String.valueOf(userId))
                 .claim("sessionId",sessionId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -60,16 +58,6 @@ public class JwtUtil {
         }
         return false;
     }
-
-    // Token içinden rol okuma metodu
-    public String extractRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
-    }
-
-    public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
-    }
-
     public Long extractUserId(String token) {
         Number userId = extractAllClaims(token).get("userId", Number.class);
         return userId != null ? userId.longValue() : null;

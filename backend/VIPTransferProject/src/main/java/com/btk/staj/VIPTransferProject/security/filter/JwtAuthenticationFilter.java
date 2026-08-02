@@ -1,5 +1,7 @@
 package com.btk.staj.VIPTransferProject.security.filter;
 
+import com.btk.staj.VIPTransferProject.entity.User;
+import com.btk.staj.VIPTransferProject.repository.UserRepository;
 import com.btk.staj.VIPTransferProject.dto.ApiResponse;
 import com.btk.staj.VIPTransferProject.exception.UnauthorizedException;
 import com.btk.staj.VIPTransferProject.security.util.IpUtil;
@@ -38,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     //private final ObjectMapper objectMapper;
     private final RefreshTokenService refreshTokenService;
     private final HandlerExceptionResolver handlerExceptionResolver;
-
+    private final UserRepository userRepository;
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -63,17 +65,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             //Token'ın imzasını ve süresini JwtUtil ile doğrulanıyor
             if (jwtUtil.validateToken(jwt)) {
-                role= jwtUtil.extractRole(jwt);
-                phoneNumber = jwtUtil.extractUsername(jwt);
                 userId= jwtUtil.extractUserId(jwt);
                 sessionId= jwtUtil.extractSessionId(jwt);
-                log.info("[SOC-MONITOR] İstek onaylanıyor -> IP: {}, User-Agent: {}, User: {}", currentIp, currentDeviceInfo, phoneNumber);
-
                 if(sessionId!=null){
                     refreshTokenService.validateSessionIntegrity(sessionId,currentDeviceInfo,currentIp);
                 }
+                if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new UnauthorizedException("Kullanıcı bulunamadı veya silinmiş."));
 
-                if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    phoneNumber = user.getPhoneNumber();
+                    role = user.getRole().name();
+                    log.info("[SOC-MONITOR] İstek onaylanıyor -> IP: {}, User-Agent: {}, User: {}", currentIp, currentDeviceInfo, phoneNumber);
                     String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
                     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(authority));
                     log.debug("[JwtFilter] SecurityContext'e atanacak Yetki (Authority): UserId:{} , phoneNumber: {} , sessionId:{} ", userId,phoneNumber,sessionId);
