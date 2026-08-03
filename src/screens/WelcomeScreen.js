@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, ImageBackground, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { createWelcomeStyles } from '../styles/welcomeStyles';
@@ -51,7 +51,7 @@ function getAnimatedStyle(animation, translateDistance) {
 
 
 export default function WelcomeScreen({ navigation }) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const styles = useMemo(() => createWelcomeStyles(theme), [theme]);
   const brandAnim = useRef(new Animated.Value(0)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
@@ -78,12 +78,17 @@ export default function WelcomeScreen({ navigation }) {
   }, [actionsAnim, brandAnim, featureAnimations, heroAnim, titleAnim]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View pointerEvents="none" style={styles.decorations}>
-        <View style={styles.topOrb} />
-        <View style={styles.topRing} />
-        <View style={styles.bottomOrb} />
-      </View>
+    <ImageBackground
+      resizeMode="cover"
+      source={
+        isDark
+          ? require('../../assets/vip-transfer-hero.png')
+          : require('../../assets/vip-transfer-hero-light.png')
+      }
+      style={styles.backgroundImage}
+    >
+      <View pointerEvents="none" style={styles.imageOverlay} />
+      <SafeAreaView style={styles.safeArea}>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -184,7 +189,8 @@ export default function WelcomeScreen({ navigation }) {
             7/24 transfer hizmeti · Profesyonel sürücüler · Rezervasyon güvencesi
           </Text>
         </Animated.View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }

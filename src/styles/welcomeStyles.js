@@ -2,13 +2,19 @@ import { StyleSheet } from 'react-native';
 
 export function createWelcomeStyles(theme) {
   return StyleSheet.create({
+    backgroundImage: {
+      flex: 1,
+      backgroundColor: theme.heroBackground,
+    },
+    imageOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor:
+        theme.mode === 'light' ? 'rgba(7, 26, 50, 0.46)' : 'rgba(3, 15, 30, 0.66)',
+    },
     safeArea: {
       flex: 1,
       overflow: 'hidden',
-      backgroundColor: theme.background,
-    },
-    decorations: {
-      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'transparent',
     },
     topOrb: {
       position: 'absolute',
@@ -17,8 +23,8 @@ export function createWelcomeStyles(theme) {
       width: 260,
       height: 260,
       borderRadius: 130,
-      backgroundColor: theme.surface,
-      opacity: 0.34,
+      backgroundColor: theme.accent,
+      opacity: 0.16,
     },
     topRing: {
       position: 'absolute',
@@ -27,9 +33,9 @@ export function createWelcomeStyles(theme) {
       width: 116,
       height: 116,
       borderWidth: 1,
-      borderColor: theme.accent,
+      borderColor: theme.accentBright,
       borderRadius: 58,
-      opacity: 0.2,
+      opacity: 0.25,
     },
     bottomOrb: {
       position: 'absolute',
@@ -38,8 +44,8 @@ export function createWelcomeStyles(theme) {
       width: 280,
       height: 280,
       borderRadius: 140,
-      backgroundColor: theme.primary,
-      opacity: 0.16,
+      backgroundColor: theme.accentBright,
+      opacity: 0.1,
     },
     scrollContent: {
       flexGrow: 1,
@@ -63,9 +69,9 @@ export function createWelcomeStyles(theme) {
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: theme.accent,
+      borderColor: theme.heroBorder,
       borderRadius: 16,
-      backgroundColor: theme.surface,
+      backgroundColor: theme.accent,
       shadowColor: theme.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.18,
@@ -73,20 +79,20 @@ export function createWelcomeStyles(theme) {
       elevation: 3,
     },
     logoText: {
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 15,
       fontWeight: '800',
       letterSpacing: 1.7,
     },
     brandName: {
-      color: theme.text,
+      color: theme.heroText,
       fontSize: 18,
       fontWeight: '800',
       letterSpacing: 0.2,
     },
     brandTagline: {
       marginTop: 3,
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 9,
       fontWeight: '700',
       letterSpacing: 1.7,
@@ -97,13 +103,13 @@ export function createWelcomeStyles(theme) {
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: theme.border,
+      borderColor: theme.heroBorder,
       borderRadius: 22,
-      backgroundColor: theme.surface,
+      backgroundColor: theme.heroSurface,
       opacity: 0.92,
     },
     settingsIcon: {
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 19,
     },
     messageArea: {
@@ -112,25 +118,25 @@ export function createWelcomeStyles(theme) {
     },
     eyebrow: {
       marginBottom: 10,
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 10,
       fontWeight: '800',
       letterSpacing: 1.7,
     },
     title: {
-      color: theme.text,
+      color: theme.heroText,
       fontSize: 38,
       fontWeight: '800',
       lineHeight: 44,
       letterSpacing: -0.8,
     },
     highlightedTitle: {
-      color: theme.accent,
+      color: theme.heroText,
     },
     description: {
       maxWidth: 540,
       marginTop: 16,
-      color: theme.textSecondary,
+      color: theme.heroTextSecondary,
       fontSize: 15,
       lineHeight: 23,
     },
@@ -165,7 +171,7 @@ export function createWelcomeStyles(theme) {
       minWidth: 190,
     },
     cardEyebrow: {
-      color: theme.textSecondary,
+      color: theme.heroTextSecondary,
       fontSize: 9,
       fontWeight: '700',
       letterSpacing: 1.2,
@@ -222,7 +228,7 @@ export function createWelcomeStyles(theme) {
       paddingLeft: 12,
     },
     serviceBadge: {
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 20,
       fontWeight: '800',
     },
@@ -266,11 +272,11 @@ export function createWelcomeStyles(theme) {
       flexDirection: 'row',
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: theme.border,
+      borderColor: theme.heroBorder,
       borderRadius: 15,
       paddingHorizontal: 14,
       paddingVertical: 10,
-      backgroundColor: theme.surface,
+      backgroundColor: theme.heroSurface,
     },
     featureIconBox: {
       width: 36,
@@ -278,10 +284,10 @@ export function createWelcomeStyles(theme) {
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 11,
-      backgroundColor: theme.surfaceSecondary,
+      backgroundColor: theme.heroSurface,
     },
     featureIcon: {
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 15,
       fontWeight: '800',
     },
@@ -290,13 +296,13 @@ export function createWelcomeStyles(theme) {
       marginLeft: 12,
     },
     featureTitle: {
-      color: theme.text,
+      color: theme.heroText,
       fontSize: 13,
       fontWeight: '700',
     },
     featureDescription: {
       marginTop: 3,
-      color: theme.textSecondary,
+      color: theme.heroTextSecondary,
       fontSize: 11,
       lineHeight: 15,
     },
@@ -319,7 +325,7 @@ export function createWelcomeStyles(theme) {
     primaryButton: {
       gap: 10,
       backgroundColor: theme.accent,
-      shadowColor: theme.shadow,
+      shadowColor: theme.accent,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.22,
       shadowRadius: 8,
@@ -327,8 +333,8 @@ export function createWelcomeStyles(theme) {
     },
     secondaryButton: {
       borderWidth: 1,
-      borderColor: theme.accent,
-      backgroundColor: theme.surface,
+      borderColor: theme.heroBorder,
+      backgroundColor: theme.heroSurface,
     },
     lookupButton: {
       minHeight: 44,
@@ -348,12 +354,12 @@ export function createWelcomeStyles(theme) {
       fontWeight: '700',
     },
     secondaryButtonText: {
-      color: theme.accent,
+      color: theme.heroText,
       fontSize: 15,
       fontWeight: '800',
     },
     lookupButtonText: {
-      color: theme.textSecondary,
+      color: theme.heroTextSecondary,
       fontSize: 13,
       fontWeight: '700',
       textDecorationLine: 'underline',
@@ -370,7 +376,7 @@ export function createWelcomeStyles(theme) {
       opacity: 0.7,
     },
     trustText: {
-      color: theme.textSecondary,
+      color: theme.heroTextSecondary,
       fontSize: 10,
       lineHeight: 16,
       textAlign: 'center',

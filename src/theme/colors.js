@@ -1,14 +1,17 @@
 const colors = {
-  primary: '#0F172A',
-  secondary: '#1E3A8A',
-  accent: '#D4AF37',
-  background: '#F5F7FA',
+  primary: '#0B1F3A',
+  secondary: '#071A32',
+  accent: '#35688F',
+  accentBright: '#6F96B5',
+  accentSoft: '#EDF3F7',
+  background: '#F8FAFC',
   card: '#FFFFFF',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#E5E7EB',
-  success: '#15803D',
-  warning: '#B45309',
+  text: '#0B1F3A',
+  muted: '#64748B',
+  border: '#E2E8F0',
+  success: '#059669',
+  warning: '#D97706',
+  danger: '#DC2626',
 };
 
 export default colors;
