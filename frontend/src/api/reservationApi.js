@@ -81,18 +81,6 @@ export async function previewReservationPrice(payload) {
   return response.data;
 }
 
-export async function getGuestReservation(bookingReference, phone) {
-  const response = await apiClient.get(
-    `/reservations/guest/${encodeURIComponent(bookingReference)}`,
-    {
-      params: { phone },
-      allowAnonymous: true,
-      skipAuthRefresh: true,
-    },
-  );
-  return response.data;
-}
-
 export async function createReservation(
   payload,
   phoneNumber = null,
