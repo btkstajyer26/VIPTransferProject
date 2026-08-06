@@ -27,7 +27,8 @@
         {
           "enforceContrast": false
         }
-      ]
+      ],
+      "expo-status-bar"
     ]
   }
 }
