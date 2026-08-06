@@ -7,6 +7,11 @@ import useAuth from '../hooks/useAuth';
 import AdminNavigator from './AdminNavigator';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import VerifyEmailScreen from '../screens/VerifyEmailScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import GuestInfoScreen from '../screens/GuestInfoScreen';
 import TransferSearchScreen from '../screens/TransferSearchScreen';
 import VehicleSelectionScreen from '../screens/VehicleSelectionScreen';
@@ -70,6 +75,31 @@ export default function AppNavigator() {
           name="Login"
           component={LoginScreen}
           options={{ title: 'Giris Yap' }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{ title: 'Kayıt Ol' }}
+        />
+        <Stack.Screen
+          name="VerifyEmail"
+          component={VerifyEmailScreen}
+          options={{ title: 'E-posta Doğrulama' }}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+          options={{ title: 'Şifremi Unuttum' }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPasswordScreen}
+          options={{ title: 'Şifre Sıfırla' }}
+        />
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{ title: 'Profilim' }}
         />
         <Stack.Screen
           name="TransferSearch"

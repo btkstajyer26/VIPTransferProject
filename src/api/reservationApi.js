@@ -179,6 +179,24 @@ export function buildAuthenticatedReservationData(options = {}) {
   return buildReservationData({ ...options, includeGuestName: false });
 }
 
+export async function getMyReservations() {
+  try {
+    return await apiClient.request(`${RESERVATIONS_PATH}/my`);
+  } catch (error) {
+    rethrowApiError(error, 'Rezervasyonlarınız alınamadı.');
+  }
+}
+
+export async function cancelMyReservation(reservationId) {
+  try {
+    return await apiClient.request(`${RESERVATIONS_PATH}/${reservationId}`, {
+      method: 'DELETE',
+    });
+  } catch (error) {
+    rethrowApiError(error, 'Rezervasyon iptal edilemedi.');
+  }
+}
+
 export async function getGuestReservation({ bookingReference, phoneNumber } = {}) {
   const normalizedBookingReference = getRequiredText(
     bookingReference,

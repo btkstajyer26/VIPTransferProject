@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
@@ -11,6 +11,13 @@ const OPTIONS = [
 export default function ThemeSettingsScreen() {
   const { theme, themeMode, setThemeMode } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const [saveWarning, setSaveWarning] = useState(false);
+
+  async function handleThemeChange(mode) {
+    setSaveWarning(false);
+    const wasSaved = await setThemeMode(mode);
+    setSaveWarning(!wasSaved);
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
@@ -32,7 +39,7 @@ export default function ThemeSettingsScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ checked: isSelected }}
                 key={option.mode}
-                onPress={() => setThemeMode(option.mode)}
+                onPress={() => handleThemeChange(option.mode)}
                 style={({ pressed }) => [
                   styles.optionCard,
                   isSelected && styles.selectedCard,
@@ -48,6 +55,12 @@ export default function ThemeSettingsScreen() {
             );
           })}
         </View>
+
+        {saveWarning ? (
+          <View style={styles.warningCard}>
+            <Text style={styles.warningText}>Tema uygulandı, ancak cihaz tercihi kaydedilemedi.</Text>
+          </View>
+        ) : null}
 
         <View style={styles.infoCard}>
           <Text style={styles.infoText}>Tema tercihiniz bu cihazda saklanır.</Text>
@@ -65,7 +78,7 @@ function createStyles(theme) {
     title: { color: theme.text, fontSize: 30, fontWeight: '800', lineHeight: 38, letterSpacing: -0.4 },
     description: { marginTop: 10, color: theme.textSecondary, fontSize: 15, lineHeight: 23 },
     options: { marginTop: 32, gap: 14 },
-    optionCard: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, paddingHorizontal: 18, backgroundColor: theme.surface },
+    optionCard: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 18, paddingHorizontal: 18, backgroundColor: theme.surface },
     selectedCard: { borderWidth: 2, borderColor: theme.accent },
     optionIcon: { width: 30, color: theme.accent, fontSize: 25, textAlign: 'center' },
     optionTitle: { flex: 1, color: theme.text, fontSize: 16, fontWeight: '800' },
@@ -74,6 +87,8 @@ function createStyles(theme) {
     checkText: { color: theme.buttonText, fontSize: 14, fontWeight: '800' },
     infoCard: { marginTop: 24, borderLeftWidth: 2, borderLeftColor: theme.accent, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: theme.surface },
     infoText: { color: theme.textSecondary, fontSize: 13, lineHeight: 19 },
+    warningCard: { marginTop: 20, borderWidth: 1, borderColor: theme.error, borderRadius: 14, padding: 14, backgroundColor: theme.surface },
+    warningText: { color: theme.error, fontSize: 13, lineHeight: 19 },
     pressed: { opacity: 0.72 },
   });
 }

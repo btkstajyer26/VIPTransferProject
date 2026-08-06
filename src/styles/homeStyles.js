@@ -516,7 +516,7 @@ export function createHomeStyles(theme) {
 
       borderWidth: 1.5,
 
-      borderColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: theme.border,
 
       borderRadius: 16,
 
@@ -527,6 +527,26 @@ export function createHomeStyles(theme) {
     secondaryButtonText: { color: theme.text, fontSize: 15, fontWeight: '700' },
 
     logoutArea: { marginTop: 36, alignItems: 'center' },
+
+    logoutButton: {
+
+      minHeight: 48,
+
+      paddingHorizontal: 24,
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      borderWidth: 1.5,
+
+      borderColor: theme.border,
+
+      borderRadius: 16,
+
+      backgroundColor: 'transparent',
+
+    },
 
     logoutText: { color: theme.textSecondary, fontSize: 14, fontWeight: '700' },
 

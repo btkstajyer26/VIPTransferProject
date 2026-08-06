@@ -6,6 +6,8 @@ import { useTheme } from '../theme/ThemeContext';
 import { createHomeStyles } from '../styles/homeStyles';
 import { useAuth } from '../context/AuthContext';
 import { useReservationDraft } from '../context/ReservationDraftContext';
+import { getCurrentUser } from '../api/userApi';
+import { getMyLoyaltyAccount } from '../api/loyaltyApi';
 
 function getDisplayName(user) {
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
@@ -97,21 +99,13 @@ export default function HomeScreen({ navigation }) {
     setError(null);
 
     try {
-      const mockUser = {
-        firstName: 'Stajyer',
-        lastName: 'Geliştirici',
-        phoneNumber: '05551111111'
-      };
+      const [currentUser, loyaltyAccount] = await Promise.all([
+        getCurrentUser(),
+        getMyLoyaltyAccount(),
+      ]);
 
-      const mockLoyalty = {
-        lifetimePoints: 12500,
-        tier: 'SILVER'
-      };
-
-      await new Promise(resolve => setTimeout(resolve, 350));
-
-      setUser(mockUser);
-      setLoyalty(mockLoyalty);
+      setUser(currentUser);
+      setLoyalty(loyaltyAccount);
     } catch (loadError) {
       setError(loadError?.message || 'Bilgiler yüklenemedi.');
     } finally {
@@ -331,12 +325,12 @@ export default function HomeScreen({ navigation }) {
 
                 {TIERS.map((t, index) => {
                   const angle = -90 + index * (180 / (TIERS.length - 1));
+                  const angleRad = (angle * Math.PI) / 180;
+                  const labelTop = 66 - 53 * Math.cos(angleRad);
+                  const labelLeft = 66 + 53 * Math.sin(angleRad);
                   return (
-                    <View
-                      key={`level-label-${index}`}
-                      style={[styles.gaugeLabelWrapper, { transform: [{ rotate: `${angle}deg` }] }]}
-                    >
-                      <Text style={[styles.gaugeLabelText, { transform: [{ rotate: `${-angle}deg` }] }]}>
+                    <View key={`level-label-${index}`} style={styles.gaugeLabelWrapper}>
+                      <Text style={[styles.gaugeLabelText, { top: labelTop, left: labelLeft }]}>
                         {t.label}
                       </Text>
                     </View>
@@ -406,10 +400,23 @@ export default function HomeScreen({ navigation }) {
           >
             <Text style={styles.secondaryButtonText}>Geçmiş Rezervasyonlarım</Text>
           </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => navigation.navigate('Profile')}
+            style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.secondaryButtonText}>Profilim</Text>
+          </Pressable>
         </Animated.View>
 
         <Animated.View style={[styles.logoutArea, getAnimatedStyle(actionsAnim, 14)]}>
-          <Pressable accessibilityRole="button" hitSlop={8} onPress={handleLogout} style={({ pressed }) => pressed && styles.pressed}>
+          <Pressable
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={handleLogout}
+            style={({ pressed }) => [styles.logoutButton, pressed && styles.pressed]}
+          >
             <Text style={styles.logoutText}>Çıkış Yap</Text>
           </Pressable>
         </Animated.View>

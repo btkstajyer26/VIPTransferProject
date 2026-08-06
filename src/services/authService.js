@@ -1,5 +1,12 @@
 import apiClient from '../api/apiClient';
-import { AUTH_LOGIN_PATH } from '../constants/api';
+import {
+  AUTH_FORGOT_PASSWORD_PATH,
+  AUTH_LOGIN_PATH,
+  AUTH_REGISTER_PATH,
+  AUTH_RESEND_CODE_PATH,
+  AUTH_RESET_PASSWORD_PATH,
+  AUTH_VERIFY_EMAIL_PATH,
+} from '../constants/api';
 import { clearAuthSession, saveAuthSession } from '../storage/tokenStorage';
 
 function isValidLoginResponse(response) {
@@ -16,14 +23,6 @@ function isValidLoginResponse(response) {
 }
 
 export async function login(loginRequest) {
-  // Geliştirme aşaması: Backend kapalı olduğu için sahte (mock) başarılı yanıt dönüyoruz
-  const response = {
-    accessToken: "sahte_jwt_token_12345",
-    tokenType: "Bearer",
-    role: "USER"
-  };
-
-  /* GERÇEK İSTEK - Backend ile bağlanırken aşağıdaki yorum satırlarını kaldıracağız
   const response = await apiClient.request(AUTH_LOGIN_PATH, {
     method: 'POST',
     body: {
@@ -32,7 +31,6 @@ export async function login(loginRequest) {
     },
     requiresAuth: false,
   });
-  */
   const payload = response?.data ?? response;
 
   if (!isValidLoginResponse(payload)) {
@@ -58,4 +56,67 @@ export async function login(loginRequest) {
 
 export async function logout() {
   await clearAuthSession();
+}
+
+export async function register(registerRequest) {
+  const response = await apiClient.request(AUTH_REGISTER_PATH, {
+    method: 'POST',
+    body: {
+      firstName: registerRequest?.firstName,
+      lastName: registerRequest?.lastName,
+      email: registerRequest?.email,
+      phoneNumber: registerRequest?.phoneNumber,
+      password: registerRequest?.password,
+    },
+    requiresAuth: false,
+  });
+
+  return response?.data ?? response;
+}
+
+export async function verifyEmail(verifyRequest) {
+  const response = await apiClient.request(AUTH_VERIFY_EMAIL_PATH, {
+    method: 'POST',
+    body: {
+      email: verifyRequest?.email,
+      code: verifyRequest?.code,
+    },
+    requiresAuth: false,
+  });
+
+  return response?.data ?? response;
+}
+
+export async function resendVerificationCode(email) {
+  const response = await apiClient.request(AUTH_RESEND_CODE_PATH, {
+    method: 'POST',
+    body: { email },
+    requiresAuth: false,
+  });
+
+  return response?.data ?? response;
+}
+
+export async function forgotPassword(email) {
+  const response = await apiClient.request(AUTH_FORGOT_PASSWORD_PATH, {
+    method: 'POST',
+    body: { email },
+    requiresAuth: false,
+  });
+
+  return response?.data ?? response;
+}
+
+export async function resetPassword(resetRequest) {
+  const response = await apiClient.request(AUTH_RESET_PASSWORD_PATH, {
+    method: 'POST',
+    body: {
+      email: resetRequest?.email,
+      code: resetRequest?.code,
+      newPassword: resetRequest?.newPassword,
+    },
+    requiresAuth: false,
+  });
+
+  return response?.data ?? response;
 }

@@ -36,13 +36,15 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const setThemeMode = useCallback(async (nextMode) => {
-    if (!SUPPORTED_THEME_MODES.includes(nextMode)) return;
+    if (!SUPPORTED_THEME_MODES.includes(nextMode)) return false;
 
     setThemeModeState(nextMode);
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, nextMode);
+      return true;
     } catch {
-      setThemeModeState('dark');
+      // Görsel seçim korunur; yalnızca kalıcı kayıt başarısız olmuştur.
+      return false;
     }
   }, []);
 

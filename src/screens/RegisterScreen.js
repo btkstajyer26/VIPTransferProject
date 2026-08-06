@@ -9,50 +9,54 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  isValidReservationDraft,
-  useReservationDraft,
-} from '../context/ReservationDraftContext';
-import useAuth from '../hooks/useAuth';
+import * as authService from '../services/authService';
 import { useTheme } from '../theme/ThemeContext';
 import { createLoginStyles } from '../styles/loginStyles';
 
-export default function LoginScreen({ navigation, route }) {
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export default function RegisterScreen({ navigation }) {
   const { theme } = useTheme();
-  const { login } = useAuth();
-  const { clearReservationDraft, reservationDraft } = useReservationDraft();
   const styles = useMemo(() => createLoginStyles(theme), [theme]);
-  
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  function handlePhoneChange(value) {
-    const sanitizedPhone = value.replace(/\D/g, '').slice(0, 11);
-    setPhone(sanitizedPhone);
-
-    if (errors.phone) {
-      setErrors((currentErrors) => ({ ...currentErrors, phone: undefined }));
-    }
+  function clearFieldError(fieldName) {
+    setErrors((currentErrors) => ({ ...currentErrors, [fieldName]: undefined }));
   }
 
-  function handlePasswordChange(value) {
-    setPassword(value);
-
-    if (errors.password) {
-      setErrors((currentErrors) => ({ ...currentErrors, password: undefined }));
-    }
+  function handlePhoneChange(value) {
+    setPhone(value.replace(/\D/g, '').slice(0, 11));
+    clearFieldError('phone');
   }
 
   function validateForm() {
     const nextErrors = {};
 
+    if (!firstName.trim()) {
+      nextErrors.firstName = 'Ad gerekli.';
+    }
+
+    if (!lastName.trim()) {
+      nextErrors.lastName = 'Soyad gerekli.';
+    }
+
+    if (!email.trim()) {
+      nextErrors.email = 'E-posta gerekli.';
+    } else if (!EMAIL_PATTERN.test(email.trim())) {
+      nextErrors.email = 'Geçerli bir e-posta adresi girin.';
+    }
+
     if (!phone) {
       nextErrors.phone = 'Telefon numarası gerekli.';
-    } else if (!/^\d+$/.test(phone)) {
-      nextErrors.phone = 'Telefon numarası yalnızca rakamlardan oluşmalı.';
     } else if (phone.length !== 11) {
       nextErrors.phone = 'Telefon numarası 11 haneli olmalı.';
     } else if (!phone.startsWith('0')) {
@@ -65,69 +69,40 @@ export default function LoginScreen({ navigation, route }) {
       nextErrors.password = 'Şifre en az 6 karakter olmalı.';
     }
 
+    if (confirmPassword !== password) {
+      nextErrors.confirmPassword = 'Şifreler eşleşmiyor.';
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
 
-  async function handleLogin() {
-    const isFormValid = validateForm();
-
-    if (!isFormValid || loading) {
+  async function handleRegister() {
+    if (!validateForm() || loading) {
       return;
     }
 
     try {
       setLoading(true);
-      const authenticatedSession = await login({ phoneNumber: phone, password });
+      await authService.register({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phoneNumber: phone,
+        password,
+      });
 
-      if (authenticatedSession?.role?.trim().toUpperCase() === 'ADMIN') {
-        return;
-      }
-
-      if (
-        route.params?.fromReservationFlow === true &&
-        isValidReservationDraft(reservationDraft)
-      ) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: route.params?.returnTo || 'Reservation',
-              params: { fromReservationFlow: true, isGuest: false },
-            },
-          ],
-        });
-        return;
-      }
-
-      if (route.params?.fromReservationFlow === true) {
-        clearReservationDraft();
-      }
-
-      navigation.replace('Home');
-    } catch (loginError) {
+      navigation.replace('VerifyEmail', { email: email.trim() });
+    } catch (registerError) {
       setErrors((currentErrors) => ({
         ...currentErrors,
         form:
-          loginError?.message ||
-          'Giriş işlemi tamamlanamadı. Lütfen bilgilerinizi kontrol edin.',
+          registerError?.message ||
+          'Kayıt işlemi tamamlanamadı. Lütfen bilgilerinizi kontrol edin.',
       }));
     } finally {
       setLoading(false);
     }
-  }
-
-  function handleForgotPassword() {
-    navigation.navigate('ForgotPassword');
-  }
-
-  function handleRegister() {
-    navigation.navigate('Register');
-  }
-
-  function handleContinueAsGuest() {
-    clearReservationDraft();
-    navigation.navigate('TransferSearch');
   }
 
   return (
@@ -152,26 +127,74 @@ export default function LoginScreen({ navigation, route }) {
                   <Text style={styles.brandTagline}>PREMIUM ULAŞIM</Text>
                 </View>
               </View>
-              <Pressable
-                accessibilityLabel="Tema ayarlarını aç"
-                accessibilityRole="button"
-                onPress={() => navigation.navigate('ThemeSettings')}
-                style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}
-              >
-                <Text style={styles.settingsIcon}>⚙</Text>
-              </Pressable>
             </View>
 
             <View style={styles.headingArea}>
               <View style={styles.accentLine} />
-              <Text style={styles.title}>Tekrar Hoş Geldiniz</Text>
+              <Text style={styles.title}>Hesap Oluştur</Text>
               <Text style={styles.description}>
-                Rezervasyonlarınıza ve sadakat avantajlarınıza erişmek için giriş yapın.
+                Sadakat puanlarınızı ve rezervasyon geçmişinizi takip etmek için üye olun.
               </Text>
             </View>
           </View>
 
           <View style={styles.form}>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Ad</Text>
+              <TextInput
+                accessibilityLabel="Ad"
+                autoComplete="given-name"
+                editable={!loading}
+                onChangeText={(value) => {
+                  setFirstName(value);
+                  clearFieldError('firstName');
+                }}
+                placeholder="Adınız"
+                placeholderTextColor={theme.placeholder}
+                style={[styles.input, errors.firstName && styles.inputError]}
+                value={firstName}
+              />
+              {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Soyad</Text>
+              <TextInput
+                accessibilityLabel="Soyad"
+                autoComplete="family-name"
+                editable={!loading}
+                onChangeText={(value) => {
+                  setLastName(value);
+                  clearFieldError('lastName');
+                }}
+                placeholder="Soyadınız"
+                placeholderTextColor={theme.placeholder}
+                style={[styles.input, errors.lastName && styles.inputError]}
+                value={lastName}
+              />
+              {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>E-posta</Text>
+              <TextInput
+                accessibilityLabel="E-posta"
+                autoCapitalize="none"
+                autoComplete="email"
+                editable={!loading}
+                keyboardType="email-address"
+                onChangeText={(value) => {
+                  setEmail(value);
+                  clearFieldError('email');
+                }}
+                placeholder="ornek@eposta.com"
+                placeholderTextColor={theme.placeholder}
+                style={[styles.input, errors.email && styles.inputError]}
+                value={email}
+              />
+              {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+            </View>
+
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Telefon numarası</Text>
               <TextInput
@@ -194,10 +217,13 @@ export default function LoginScreen({ navigation, route }) {
               <View style={[styles.passwordContainer, errors.password && styles.inputError]}>
                 <TextInput
                   accessibilityLabel="Şifre"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   editable={!loading}
-                  onChangeText={handlePasswordChange}
-                  placeholder="Şifrenizi girin"
+                  onChangeText={(value) => {
+                    setPassword(value);
+                    clearFieldError('password');
+                  }}
+                  placeholder="En az 6 karakter"
                   placeholderTextColor={theme.placeholder}
                   secureTextEntry={!showPassword}
                   style={styles.passwordInput}
@@ -218,19 +244,31 @@ export default function LoginScreen({ navigation, route }) {
               {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
             </View>
 
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={handleForgotPassword}
-              style={({ pressed }) => [styles.forgotButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.forgotText}>Şifremi Unuttum</Text>
-            </Pressable>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Şifre tekrar</Text>
+              <TextInput
+                accessibilityLabel="Şifre tekrar"
+                autoComplete="new-password"
+                editable={!loading}
+                onChangeText={(value) => {
+                  setConfirmPassword(value);
+                  clearFieldError('confirmPassword');
+                }}
+                placeholder="Şifrenizi tekrar girin"
+                placeholderTextColor={theme.placeholder}
+                secureTextEntry={!showPassword}
+                style={[styles.input, errors.confirmPassword && styles.inputError]}
+                value={confirmPassword}
+              />
+              {errors.confirmPassword ? (
+                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+              ) : null}
+            </View>
 
             <Pressable
               accessibilityRole="button"
               disabled={loading}
-              onPress={handleLogin}
+              onPress={handleRegister}
               style={({ pressed }) => [
                 styles.button,
                 styles.primaryButton,
@@ -239,42 +277,22 @@ export default function LoginScreen({ navigation, route }) {
               ]}
             >
               <Text style={styles.primaryButtonText}>
-                {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+                {loading ? 'Kayıt Olunuyor...' : 'Kayıt Ol'}
               </Text>
             </Pressable>
             {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
 
             <View style={styles.registerArea}>
-              <Text style={styles.registerPrompt}>Hesabın yok mu?</Text>
+              <Text style={styles.registerPrompt}>Zaten hesabın var mı?</Text>
               <Pressable
                 accessibilityRole="button"
                 hitSlop={8}
-                onPress={handleRegister}
+                onPress={() => navigation.navigate('Login')}
                 style={({ pressed }) => pressed && styles.pressed}
               >
-                <Text style={styles.registerLink}>Kayıt Ol</Text>
+                <Text style={styles.registerLink}>Giriş Yap</Text>
               </Pressable>
             </View>
-
-            <View style={styles.dividerArea}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>veya</Text>
-              <View style={styles.divider} />
-            </View>
-
-            <Pressable
-              accessibilityRole="button"
-              disabled={loading}
-              onPress={handleContinueAsGuest}
-              style={({ pressed }) => [
-                styles.button,
-                styles.secondaryButton,
-                loading && styles.disabledButton,
-                pressed && !loading && styles.pressed,
-              ]}
-            >
-              <Text style={styles.secondaryButtonText}>Misafir Olarak Devam Et</Text>
-            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
