@@ -6,6 +6,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ReservationDraftProvider } from './src/context/ReservationDraftContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { LocalizationProvider } from './src/localization/LocalizationContext';
 
 function AppContent() {
   const { isDark } = useTheme();
@@ -29,7 +30,9 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <LocalizationProvider>
+        <AppContent />
+      </LocalizationProvider>
     </ThemeProvider>
   );
 }

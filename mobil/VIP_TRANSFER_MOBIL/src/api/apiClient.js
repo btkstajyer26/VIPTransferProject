@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../constants/api';
 import { clearAuthSession, getAuthSession } from '../storage/tokenStorage';
+import { getStoredLanguage } from '../storage/languageStorage';
 
 const DEFAULT_TIMEOUT_MS = 10000;
 
@@ -77,8 +78,10 @@ async function request(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    const language = await getStoredLanguage();
     const requestHeaders = {
       'Content-Type': 'application/json',
+      'Accept-Language': language,
       ...headers,
     };
 

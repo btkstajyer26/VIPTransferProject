@@ -4,13 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import useAuth from '../hooks/useAuth';
 import { getNotificationPreferences, updateNotificationPreference } from '../services/notificationPreferenceService';
 import { useTheme } from '../theme/ThemeContext';
+import { useLocalization } from '../localization/LocalizationContext';
 
-const NOTIFICATION_CHANNELS = [
-  { key: 'EMAIL', icon: '@', title: 'E-posta', description: 'Rezervasyon ve hesap bildirimleri e-posta ile gönderilir.', editable: false },
-  { key: 'SMS', icon: 'SMS', title: 'SMS', description: 'Önemli rezervasyon güncellemeleri SMS ile gönderilir.', editable: false },
-  { key: 'PUSH', icon: '!', title: 'Anlık bildirim', description: 'Uygulama bildirimlerini açın veya kapatın.', editable: true },
-  { key: 'WHATSAPP', icon: 'W', title: 'WhatsApp', description: 'Uygun bildirimleri WhatsApp üzerinden alın.', editable: true },
-];
 const EMPTY_PREFERENCES = { EMAIL: true, SMS: true, PUSH: false, WHATSAPP: false };
 
 function normalizePreferences(items) {
@@ -26,6 +21,13 @@ function normalizePreferences(items) {
 export default function NotificationPreferencesScreen({ navigation }) {
   const { isAuthenticated, logout } = useAuth();
   const { theme } = useTheme();
+  const { t } = useLocalization();
+  const notificationChannels = [
+    { key: 'EMAIL', icon: '@', title: t('notifications.email'), description: t('notifications.emailDesc'), editable: false },
+    { key: 'SMS', icon: 'SMS', title: 'SMS', description: t('notifications.smsDesc'), editable: false },
+    { key: 'PUSH', icon: '!', title: t('notifications.push'), description: t('notifications.pushDesc'), editable: true },
+    { key: 'WHATSAPP', icon: 'W', title: 'WhatsApp', description: t('notifications.whatsappDesc'), editable: true },
+  ];
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [preferences, setPreferences] = useState(EMPTY_PREFERENCES);
   const [loading, setLoading] = useState(true);
@@ -79,22 +81,22 @@ export default function NotificationPreferencesScreen({ navigation }) {
     }
   }
 
-  if (loading) return <SafeAreaView edges={['bottom']} style={styles.safeArea}><View style={styles.state}><ActivityIndicator color={theme.accent} size="large" /><Text style={styles.stateText}>Bildirim tercihleri yükleniyor...</Text></View></SafeAreaView>;
-  if (error) return <SafeAreaView edges={['bottom']} style={styles.safeArea}><View style={styles.state}><Text style={styles.stateTitle}>Tercihler yüklenemedi</Text><Text style={styles.stateText}>{error}</Text><Pressable onPress={load} style={({ pressed }) => [styles.retry, pressed && styles.pressed]}><Text style={styles.retryText}>Tekrar Dene</Text></Pressable></View></SafeAreaView>;
+  if (loading) return <SafeAreaView edges={['bottom']} style={styles.safeArea}><View style={styles.state}><ActivityIndicator color={theme.accent} size="large" /><Text style={styles.stateText}>{t('notifications.loading')}</Text></View></SafeAreaView>;
+  if (error) return <SafeAreaView edges={['bottom']} style={styles.safeArea}><View style={styles.state}><Text style={styles.stateTitle}>{t('notifications.failed')}</Text><Text style={styles.stateText}>{error}</Text><Pressable onPress={load} style={({ pressed }) => [styles.retry, pressed && styles.pressed]}><Text style={styles.retryText}>{t('common.retry')}</Text></Pressable></View></SafeAreaView>;
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Bildirim Tercihleri</Text>
-        <Text style={styles.description}>Size hangi kanallardan ulaşabileceğimizi seçin.</Text>
+        <Text style={styles.title}>{t('notifications.title')}</Text>
+        <Text style={styles.description}>{t('notifications.description')}</Text>
         <View style={styles.list}>
-          {NOTIFICATION_CHANNELS.map((channel) => (
+          {notificationChannels.map((channel) => (
             <View key={channel.key} style={styles.card}>
               <View style={styles.icon}><Text style={styles.iconText}>{channel.icon}</Text></View>
               <View style={styles.channel}>
                 <View style={styles.titleRow}>
                   <Text style={styles.channelTitle}>{channel.title}</Text>
-                  {!channel.editable ? <Text style={styles.requiredBadge}>Her zaman açık</Text> : null}
+                  {!channel.editable ? <Text style={styles.requiredBadge}>{t('notifications.always')}</Text> : null}
                 </View>
                 <Text style={styles.channelDescription}>{channel.description}</Text>
               </View>

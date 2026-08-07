@@ -87,7 +87,9 @@ export default function AdminUsersScreen() {
     setDeletingId(id);
     try {
       await deleteAdminUser(id);
-      setUsers((current) => current.filter((user) => user.id !== id));
+      setUsers((current) => current.map((user) => (
+        user.id === id ? { ...user, active: false } : user
+      )));
     } catch (requestError) {
       if (requestError?.status === 401) await logout();
       else {
@@ -160,7 +162,7 @@ export default function AdminUsersScreen() {
                 <Text style={styles.metadataText}>E-posta: <Text style={styles.metadataStrong}>{item.email || '-'}</Text></Text>
                 <Text style={styles.metadataText}>Oluşturulma: {formatDate(item.createdAt)}</Text>
               </View>
-              {!isOwnAccount ? (
+              {!isOwnAccount && item.active === true ? (
                 <View style={styles.actions}>
                   <Pressable
                     disabled={deletingId !== null}
@@ -172,9 +174,9 @@ export default function AdminUsersScreen() {
                     </Text>
                   </Pressable>
                 </View>
-              ) : (
+              ) : isOwnAccount ? (
                 <Text style={[styles.metadataText, { marginTop: 12 }]}>Bu sizin hesabınız.</Text>
-              )}
+              ) : null}
             </View>
           );
         }}

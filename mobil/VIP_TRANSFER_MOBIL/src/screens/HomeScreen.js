@@ -3,9 +3,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useReservationDraft } from '../context/ReservationDraftContext';
 import { mockUser } from '../data/mockData';
 import colors from '../theme/colors';
+import { useLocalization } from '../localization/LocalizationContext';
 
 export default function HomeScreen({ navigation }) {
   const { clearReservationDraft } = useReservationDraft();
+  const { t } = useLocalization();
 
   function handleNewReservation() {
     clearReservationDraft();
@@ -16,42 +18,42 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView edges={['bottom']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>VIP TRANSFER HESABIM</Text>
-          <Text style={styles.greeting}>Merhaba, {mockUser.name}</Text>
-          <Text style={styles.subtitle}>Yolculuklarını tek yerden planla ve takip et.</Text>
+          <Text style={styles.eyebrow}>{t('home.eyebrow')}</Text>
+          <Text style={styles.greeting}>{t('home.hello', { name: mockUser.name })}</Text>
+          <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
         </View>
 
         <View style={styles.loyaltyCard}>
           <View style={styles.loyaltyIcon}><Text style={styles.loyaltyIconText}>★</Text></View>
           <View style={styles.loyaltyContent}>
-            <Text style={styles.cardLabel}>Sadakat puanı</Text>
-            <Text style={styles.point}>{mockUser.loyaltyPoint} puan</Text>
-            <Text style={styles.level}>{mockUser.loyaltyLevel} seviye</Text>
+            <Text style={styles.cardLabel}>{t('home.loyalty')}</Text>
+            <Text style={styles.point}>{t('home.points', { count: mockUser.loyaltyPoint })}</Text>
+            <Text style={styles.level}>{t('home.level', { level: mockUser.loyaltyLevel })}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Hızlı işlemler</Text>
+        <Text style={styles.sectionTitle}>{t('home.quick')}</Text>
         <View style={styles.actionGroup}>
           <Pressable style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]} onPress={handleNewReservation}>
             <View>
-              <Text style={styles.primaryButtonText}>Yeni rezervasyon</Text>
-              <Text style={styles.primaryButtonHint}>Rotanı belirle, aracını seç</Text>
+              <Text style={styles.primaryButtonText}>{t('home.new')}</Text>
+              <Text style={styles.primaryButtonHint}>{t('home.newHint')}</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </Pressable>
 
           <Pressable style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]} onPress={() => navigation.navigate('Reservations')}>
             <View>
-              <Text style={styles.secondaryButtonText}>Rezervasyonlarım</Text>
-              <Text style={styles.secondaryButtonHint}>Geçmiş ve aktif yolculuklar</Text>
+              <Text style={styles.secondaryButtonText}>{t('home.reservations')}</Text>
+              <Text style={styles.secondaryButtonHint}>{t('home.reservationsHint')}</Text>
             </View>
             <Text style={styles.secondaryArrow}>›</Text>
           </Pressable>
 
           <Pressable style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]} onPress={() => navigation.navigate('NotificationPreferences')}>
             <View>
-              <Text style={styles.secondaryButtonText}>Bildirim Tercihleri</Text>
-              <Text style={styles.secondaryButtonHint}>E-posta, SMS, anlık bildirim ve WhatsApp</Text>
+              <Text style={styles.secondaryButtonText}>{t('home.notifications')}</Text>
+              <Text style={styles.secondaryButtonHint}>{t('home.notificationsHint')}</Text>
             </View>
             <Text style={styles.secondaryArrow}>›</Text>
           </Pressable>

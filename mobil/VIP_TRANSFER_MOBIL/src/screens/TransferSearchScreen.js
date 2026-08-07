@@ -16,6 +16,7 @@ import { StepIndicator } from '../components/transfer/StepIndicator';
 import { TripInfoCard } from '../components/transfer/TripInfoCard';
 import { TripSummaryCard } from '../components/transfer/TripSummaryCard';
 import { useLocationSearch } from '../hooks/useLocationSearch';
+import { useLocalization } from '../localization/LocalizationContext';
 import { createTransferSearchStyles } from '../styles/transferSearchStyles';
 import { useTheme } from '../theme/ThemeContext';
 import {
@@ -42,6 +43,7 @@ const EMPTY_LOCATION = {
 
 export default function TransferSearchScreen({ navigation }) {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const styles = useMemo(() => createTransferSearchStyles(theme), [theme]);
   const [pickupLocation, setPickupLocation] = useState({ ...EMPTY_LOCATION });
   const [dropoffLocation, setDropoffLocation] = useState({ ...EMPTY_LOCATION });
@@ -94,7 +96,7 @@ export default function TransferSearchScreen({ navigation }) {
     setLocation({
       ...EMPTY_LOCATION,
       displayName: coordinateLabel,
-      address: 'Adres belirleniyor...',
+      address: t('transfer.resolvingAddress'),
       latitude,
       longitude,
       source: 'nominatim',
@@ -106,7 +108,7 @@ export default function TransferSearchScreen({ navigation }) {
       if (reverseControllerRef.current === controller) setLocation(location);
     } catch (error) {
       if (error?.name !== 'AbortError' && reverseControllerRef.current === controller) {
-        search.setSearchError(error?.message || 'Seçilen konumun adresi bulunamadı.');
+        search.setSearchError(error?.message || t('transfer.locationError'));
       }
     }
   }
@@ -138,7 +140,7 @@ export default function TransferSearchScreen({ navigation }) {
       setSelectedTime(null);
       setErrors((currentErrors) => ({
         ...currentErrors,
-        time: 'Gelecekte bir saat seçin.',
+        time: t('transfer.futureTime'),
       }));
     }
 
@@ -150,7 +152,7 @@ export default function TransferSearchScreen({ navigation }) {
     const combinedDate = createScheduledDate(selectedDate, nextTime);
 
     if (combinedDate && combinedDate <= new Date()) {
-      setErrors((currentErrors) => ({ ...currentErrors, time: 'Geçmiş bir saat seçilemez.' }));
+      setErrors((currentErrors) => ({ ...currentErrors, time: t('transfer.pastTime') }));
       if (Platform.OS === 'android') setPickerMode(null);
       return;
     }
@@ -233,14 +235,12 @@ export default function TransferSearchScreen({ navigation }) {
 
           <View style={styles.headingTop}>
             <View style={styles.headingArea}>
-              <Text style={styles.eyebrow}>VIP TRANSFER REZERVASYONU</Text>
-              <Text style={styles.title}>Transferinizi Planlayın</Text>
-              <Text style={styles.description}>
-                Rotanızı ve yolculuk zamanınızı seçin, size uygun araçları karşılaştırın.
-              </Text>
+              <Text style={styles.eyebrow}>{t('transfer.eyebrow')}</Text>
+              <Text style={styles.title}>{t('transfer.title')}</Text>
+              <Text style={styles.description}>{t('transfer.description')}</Text>
             </View>
             <Pressable
-              accessibilityLabel="Tema ayarlarını aç"
+              accessibilityLabel={t('welcome.settings')}
               accessibilityRole="button"
               onPress={() => navigation.navigate('ThemeSettings')}
               style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}
@@ -252,17 +252,17 @@ export default function TransferSearchScreen({ navigation }) {
           <View style={styles.routeCard}>
             <View style={styles.cardHeader}>
               <View>
-                <Text style={styles.cardEyebrow}>YOLCULUK PLANI</Text>
-                <Text style={styles.cardTitle}>Rota</Text>
+                <Text style={styles.cardEyebrow}>{t('transfer.plan')}</Text>
+                <Text style={styles.cardTitle}>{t('transfer.route')}</Text>
               </View>
               <Pressable
-                accessibilityLabel="Başlangıç ve bitiş konumlarını değiştir"
+                accessibilityLabel={t('transfer.swapA11y')}
                 accessibilityRole="button"
                 onPress={handleSwapLocations}
                 style={({ pressed }) => [styles.swapButton, pressed && styles.pressed]}
               >
                 <Text style={styles.swapIcon}>⇅</Text>
-                <Text style={styles.swapButtonText}>Değiştir</Text>
+                <Text style={styles.swapButtonText}>{t('transfer.swap')}</Text>
               </Pressable>
             </View>
 
@@ -272,7 +272,7 @@ export default function TransferSearchScreen({ navigation }) {
                 activeField={activeLocationField}
                 error={errors.pickupLocation}
                 fieldName="pickupLocation"
-                label="Nereden"
+                label={t('transfer.from')}
                 hasSearched={pickupSearch.hasSearched}
                 loading={pickupSearch.loading}
                 location={pickupLocation}
@@ -295,7 +295,7 @@ export default function TransferSearchScreen({ navigation }) {
                     'pickupLocation',
                   )
                 }
-                placeholder="Başlangıç noktası seçin"
+                placeholder={t('transfer.pickupPlaceholder')}
                 searchError={pickupSearch.searchError}
                 styles={styles}
                 suggestions={pickupSearch.suggestions}
@@ -306,7 +306,7 @@ export default function TransferSearchScreen({ navigation }) {
                 activeField={activeLocationField}
                 error={errors.dropoffLocation}
                 fieldName="dropoffLocation"
-                label="Nereye"
+                label={t('transfer.to')}
                 hasSearched={dropoffSearch.hasSearched}
                 loading={dropoffSearch.loading}
                 location={dropoffLocation}
@@ -329,7 +329,7 @@ export default function TransferSearchScreen({ navigation }) {
                     'dropoffLocation',
                   )
                 }
-                placeholder="Varış noktası seçin"
+                placeholder={t('transfer.dropoffPlaceholder')}
                 searchError={dropoffSearch.searchError}
                 styles={styles}
                 suggestions={dropoffSearch.suggestions}
@@ -349,19 +349,19 @@ export default function TransferSearchScreen({ navigation }) {
 
           <View style={styles.infoGrid}>
             <TripInfoCard
-              accessibilityLabel="Transfer tarihini seç"
+              accessibilityLabel={t('transfer.selectDate')}
               error={errors.date}
               icon="▣"
-              label="Tarih"
+              label={t('transfer.date')}
               onPress={() => setPickerMode('date')}
               styles={styles}
               value={selectedDate ? formatDate(selectedDate) : ''}
             />
             <TripInfoCard
-              accessibilityLabel="Transfer saatini seç"
+              accessibilityLabel={t('transfer.selectTime')}
               error={errors.time}
               icon="◷"
-              label="Saat"
+              label={t('transfer.time')}
               onPress={() => setPickerMode('time')}
               styles={styles}
               value={selectedTime ? formatTime(selectedTime) : ''}
@@ -385,7 +385,7 @@ export default function TransferSearchScreen({ navigation }) {
                   onPress={handlePickerDismiss}
                   style={styles.pickerDoneButton}
                 >
-                  <Text style={styles.pickerDoneText}>Tamam</Text>
+                  <Text style={styles.pickerDoneText}>{t('transfer.done')}</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -407,7 +407,7 @@ export default function TransferSearchScreen({ navigation }) {
                   onPress={handlePickerDismiss}
                   style={styles.pickerDoneButton}
                 >
-                  <Text style={styles.pickerDoneText}>Tamam</Text>
+                  <Text style={styles.pickerDoneText}>{t('transfer.done')}</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -417,15 +417,15 @@ export default function TransferSearchScreen({ navigation }) {
             <View style={styles.passengerHeading}>
               <Text style={styles.infoIcon}>♟</Text>
               <View>
-                <Text style={styles.infoLabel}>Yolcu</Text>
-                <Text accessibilityLabel={`${passengerCount} yolcu`} style={styles.passengerValue}>
-                  {passengerCount} kişi
+                <Text style={styles.infoLabel}>{t('transfer.passenger')}</Text>
+                <Text accessibilityLabel={t('transfer.passengerCount', { count: passengerCount })} style={styles.passengerValue}>
+                  {t('transfer.passengerCount', { count: passengerCount })}
                 </Text>
               </View>
             </View>
             <View style={styles.compactCounter}>
               <Pressable
-                accessibilityLabel="Yolcu sayısını azalt"
+                accessibilityLabel={t('transfer.decreasePassenger')}
                 accessibilityRole="button"
                 disabled={passengerCount === MIN_PASSENGER_COUNT}
                 onPress={() => updatePassengerCount(-1)}
@@ -439,7 +439,7 @@ export default function TransferSearchScreen({ navigation }) {
               </Pressable>
               <Text style={styles.counterValue}>{passengerCount}</Text>
               <Pressable
-                accessibilityLabel="Yolcu sayısını artır"
+                accessibilityLabel={t('transfer.increasePassenger')}
                 accessibilityRole="button"
                 disabled={passengerCount === MAX_PASSENGER_COUNT}
                 onPress={() => updatePassengerCount(1)}
@@ -469,7 +469,7 @@ export default function TransferSearchScreen({ navigation }) {
             onPress={handleContinue}
             style={({ pressed }) => [styles.continueButton, pressed && styles.continueButtonPressed]}
           >
-            <Text style={styles.continueButtonText}>Uygun Araçları Gör</Text>
+            <Text style={styles.continueButtonText}>{t('transfer.continue')}</Text>
             <Text style={styles.continueArrow}>→</Text>
           </Pressable>
         </ScrollView>

@@ -1,33 +1,20 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, ImageBackground, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../theme/ThemeContext';
+import { useLocalization } from '../localization/LocalizationContext';
 import { createWelcomeStyles } from '../styles/welcomeStyles';
+import { useTheme } from '../theme/ThemeContext';
 
-const FEATURES = [
-  {
-    symbol: '◆',
-    title: 'Profesyonel Sürücü',
-    description: 'Deneyimli ve doğrulanmış ekip',
-  },
-  {
-    symbol: '◷',
-    title: 'Zamanında Karşılama',
-    description: 'Uçuş ve saat takibi',
-  },
-  {
-    symbol: '✓',
-    title: 'Güvenli Yolculuk',
-    description: 'Konforlu, bakımlı araçlar',
-  },
+const FEATURE_KEYS = [
+  { symbol: '◆', key: 'driver' },
+  { symbol: '▷', key: 'time' },
+  { symbol: '✓', key: 'safe' },
 ];
 
 function FeatureCard({ feature, styles }) {
   return (
     <View style={styles.featureCard}>
-      <View style={styles.featureIconBox}>
-        <Text style={styles.featureIcon}>{feature.symbol}</Text>
-      </View>
+      <View style={styles.featureIconBox}><Text style={styles.featureIcon}>{feature.symbol}</Text></View>
       <View style={styles.featureTextArea}>
         <Text style={styles.featureTitle}>{feature.title}</Text>
         <Text style={styles.featureDescription}>{feature.description}</Text>
@@ -35,37 +22,32 @@ function FeatureCard({ feature, styles }) {
     </View>
   );
 }
+
 function getAnimatedStyle(animation, translateDistance) {
   return {
     opacity: animation,
-    transform: [
-      {
-        translateY: animation.interpolate({
-          inputRange: [0, 1],
-          outputRange: [translateDistance, 0],
-        }),
-      },
-    ],
+    transform: [{ translateY: animation.interpolate({ inputRange: [0, 1], outputRange: [translateDistance, 0] }) }],
   };
 }
 
-
 export default function WelcomeScreen({ navigation }) {
   const { theme, isDark } = useTheme();
+  const { t } = useLocalization();
   const styles = useMemo(() => createWelcomeStyles(theme), [theme]);
+  const features = FEATURE_KEYS.map(({ symbol, key }) => ({
+    symbol,
+    key,
+    title: t(`welcome.feature.${key}.title`),
+    description: t(`welcome.feature.${key}.description`),
+  }));
   const brandAnim = useRef(new Animated.Value(0)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
   const heroAnim = useRef(new Animated.Value(0)).current;
-  const featureAnimations = useRef(FEATURES.map(() => new Animated.Value(0))).current;
+  const featureAnimations = useRef(FEATURE_KEYS.map(() => new Animated.Value(0))).current;
   const actionsAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const timingConfig = {
-      toValue: 1,
-      duration: 360,
-      useNativeDriver: true,
-    };
-
+    const timingConfig = { toValue: 1, duration: 360, useNativeDriver: true };
     Animated.sequence([
       Animated.timing(brandAnim, { ...timingConfig, duration: 460 }),
       Animated.stagger(90, [
@@ -80,115 +62,57 @@ export default function WelcomeScreen({ navigation }) {
   return (
     <ImageBackground
       resizeMode="cover"
-      source={
-        isDark
-          ? require('../../assets/vip-transfer-hero.png')
-          : require('../../assets/vip-transfer-hero-light.png')
-      }
+      source={isDark ? require('../../assets/vip-transfer-hero.png') : require('../../assets/vip-transfer-hero-light.png')}
       style={styles.backgroundImage}
     >
       <View pointerEvents="none" style={styles.imageOverlay} />
       <SafeAreaView style={styles.safeArea}>
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View style={[styles.headerTop, getAnimatedStyle(brandAnim, -10)]}>
-          <View style={styles.brandArea}>
-            <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>VIP</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <Animated.View style={[styles.headerTop, getAnimatedStyle(brandAnim, -10)]}>
+            <View style={styles.brandArea}>
+              <View style={styles.logoPlaceholder}><Text style={styles.logoText}>VIP</Text></View>
+              <View>
+                <Text style={styles.brandName}>VIP Transfer</Text>
+                <Text style={styles.brandTagline}>{t('welcome.tagline')}</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.brandName}>VIP Transfer</Text>
-              <Text style={styles.brandTagline}>PREMİUM ULAŞIM</Text>
+            <Pressable accessibilityLabel={t('welcome.settings')} accessibilityRole="button" onPress={() => navigation.navigate('ThemeSettings')} style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}>
+              <Text style={styles.settingsIcon}>⚙</Text>
+            </Pressable>
+          </Animated.View>
+
+          <Animated.View style={[styles.messageArea, getAnimatedStyle(titleAnim, 14)]}>
+            <Text style={styles.eyebrow}>{t('welcome.eyebrow')}</Text>
+            <Text style={styles.title}>{t('welcome.title')}</Text>
+            <Text style={[styles.title, styles.highlightedTitle]}>{t('welcome.highlight')}</Text>
+            <Text style={styles.description}>{t('welcome.description')}</Text>
+          </Animated.View>
+
+          <View style={styles.featuresArea}>
+            <Text style={styles.sectionLabel}>{t('welcome.why')}</Text>
+            <View style={styles.featuresList}>
+              {features.map((feature, index) => (
+                <Animated.View key={feature.key} style={[styles.featureAnimatedWrapper, getAnimatedStyle(featureAnimations[index], 12)]}>
+                  <FeatureCard feature={feature} styles={styles} />
+                </Animated.View>
+              ))}
             </View>
           </View>
-          <Pressable
-            accessibilityLabel="Tema ayarlarını aç"
-            accessibilityRole="button"
-            onPress={() => navigation.navigate('ThemeSettings')}
-            style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.settingsIcon}>⚙</Text>
-          </Pressable>
-        </Animated.View>
 
-        <Animated.View style={[styles.messageArea, getAnimatedStyle(titleAnim, 14)]}>
-          <Text style={styles.eyebrow}>AYRICALIKLI ULAŞIM DENEYİMİ</Text>
-          <Text style={styles.title}>Yolculuğunuz,</Text>
-          <Text style={[styles.title, styles.highlightedTitle]}>konforla başlasın.</Text>
-          <Text style={styles.description}>
-            Havalimanı, otel ve şehir içi transferlerinizi güvenli, konforlu ve zamanında
-            planlayın.
-          </Text>
-        </Animated.View>
-
-
-        <View style={styles.featuresArea}>
-          <Text style={styles.sectionLabel}>NEDEN VIP TRANSFER?</Text>
-          <View style={styles.featuresList}>
-            {FEATURES.map((feature, index) => (
-              <Animated.View
-                key={feature.title}
-                style={[
-                  styles.featureAnimatedWrapper,
-                  getAnimatedStyle(featureAnimations[index], 12),
-                ]}
-              >
-                <FeatureCard feature={feature} styles={styles} />
-              </Animated.View>
-            ))}
-          </View>
-        </View>
-
-
-        <Animated.View style={[styles.footer, getAnimatedStyle(actionsAnim, 14)]}>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityLabel="Transfer planla"
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('TransferSearch')}
-              style={({ pressed }) => [
-                styles.button,
-                styles.primaryButton,
-                pressed && styles.primaryButtonPressed,
-              ]}
-            >
-              <Text style={styles.primaryButtonText}>Transfer Planla</Text>
-              <Text style={styles.buttonArrow}>→</Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityLabel="Giriş yap"
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('Login')}
-              style={({ pressed }) => [
-                styles.button,
-                styles.secondaryButton,
-                pressed && styles.secondaryButtonPressed,
-              ]}
-            >
-              <Text style={styles.secondaryButtonText}>Giriş Yap</Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityLabel="Rezervasyonumu görüntüle"
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('ReservationLookup')}
-              style={({ pressed }) => [
-                styles.lookupButton,
-                pressed && styles.secondaryButtonPressed,
-              ]}
-            >
-              <Text style={styles.lookupButtonText}>Rezervasyonumu Görüntüle</Text>
-            </Pressable>
-          </View>
-
-          <Text style={styles.trustText}>
-            7/24 transfer hizmeti · Profesyonel sürücüler · Rezervasyon güvencesi
-          </Text>
-        </Animated.View>
+          <Animated.View style={[styles.footer, getAnimatedStyle(actionsAnim, 14)]}>
+            <View style={styles.actions}>
+              <Pressable accessibilityLabel={t('welcome.plan')} accessibilityRole="button" onPress={() => navigation.navigate('TransferSearch')} style={({ pressed }) => [styles.button, styles.primaryButton, pressed && styles.primaryButtonPressed]}>
+                <Text style={styles.primaryButtonText}>{t('welcome.plan')}</Text><Text style={styles.buttonArrow}>→</Text>
+              </Pressable>
+              <Pressable accessibilityLabel={t('welcome.login')} accessibilityRole="button" onPress={() => navigation.navigate('Login')} style={({ pressed }) => [styles.button, styles.secondaryButton, pressed && styles.secondaryButtonPressed]}>
+                <Text style={styles.secondaryButtonText}>{t('welcome.login')}</Text>
+              </Pressable>
+              <Pressable accessibilityLabel={t('welcome.lookup')} accessibilityRole="button" onPress={() => navigation.navigate('ReservationLookup')} style={({ pressed }) => [styles.lookupButton, pressed && styles.secondaryButtonPressed]}>
+                <Text style={styles.lookupButtonText}>{t('welcome.lookup')}</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.trustText}>{t('welcome.trust')}</Text>
+          </Animated.View>
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>

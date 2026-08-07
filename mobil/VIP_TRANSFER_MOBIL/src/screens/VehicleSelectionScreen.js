@@ -9,6 +9,7 @@ import useAuth from '../hooks/useAuth';
 import { useVehicles } from '../hooks/useVehicles';
 import { createVehicleSelectionStyles } from '../styles/vehicleSelectionStyles';
 import { useTheme } from '../theme/ThemeContext';
+import { useLocalization } from '../localization/LocalizationContext';
 
 function getEntryStyle(animation, translateDistance = 14) {
   return {
@@ -34,6 +35,7 @@ function getVehicleAnimation(animationMap, vehicleId) {
 
 export default function VehicleSelectionScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const { isAuthenticated } = useAuth();
   const styles = useMemo(() => createVehicleSelectionStyles(theme), [theme]);
   const transferDetails = route.params?.transferDetails;
@@ -108,14 +110,13 @@ export default function VehicleSelectionScreen({ navigation, route }) {
         <VehicleBookingSteps styles={styles} />
 
         <Animated.View style={[styles.headingArea, getEntryStyle(headingAnimation)]}>
-          <Text style={styles.eyebrow}>VIP TRANSFER FİLOSU</Text>
+          <Text style={styles.eyebrow}>{t('vehicle.eyebrow')}</Text>
           <Text style={styles.title}>
-            Yolculuğunuza uygun{'\n'}
-            <Text style={styles.highlightedTitle}>aracı seçin.</Text>
+            {t('vehicle.title')}{'\n'}
+            <Text style={styles.highlightedTitle}>{t('vehicle.highlight')}</Text>
           </Text>
           <Text style={styles.description}>
-            Konfor, kapasite ve başlangıç fiyatlarını karşılaştırarak transfer aracınızı
-            belirleyin.
+            {t('vehicle.description')}
           </Text>
         </Animated.View>
 
@@ -125,11 +126,11 @@ export default function VehicleSelectionScreen({ navigation, route }) {
 
         <Animated.View style={[styles.listHeader, getEntryStyle(listHeaderAnimation, 12)]}>
           <View>
-            <Text style={styles.sectionEyebrow}>MÜSAİT ARAÇLAR</Text>
-            <Text style={styles.sectionTitle}>Filomuz</Text>
+            <Text style={styles.sectionEyebrow}>{t('vehicle.available')}</Text>
+            <Text style={styles.sectionTitle}>{t('vehicle.fleet')}</Text>
           </View>
           {!loading && !error && vehicles.length ? (
-            <Text style={styles.vehicleCount}>{vehicles.length} ARAÇ</Text>
+            <Text style={styles.vehicleCount}>{t('vehicle.count', { count: vehicles.length })}</Text>
           ) : null}
         </Animated.View>
 
@@ -160,7 +161,7 @@ export default function VehicleSelectionScreen({ navigation, route }) {
       </ScrollView>
 
       <Animated.View style={[styles.footer, getEntryStyle(footerAnimation, 22)]}>
-        {!selectedVehicle ? <Text style={styles.footerHint}>Devam etmek için bir araç seçin</Text> : null}
+        {!selectedVehicle ? <Text style={styles.footerHint}>{t('vehicle.hint')}</Text> : null}
         <Pressable
           accessibilityRole="button"
           disabled={!selectedVehicle}

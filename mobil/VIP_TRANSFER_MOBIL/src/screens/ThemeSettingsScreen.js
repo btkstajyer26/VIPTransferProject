@@ -1,22 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalization } from '../localization/LocalizationContext';
 import { useTheme } from '../theme/ThemeContext';
 
-const OPTIONS = [
-  { mode: 'light', icon: '☀', title: 'Açık Tema' },
-  { mode: 'dark', icon: '☾', title: 'Koyu Tema' },
-];
-
-export default function ThemeSettingsScreen() {
+export default function ThemeSettingsScreen({ navigation }) {
   const { theme, themeMode, setThemeMode } = useTheme();
+  const { language, t } = useLocalization();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [saveWarning, setSaveWarning] = useState(false);
+  const options = [
+    { mode: 'light', icon: '☀', title: t('settings.theme.light') },
+    { mode: 'dark', icon: '☾', title: t('settings.theme.dark') },
+  ];
 
   async function handleThemeChange(mode) {
     setSaveWarning(false);
-    const wasSaved = await setThemeMode(mode);
-    setSaveWarning(!wasSaved);
+    setSaveWarning(!(await setThemeMode(mode)));
   }
 
   return (
@@ -24,27 +24,21 @@ export default function ThemeSettingsScreen() {
       <View style={styles.container}>
         <View>
           <View style={styles.accentLine} />
-          <Text style={styles.title}>Tema Seçimi</Text>
-          <Text style={styles.description}>
-            Uygulamanın görünümünü tercihinize göre seçin.
-          </Text>
+          <Text style={styles.title}>{t('settings.theme.title')}</Text>
+          <Text style={styles.description}>{t('settings.theme.description')}</Text>
         </View>
 
         <View style={styles.options}>
-          {OPTIONS.map((option) => {
+          {options.map((option) => {
             const isSelected = themeMode === option.mode;
             return (
               <Pressable
-                accessibilityLabel={`${option.title}${isSelected ? ', seçili' : ''}`}
+                accessibilityLabel={`${option.title}${isSelected ? `, ${t('common.selected')}` : ''}`}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: isSelected }}
                 key={option.mode}
                 onPress={() => handleThemeChange(option.mode)}
-                style={({ pressed }) => [
-                  styles.optionCard,
-                  isSelected && styles.selectedCard,
-                  pressed && styles.pressed,
-                ]}
+                style={({ pressed }) => [styles.optionCard, isSelected && styles.selectedCard, pressed && styles.pressed]}
               >
                 <Text style={styles.optionIcon}>{option.icon}</Text>
                 <Text style={styles.optionTitle}>{option.title}</Text>
@@ -56,14 +50,24 @@ export default function ThemeSettingsScreen() {
           })}
         </View>
 
-        {saveWarning ? (
-          <View style={styles.warningCard}>
-            <Text style={styles.warningText}>Tema uygulandı, ancak cihaz tercihi kaydedilemedi.</Text>
+        {saveWarning ? <Text style={styles.warningText}>{t('settings.theme.warning')}</Text> : null}
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('LanguageSettings')}
+          style={({ pressed }) => [styles.languageCard, pressed && styles.pressed]}
+        >
+          <View>
+            <Text style={styles.optionTitle}>{t('settings.language.open')}</Text>
+            <Text style={styles.infoText}>
+              {t('settings.language.current', { language: language === 'en' ? 'English' : 'Türkçe' })}
+            </Text>
           </View>
-        ) : null}
+          <Text style={styles.languageArrow}>→</Text>
+        </Pressable>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoText}>Tema tercihiniz bu cihazda saklanır.</Text>
+          <Text style={styles.infoText}>{t('settings.theme.saved')}</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -81,14 +85,15 @@ function createStyles(theme) {
     optionCard: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 18, paddingHorizontal: 18, backgroundColor: theme.surface },
     selectedCard: { borderWidth: 2, borderColor: theme.accent },
     optionIcon: { width: 30, color: theme.accent, fontSize: 25, textAlign: 'center' },
-    optionTitle: { flex: 1, color: theme.text, fontSize: 16, fontWeight: '800' },
-    selectionMark: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.border, borderRadius: 12 },
+    optionTitle: { color: theme.text, fontSize: 16, fontWeight: '800' },
+    selectionMark: { marginLeft: 'auto', width: 24, height: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.border, borderRadius: 12 },
     selectedMark: { borderColor: theme.accent, backgroundColor: theme.accent },
     checkText: { color: theme.buttonText, fontSize: 14, fontWeight: '800' },
-    infoCard: { marginTop: 24, borderLeftWidth: 2, borderLeftColor: theme.accent, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: theme.surface },
-    infoText: { color: theme.textSecondary, fontSize: 13, lineHeight: 19 },
-    warningCard: { marginTop: 20, borderWidth: 1, borderColor: theme.error, borderRadius: 14, padding: 14, backgroundColor: theme.surface },
-    warningText: { color: theme.error, fontSize: 13, lineHeight: 19 },
+    languageCard: { marginTop: 24, minHeight: 76, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: theme.border, borderRadius: 18, paddingHorizontal: 18, backgroundColor: theme.surface },
+    languageArrow: { color: theme.accent, fontSize: 26, fontWeight: '700' },
+    infoCard: { marginTop: 18, borderLeftWidth: 2, borderLeftColor: theme.accent, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: theme.surface },
+    infoText: { marginTop: 5, color: theme.textSecondary, fontSize: 13, lineHeight: 19 },
+    warningText: { marginTop: 20, color: theme.error, fontSize: 13, lineHeight: 19 },
     pressed: { opacity: 0.72 },
   });
 }

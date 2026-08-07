@@ -13,17 +13,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getGuestReservation } from '../api/reservationApi';
 import { createReservationLookupStyles } from '../styles/reservationLookupStyles';
 import { useTheme } from '../theme/ThemeContext';
+import { useLocalization } from '../localization/LocalizationContext';
 
-function getLookupError(error) {
+function getLookupError(error, t) {
   if (error?.status === 403 || error?.status === 404) {
-    return 'Rezervasyon bulunamadı. Kod ve telefon numarasını kontrol edin.';
+    return t('lookup.error.notFound');
   }
 
-  return 'Rezervasyon bilgileri alınamadı. Lütfen tekrar deneyin.';
+  return t('lookup.error.general');
 }
 
 export default function ReservationLookupScreen({ navigation }) {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const styles = useMemo(() => createReservationLookupStyles(theme), [theme]);
   const [bookingReference, setBookingReference] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -39,12 +41,12 @@ export default function ReservationLookupScreen({ navigation }) {
     const nextErrors = {};
 
     if (!normalizedReference) {
-      nextErrors.bookingReference = 'Rezervasyon kodu gerekli.';
+      nextErrors.bookingReference = t('lookup.error.codeRequired');
     }
     if (!normalizedPhone) {
-      nextErrors.phoneNumber = 'Telefon numarası gerekli.';
+      nextErrors.phoneNumber = t('lookup.error.phoneRequired');
     } else if (normalizedPhone.length !== 11 || !normalizedPhone.startsWith('05')) {
-      nextErrors.phoneNumber = 'Geçerli bir 11 haneli telefon numarası girin.';
+      nextErrors.phoneNumber = t('lookup.error.phoneInvalid');
     }
 
     setBookingReference(normalizedReference);
@@ -61,7 +63,7 @@ export default function ReservationLookupScreen({ navigation }) {
       });
       navigation.navigate('ReservationDetails', { reservation });
     } catch (error) {
-      setErrors({ form: getLookupError(error) });
+      setErrors({ form: getLookupError(error, t) });
     } finally {
       submittingRef.current = false;
       setLoading(false);
@@ -80,17 +82,15 @@ export default function ReservationLookupScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headingArea}>
-            <Text style={styles.eyebrow}>REZERVASYON SORGULAMA</Text>
-            <Text style={styles.title}>Yolculuk bilgilerinize ulaşın.</Text>
-            <Text style={styles.description}>
-              Rezervasyon kodunuzu ve rezervasyonda kullandığınız telefon numarasını girin.
-            </Text>
+            <Text style={styles.eyebrow}>{t('lookup.eyebrow')}</Text>
+            <Text style={styles.title}>{t('lookup.title')}</Text>
+            <Text style={styles.description}>{t('lookup.description')}</Text>
           </View>
 
           <View style={styles.formCard}>
-            <Text style={styles.label}>Rezervasyon kodu</Text>
+            <Text style={styles.label}>{t('lookup.code')}</Text>
             <TextInput
-              accessibilityLabel="Rezervasyon kodu"
+              accessibilityLabel={t('lookup.code')}
               autoCapitalize="characters"
               autoCorrect={false}
               editable={!loading}
@@ -107,9 +107,9 @@ export default function ReservationLookupScreen({ navigation }) {
               <Text style={styles.errorText}>{errors.bookingReference}</Text>
             ) : null}
 
-            <Text style={styles.label}>Telefon numarası</Text>
+            <Text style={styles.label}>{t('lookup.phone')}</Text>
             <TextInput
-              accessibilityLabel="Telefon numarası"
+              accessibilityLabel={t('lookup.phone')}
               autoComplete="tel"
               editable={!loading}
               keyboardType="phone-pad"
@@ -145,7 +145,7 @@ export default function ReservationLookupScreen({ navigation }) {
             >
               {loading ? <ActivityIndicator color={theme.buttonText} size="small" /> : null}
               <Text style={styles.primaryButtonText}>
-                {loading ? 'Rezervasyon Getiriliyor...' : 'Rezervasyonu Getir'}
+                {loading ? t('lookup.loading') : t('lookup.submit')}
               </Text>
             </Pressable>
           </View>

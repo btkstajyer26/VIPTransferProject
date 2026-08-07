@@ -76,14 +76,14 @@ public class UserService {
     }
 
     public List<UserResponse> getAllUsers() {
-        return userRepository.findAllByActiveTrue()
+        return userRepository.findAll()
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public UserResponse getUserById(Long id) {
-        User user = userRepository.findByIdAndActiveTrue(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + id));
         return toResponse(user);
     }

@@ -15,11 +15,13 @@ import {
   useReservationDraft,
 } from '../context/ReservationDraftContext';
 import useAuth from '../hooks/useAuth';
+import { useLocalization } from '../localization/LocalizationContext';
 import { useTheme } from '../theme/ThemeContext';
 import { createLoginStyles } from '../styles/loginStyles';
 
 export default function LoginScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const { login } = useAuth();
   const { clearReservationDraft, reservationDraft } = useReservationDraft();
   const styles = useMemo(() => createLoginStyles(theme), [theme]);
@@ -50,19 +52,19 @@ export default function LoginScreen({ navigation, route }) {
     const nextErrors = {};
 
     if (!phone) {
-      nextErrors.phone = 'Telefon numarası gerekli.';
+      nextErrors.phone = t('login.error.phoneRequired');
     } else if (!/^\d+$/.test(phone)) {
-      nextErrors.phone = 'Telefon numarası yalnızca rakamlardan oluşmalı.';
+      nextErrors.phone = t('login.error.phoneDigits');
     } else if (phone.length !== 11) {
-      nextErrors.phone = 'Telefon numarası 11 haneli olmalı.';
+      nextErrors.phone = t('login.error.phoneLength');
     } else if (!phone.startsWith('0')) {
-      nextErrors.phone = 'Telefon numarası 0 ile başlamalı.';
+      nextErrors.phone = t('login.error.phoneStart');
     }
 
     if (password.length === 0) {
-      nextErrors.password = 'Şifre gerekli.';
+      nextErrors.password = t('login.error.passwordRequired');
     } else if (password.length < 6) {
-      nextErrors.password = 'Şifre en az 6 karakter olmalı.';
+      nextErrors.password = t('login.error.passwordLength');
     }
 
     setErrors(nextErrors);
@@ -126,7 +128,7 @@ export default function LoginScreen({ navigation, route }) {
         ...currentErrors,
         form:
           loginError?.message ||
-          'Giriş işlemi tamamlanamadı. Lütfen bilgilerinizi kontrol edin.',
+          t('login.error.general'),
       }));
     } finally {
       setLoading(false);
@@ -134,11 +136,11 @@ export default function LoginScreen({ navigation, route }) {
   }
 
   function handleForgotPassword() {
-    Alert.alert('Bilgi', 'Bu özellik henüz hazırlanıyor.');
+    Alert.alert(t('login.info'), t('login.comingSoon'));
   }
 
   function handleRegister() {
-    Alert.alert('Bilgi', 'Bu özellik henüz hazırlanıyor.');
+    Alert.alert(t('login.info'), t('login.comingSoon'));
   }
 
   function handleContinueAsGuest() {
@@ -165,11 +167,11 @@ export default function LoginScreen({ navigation, route }) {
                 </View>
                 <View>
                   <Text style={styles.brandName}>VIP Transfer</Text>
-                  <Text style={styles.brandTagline}>PREMIUM ULAŞIM</Text>
+                  <Text style={styles.brandTagline}>{t('welcome.tagline')}</Text>
                 </View>
               </View>
               <Pressable
-                accessibilityLabel="Tema ayarlarını aç"
+                accessibilityLabel={t('welcome.settings')}
                 accessibilityRole="button"
                 onPress={() => navigation.navigate('ThemeSettings')}
                 style={({ pressed }) => [styles.settingsButton, pressed && styles.pressed]}
@@ -180,18 +182,16 @@ export default function LoginScreen({ navigation, route }) {
 
             <View style={styles.headingArea}>
               <View style={styles.accentLine} />
-              <Text style={styles.title}>Tekrar Hoş Geldiniz</Text>
-              <Text style={styles.description}>
-                Rezervasyonlarınıza ve sadakat avantajlarınıza erişmek için giriş yapın.
-              </Text>
+              <Text style={styles.title}>{t('login.title')}</Text>
+              <Text style={styles.description}>{t('login.description')}</Text>
             </View>
           </View>
 
           <View style={styles.form}>
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Telefon numarası</Text>
+              <Text style={styles.label}>{t('login.phone')}</Text>
               <TextInput
-                accessibilityLabel="Telefon numarası"
+                accessibilityLabel={t('login.phone')}
                 autoComplete="tel"
                 editable={!loading}
                 keyboardType="phone-pad"
@@ -206,28 +206,28 @@ export default function LoginScreen({ navigation, route }) {
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Şifre</Text>
+              <Text style={styles.label}>{t('login.password')}</Text>
               <View style={[styles.passwordContainer, errors.password && styles.inputError]}>
                 <TextInput
-                  accessibilityLabel="Şifre"
+                  accessibilityLabel={t('login.password')}
                   autoComplete="current-password"
                   editable={!loading}
                   onChangeText={handlePasswordChange}
-                  placeholder="Şifrenizi girin"
+                  placeholder={t('login.passwordPlaceholder')}
                   placeholderTextColor={theme.placeholder}
                   secureTextEntry={!showPassword}
                   style={styles.passwordInput}
                   value={password}
                 />
                 <Pressable
-                  accessibilityLabel={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                  accessibilityLabel={showPassword ? t('login.hide') : t('login.show')}
                   accessibilityRole="button"
                   hitSlop={10}
                   onPress={() => setShowPassword((currentValue) => !currentValue)}
                   style={({ pressed }) => [styles.passwordToggle, pressed && styles.pressed]}
                 >
                   <Text style={styles.passwordToggleText}>
-                    {showPassword ? 'Gizle' : 'Göster'}
+                    {showPassword ? t('login.hide') : t('login.show')}
                   </Text>
                 </Pressable>
               </View>
@@ -240,7 +240,7 @@ export default function LoginScreen({ navigation, route }) {
               onPress={handleForgotPassword}
               style={({ pressed }) => [styles.forgotButton, pressed && styles.pressed]}
             >
-              <Text style={styles.forgotText}>Şifremi Unuttum</Text>
+              <Text style={styles.forgotText}>{t('login.forgot')}</Text>
             </Pressable>
 
             <Pressable
@@ -255,26 +255,26 @@ export default function LoginScreen({ navigation, route }) {
               ]}
             >
               <Text style={styles.primaryButtonText}>
-                {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+                {loading ? t('login.submitting') : t('login.submit')}
               </Text>
             </Pressable>
             {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
 
             <View style={styles.registerArea}>
-              <Text style={styles.registerPrompt}>Hesabın yok mu?</Text>
+              <Text style={styles.registerPrompt}>{t('login.noAccount')}</Text>
               <Pressable
                 accessibilityRole="button"
                 hitSlop={8}
                 onPress={handleRegister}
                 style={({ pressed }) => pressed && styles.pressed}
               >
-                <Text style={styles.registerLink}>Kayıt Ol</Text>
+                <Text style={styles.registerLink}>{t('login.register')}</Text>
               </Pressable>
             </View>
 
             <View style={styles.dividerArea}>
               <View style={styles.divider} />
-              <Text style={styles.dividerText}>veya</Text>
+              <Text style={styles.dividerText}>{t('login.or')}</Text>
               <View style={styles.divider} />
             </View>
 
@@ -289,7 +289,7 @@ export default function LoginScreen({ navigation, route }) {
                 pressed && !loading && styles.pressed,
               ]}
             >
-              <Text style={styles.secondaryButtonText}>Misafir Olarak Devam Et</Text>
+              <Text style={styles.secondaryButtonText}>{t('login.guest')}</Text>
             </Pressable>
           </View>
         </ScrollView>

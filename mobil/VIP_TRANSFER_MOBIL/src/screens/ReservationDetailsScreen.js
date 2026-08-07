@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createReservationLookupStyles } from '../styles/reservationLookupStyles';
 import { useTheme } from '../theme/ThemeContext';
+import { useLocalization } from '../localization/LocalizationContext';
 
 const STATUS_LABELS = {
   PENDING: 'Bekliyor',
@@ -40,6 +41,7 @@ function DetailRow({ label, styles, value }) {
 
 export default function ReservationDetailsScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const styles = useMemo(() => createReservationLookupStyles(theme), [theme]);
   const reservation = route.params?.reservation;
 
@@ -62,30 +64,30 @@ export default function ReservationDetailsScreen({ navigation, route }) {
     <SafeAreaView edges={['bottom']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headingArea}>
-          <Text style={styles.eyebrow}>REZERVASYON DETAYLARI</Text>
-          <Text style={styles.title}>Yolculuğunuzun özeti</Text>
+          <Text style={styles.eyebrow}>{t('details.eyebrow')}</Text>
+          <Text style={styles.title}>{t('details.title')}</Text>
         </View>
 
         <View style={styles.detailsCard}>
-          <Text style={styles.codeLabel}>REZERVASYON KODUNUZ</Text>
+          <Text style={styles.codeLabel}>{t('details.code')}</Text>
           <Text selectable style={styles.codeValue}>{reservation.bookingReference || '—'}</Text>
 
           <View style={styles.divider} />
           <DetailRow
-            label="Durum"
+            label={t('details.status')}
             styles={styles}
             value={STATUS_LABELS[reservation.status] || reservation.status || '—'}
           />
-          <DetailRow label="Başlangıç" styles={styles} value={reservation.pickupAddress} />
-          <DetailRow label="Varış" styles={styles} value={reservation.dropoffAddress} />
-          <DetailRow label="Tarih ve Saat" styles={styles} value={formatDate(reservation.scheduledTime)} />
-          <DetailRow label="Yolcu Sayısı" styles={styles} value={reservation.passengerCount} />
+          <DetailRow label={t('details.pickup')} styles={styles} value={reservation.pickupAddress} />
+          <DetailRow label={t('details.dropoff')} styles={styles} value={reservation.dropoffAddress} />
+          <DetailRow label={t('details.datetime')} styles={styles} value={formatDate(reservation.scheduledTime)} />
+          <DetailRow label={t('details.passengers')} styles={styles} value={reservation.passengerCount} />
           {reservation.vehicleName ? (
-            <DetailRow label="Araç" styles={styles} value={reservation.vehicleName} />
+            <DetailRow label={t('details.vehicle')} styles={styles} value={reservation.vehicleName} />
           ) : null}
           {Number.isFinite(distance) ? (
             <DetailRow
-              label="Mesafe"
+              label={t('details.distance')}
               styles={styles}
               value={`${distance.toLocaleString('tr-TR', {
                 minimumFractionDigits: 1,
@@ -93,8 +95,8 @@ export default function ReservationDetailsScreen({ navigation, route }) {
               })} km`}
             />
           ) : null}
-          <DetailRow label="Toplam Tutar" styles={styles} value={formatMoney(finalPrice, currency)} />
-          <DetailRow label="Para Birimi" styles={styles} value={currency} />
+          <DetailRow label={t('details.total')} styles={styles} value={formatMoney(finalPrice, currency)} />
+          <DetailRow label={t('details.currency')} styles={styles} value={currency} />
         </View>
       </ScrollView>
     </SafeAreaView>
