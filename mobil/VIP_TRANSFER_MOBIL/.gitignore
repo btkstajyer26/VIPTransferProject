@@ -1,31 +1,3 @@
-# Claude Code geçici dosyaları
-.claude/
-
-# macOS
-.DS_Store
-
-# IDE
-.idea/
-*.iml
-
-# Docker volume verileri (yerel)
-postgres_data/
-prometheus_data/
-grafana_data/
-
-# Ignore local VS Code settings and workspace configurations
-.vscode/
-
-# Yerel ortam değişkenleri ve servis anahtarları
-.env
-**/.env
-secrets/*
-!secrets/.gitkeep
-*firebase-admin*.json
-*serviceAccountKey*.json
-docker-compose.override.yml
-
-node_modules/
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies

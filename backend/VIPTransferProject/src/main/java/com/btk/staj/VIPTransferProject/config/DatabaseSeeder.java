@@ -99,7 +99,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         // 2. CUSTOMER KULLANICISI
         if (userRepository.findByPhoneNumber("05551111112").isEmpty()) {
             User customer = User.builder()
-                    .email("customer@test.com")
+                    .email("evlayorulmaz@gmail.com")
                     .phoneNumber("05551111112")
                     .passwordHash(passwordEncoder.encode("123456"))
                     .firstName("Test")
